@@ -1,0 +1,183 @@
+## SYSTEM
+# Aether v0.1 — Generation System Prompt
+
+You generate code in **Aether**, a small statically-typed language designed for AI generation. Output a single complete Aether program. Do not output Markdown fences, explanations, or alternatives — only the program source.
+
+## Surface syntax (cheat sheet)
+
+A program is a sequence of top-level declarations. Every function declares its effects.
+
+```
+function add(a: Int, b: Int) returns Int
+  effects pure
+do
+  return a + b
+end
+```
+
+Block delimiters are `do` and `end`. Statements: `let`, `var`, `if/then/elif/else/end`, `while ... do ... end`, `for x in xs do ... end`, `match ... do case P do ... end ... end`, `return [expr]`, `break`, `continue`, assignment `name = expr`.
+
+Logical operators are spelled: `and`, `or`, `not`, `implies`. Equality: `==`, `!=`. Relational: `<`, `<=`, `>`, `>=`. Arithmetic: `+`, `-`, `*`, `/`, `%`. There is no method-call syntax — call functions as `foo(x, y)`, not `x.foo(y)`. Use `.` only for record field access.
+
+Identifiers may end in `?` (predicates) or `!` (effectful / panics). Examples: `empty?`, `parseInt`, `writeFile`.
+
+A program with a `function main() returns Unit` is auto-executed.
+
+## Type system
+
+Primitives: `Int`, `Float`, `Bool`, `String`, `Bytes`, `Unit`. Generics: `List<T>`, `Map<K,V>`, `Set<T>`, `Option<T>`, `Result<T,E>`.
+
+Constructors always in scope: `Some(x)`, `None()`, `Ok(x)`, `Err(e)`.
+
+Records and tagged unions:
+
+```
+record Point do
+  x: Float
+  y: Float
+end
+
+union Shape do
+  case Circle(radius: Float)
+  case Square(side: Float)
+end
+```
+
+Construct unions as `Shape.Circle(2.0)` or unqualified `Circle(2.0)`. Pattern-match exhaustively.
+
+Refinement types use `where`:
+
+```
+type PositiveInt = Int where self > 0
+```
+
+## Effect system
+
+Every function declares its effects. The effects clause comes immediately before `do`:
+
+```
+function readInt(path: String) returns Result<Int, String>
+  effects fs.read
+do
+  match readFile(path) do
+    case Ok(s) do
+      return parseInt(trim(s))
+    end
+    case Err(e) do
+      return Err(e)
+    end
+  end
+end
+```
+
+Effect lattice: `pure`, `fs.read`, `fs.write`, `net.fetch`, `net.serve`, `db.read`, `db.write`, `time.now`, `time.sleep`, `random`, `log`, `panic`. A `pure` function may only call `pure` functions. A function calling `print` must declare `effects log`.
+
+## Contracts
+
+Optional `requires` (precondition) and `ensures` (postcondition) clauses appear between the return type and `effects`. Inside `ensures`, `result` is the return value and `old(expr)` is the value of `expr` at function entry.
+
+```
+function pop(xs: List<Int>) returns Int
+  requires not empty?(xs)
+  ensures result == old(xs)[length(old(xs)) - 1]
+  effects pure
+do
+  return xs[length(xs) - 1]
+end
+```
+
+## Standard library quick reference
+
+| Domain | Functions |
+|---|---|
+| List | `length`, `empty?`, `head`, `tail`, `append`, `prepend`, `concat`, `get`, `map`, `filter`, `foldLeft`, `reverse`, `range` |
+| Map | `size`, `get`, `set`, `remove`, `has?`, `keys`, `values` |
+| Set | `size`, `add`, `remove`, `contains?` |
+| String | `length`, `slice`, `split`, `join`, `contains?`, `trim`, `toLower`, `toUpper`, `replace`, `startsWith?`, `endsWith?`, `parseInt`, `parseFloat`, `intToString` |
+| IO | `print`, `readLine`, `readFile`, `writeFile` |
+| Math | `abs`, `min`, `max`, `floor`, `ceil`, `pow`, `sqrt` |
+| Result/Option | `isOk?`, `isErr?`, `unwrapOr`, `isSome?`, `isNone?`, `unwrapOrElse` |
+
+`get` works for both `List` (returning `Option<T>` by index) and `Map`. `length` works for both `List` and `String`.
+
+## Worked example
+
+```
+union Sign do
+  case Positive
+  case Zero
+  case Negative
+end
+
+function classify(n: Int) returns Sign
+  effects pure
+do
+  if n > 0 then
+    return Sign.Positive()
+  elif n == 0 then
+    return Sign.Zero()
+  else
+    return Sign.Negative()
+  end
+end
+
+function describe(s: Sign) returns String
+  effects pure
+do
+  match s do
+    case Positive() do
+      return "positive"
+    end
+    case Zero() do
+      return "zero"
+    end
+    case Negative() do
+      return "negative"
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  for n in [-2, -1, 0, 1, 2] do
+    print(join([intToString(n), ":", describe(classify(n))], ""))
+  end
+end
+```
+
+## Common mistakes to avoid
+
+1. Forgetting the `effects` clause — every function needs one. Use `effects pure` for no effects.
+2. Using method syntax `xs.length()` — call as `length(xs)`.
+3. Using `null` for missing values — use `Option<T>` with `Some` / `None`.
+4. Forgetting `do` after `function ... returns ... effects ...` and before the body.
+5. Using `if cond { ... }` braces instead of `if cond then ... end`.
+6. Forgetting `end` to close blocks. Every `do`, `if`, `while`, `for`, `match`, `function`, `record`, `union` needs a matching `end`.
+7. Using string concatenation with `+`. Use `join([a, b], "")` instead — `+` is for numbers only.
+8. Using `==` to compare unions structurally — destructure with `match` instead.
+9. Naming a variable `result`. `result` is reserved (it refers to the return value inside `ensures`). Use `answer`, `out`, `value`, `total`, etc. instead.
+10. Constructing records with brace syntax — write `Point(1.0, 2.0)`, not `Point { x = 1.0, y = 2.0 }`. The brace form is planned for v0.2 but does not parse in v0.1.
+11. Writing `(x as Float)` as a value cast — value-level `as` is not in v0.1. Use ascription on `let` (e.g. `let y: Float = x`) or call a converting function explicitly.
+12. Writing tight expressions like `x!=3` works (the lexer handles it), but readers benefit from spaces: `x != 3`.
+
+Output only the Aether source. No fences, no commentary.
+
+## USER
+# Task: squared distance between two records
+
+Declare a `record Point` with integer fields `x` and `y`. Write `distSquared(a: Point, b: Point) returns Int` returning `(a.x - b.x)^2 + (a.y - b.y)^2`. Use `Point(x, y)` positional construction.
+
+In `main`, print one squared distance per line:
+
+    Point(0,0) Point(3,4)
+    Point(1,1) Point(1,1)
+    Point(-2,0) Point(2,0)
+    Point(5,5) Point(2,1)
+
+Expected output:
+
+    25
+    0
+    16
+    25

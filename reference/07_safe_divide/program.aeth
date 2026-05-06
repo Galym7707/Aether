@@ -1,0 +1,36 @@
+function safeDivide(a: Int, b: Int) returns Result<Int, String>
+  effects pure
+do
+  if b == 0 then
+    return Err("division by zero")
+  else
+    return Ok(a / b)
+  end
+end
+
+function describe(r: Result<Int, String>) returns String
+  effects pure
+do
+  match r do
+    case Ok(v) do
+      return concatStr("ok=", intToString(v))
+    end
+    case Err(msg) do
+      return concatStr("err=", msg)
+    end
+  end
+end
+
+function concatStr(a: String, b: String) returns String
+  effects pure
+do
+  return join([a, b], "")
+end
+
+function main() returns Unit
+  effects log
+do
+  print(describe(safeDivide(10, 2)))
+  print(describe(safeDivide(7, 0)))
+  print(describe(safeDivide(-9, 3)))
+end

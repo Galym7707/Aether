@@ -1,0 +1,7 @@
+{
+  "expected_stdout": "true\ntrue\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\n",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "tags": ["strings", "stack", "loops", "stdlib"],
+  "difficulty": "medium"
+}

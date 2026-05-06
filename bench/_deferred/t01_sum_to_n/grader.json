@@ -1,0 +1,7 @@
+{
+  "expected_stdout": "1\n15\n55\n5050\n",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "tags": ["expressions", "loops", "stdlib.range"],
+  "difficulty": "easy"
+}

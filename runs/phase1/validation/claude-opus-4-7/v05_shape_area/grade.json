@@ -1,0 +1,9 @@
+{
+  "task": "v05_shape_area",
+  "ok": true,
+  "stage": "exec",
+  "elapsed_ms": 1,
+  "diagnostic": null,
+  "expected": "16\n15\n12\n0\n",
+  "actual": "16\n15\n12\n0\n"
+}

@@ -1,0 +1,27 @@
+function fib(n: Int) returns Int
+  requires n >= 0
+  ensures result >= 0
+  effects pure
+do
+  if n < 2 then
+    return n
+  end
+  var a: Int = 0
+  var b: Int = 1
+  var i: Int = 2
+  while i <= n do
+    let next: Int = a + b
+    a = b
+    b = next
+    i = i + 1
+  end
+  return b
+end
+
+function main() returns Unit
+  effects log
+do
+  for k in range(0, 11) do
+    print(intToString(fib(k)))
+  end
+end

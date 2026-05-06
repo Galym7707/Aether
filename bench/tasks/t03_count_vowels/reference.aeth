@@ -1,0 +1,29 @@
+function isVowel?(c: String) returns Bool
+  effects pure
+do
+  return c == "a" or c == "e" or c == "i" or c == "o" or c == "u"
+end
+
+function countVowels(s: String) returns Int
+  effects pure
+do
+  let lower: String = toLower(s)
+  var n: Int = 0
+  var i: Int = 0
+  while i < length(lower) do
+    if isVowel?(slice(lower, i, i + 1)) then
+      n = n + 1
+    end
+    i = i + 1
+  end
+  return n
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(countVowels("hello")))
+  print(intToString(countVowels("AEIOU")))
+  print(intToString(countVowels("rhythm")))
+  print(intToString(countVowels("The Aether Programming Language")))
+end

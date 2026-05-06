@@ -1,0 +1,33 @@
+function buildStore() returns Map<String, Int>
+  effects pure
+do
+  let m0: Map<String, Int> = {}
+  let m1: Map<String, Int> = set(m0, "alice", 30)
+  let m2: Map<String, Int> = set(m1, "bob", 25)
+  let m3: Map<String, Int> = set(m2, "carol", 40)
+  return m3
+end
+
+function lookup(m: Map<String, Int>, key: String) returns String
+  effects pure
+do
+  match get(m, key) do
+    case Some(v) do
+      return join([key, "=", intToString(v)], "")
+    end
+    case None() do
+      return join([key, "=missing"], "")
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  let store: Map<String, Int> = buildStore()
+  print(lookup(store, "alice"))
+  print(lookup(store, "bob"))
+  print(lookup(store, "carol"))
+  print(lookup(store, "dave"))
+  print(intToString(size(store)))
+end

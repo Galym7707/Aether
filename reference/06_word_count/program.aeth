@@ -1,0 +1,17 @@
+function countWords(text: String) returns Int
+  effects pure
+do
+  if length(trim(text)) == 0 then
+    return 0
+  end
+  return length(split(trim(text), " "))
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(countWords("")))
+  print(intToString(countWords("hello")))
+  print(intToString(countWords("the quick brown fox")))
+  print(intToString(countWords("   leading and trailing   ")))
+end

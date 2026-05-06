@@ -1,0 +1,9 @@
+{
+  "task": "v02_map_filter_chain",
+  "ok": true,
+  "stage": "exec",
+  "elapsed_ms": 1,
+  "diagnostic": null,
+  "expected": "2\n0\n0\n3\n",
+  "actual": "2\n0\n0\n3\n"
+}

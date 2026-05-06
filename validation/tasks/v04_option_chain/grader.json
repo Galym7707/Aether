@@ -1,0 +1,9 @@
+{
+  "deprecated": true,
+  "replaced_by": "see same-numbered slot in validation/tasks/",
+  "expected_stdout": "",
+  "stdin": "",
+  "timeout_ms": 1,
+  "tags": ["deprecated"],
+  "difficulty": "n/a"
+}

@@ -1,0 +1,17 @@
+function sumList(xs: List<Int>) returns Int
+  effects pure
+do
+  var total: Int = 0
+  for x in xs do
+    total = total + x
+  end
+  return total
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(sumList([])))
+  print(intToString(sumList([1, 2, 3, 4, 5])))
+  print(intToString(sumList([10, 20, 30])))
+end

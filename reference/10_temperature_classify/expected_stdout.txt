@@ -1,0 +1,6 @@
+-5:cold
+5:cold
+15:mild
+22:mild
+30:hot
+45:hot

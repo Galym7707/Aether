@@ -1,0 +1,51 @@
+function partition(xs: List<Int>) returns Map<String, List<Int>>
+  effects pure
+do
+  var evens: List<Int> = []
+  var odds: List<Int> = []
+  var i: Int = 0
+  while i < length(xs) do
+    let n: Int = xs[i]
+    if n % 2 == 0 then
+      evens = append(evens, n)
+    else
+      odds = append(odds, n)
+    end
+    i = i + 1
+  end
+  var m: Map<String, List<Int>> = {}
+  m = set(m, "even", evens)
+  m = set(m, "odd", odds)
+  return m
+end
+
+function intListToString(xs: List<Int>) returns String
+  effects pure
+do
+  var parts: List<String> = []
+  var i: Int = 0
+  while i < length(xs) do
+    parts = append(parts, intToString(xs[i]))
+    i = i + 1
+  end
+  return join(parts, ",")
+end
+
+function render(m: Map<String, List<Int>>) returns String
+  effects pure
+do
+  let evenList: List<Int> = unwrapOrElse(get(m, "even"), [])
+  let oddList: List<Int> = unwrapOrElse(get(m, "odd"), [])
+  let evenStr: String = join(["even=[", intListToString(evenList), "]"], "")
+  let oddStr: String = join(["odd=[", intListToString(oddList), "]"], "")
+  return join([evenStr, oddStr], " ")
+end
+
+function main() returns Unit
+  effects log
+do
+  print(render(partition([1, 2, 3, 4, 5])))
+  print(render(partition([])))
+  print(render(partition([2, 4, 6])))
+  print(render(partition([1])))
+end

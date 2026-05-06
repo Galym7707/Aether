@@ -1,0 +1,30 @@
+union Op do
+  case Add
+  case Sub
+  case Mul
+end
+
+function apply(op: Op, a: Int, b: Int) returns Int
+  effects pure
+do
+  match op do
+    case Add() do
+      return a + b
+    end
+    case Sub() do
+      return a - b
+    end
+    case Mul() do
+      return a * b
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(apply(Op.Add(), 3, 4)))
+  print(intToString(apply(Op.Sub(), 10, 7)))
+  print(intToString(apply(Op.Mul(), 6, 7)))
+  print(intToString(apply(Op.Add(), -5, 5)))
+end

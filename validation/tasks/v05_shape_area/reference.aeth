@@ -1,0 +1,30 @@
+union Shape do
+  case Square(side: Int)
+  case Rectangle(width: Int, height: Int)
+  case Triangle(base: Int, height: Int)
+end
+
+function area(s: Shape) returns Int
+  effects pure
+do
+  match s do
+    case Square(side) do
+      return side * side
+    end
+    case Rectangle(w, h) do
+      return w * h
+    end
+    case Triangle(b, h) do
+      return (b * h) / 2
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(area(Shape.Square(4))))
+  print(intToString(area(Shape.Rectangle(3, 5))))
+  print(intToString(area(Shape.Triangle(4, 6))))
+  print(intToString(area(Shape.Square(0))))
+end

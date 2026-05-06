@@ -1,0 +1,19 @@
+function sumTo(n: Int) returns Int
+  requires n >= 0
+  effects pure
+do
+  var total: Int = 0
+  for i in range(1, n + 1) do
+    total = total + i
+  end
+  return total
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(sumTo(1)))
+  print(intToString(sumTo(5)))
+  print(intToString(sumTo(10)))
+  print(intToString(sumTo(100)))
+end

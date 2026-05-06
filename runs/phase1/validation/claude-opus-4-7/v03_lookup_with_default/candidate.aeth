@@ -1,0 +1,18 @@
+
+const GPA: Map<String, Int> = {"A": 4, "B": 3, "C": 2, "D": 1, "F": 0}
+
+function gpaOf(grade: String) returns Int
+  effects pure
+do
+  return unwrapOrElse(get(GPA, grade), 0)
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(gpaOf("A")))
+  print(intToString(gpaOf("C")))
+  print(intToString(gpaOf("F")))
+  print(intToString(gpaOf("X")))
+  print(intToString(gpaOf("")))
+end

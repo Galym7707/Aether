@@ -1,0 +1,7 @@
+{
+  "expected_stdout": "ok=42\nparse error\nout of range\n",
+  "stdin": "42\nabc\n150\n",
+  "timeout_ms": 5000,
+  "tags": ["result","match","stdin","parseInt"],
+  "difficulty": "medium"
+}

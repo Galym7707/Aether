@@ -1,0 +1,76 @@
+function matches?(open: String, close: String) returns Bool
+  effects pure
+do
+  return (open == "(" and close == ")") or
+         (open == "[" and close == "]") or
+         (open == "{" and close == "}")
+end
+
+function isOpen?(c: String) returns Bool
+  effects pure
+do
+  return c == "(" or c == "[" or c == "{"
+end
+
+function isClose?(c: String) returns Bool
+  effects pure
+do
+  return c == ")" or c == "]" or c == "}"
+end
+
+function balanced?(s: String) returns Bool
+  effects pure
+do
+  var stack: List<String> = []
+  var i: Int = 0
+  while i < length(s) do
+    let c: String = slice(s, i, i + 1)
+    if isOpen?(c) then
+      stack = append(stack, c)
+    elif isClose?(c) then
+      if empty?(stack) then
+        return false
+      end
+      let top: String = stack[length(stack) - 1]
+      if not matches?(top, c) then
+        return false
+      end
+      stack = slice2(stack, 0, length(stack) - 1)
+    end
+    i = i + 1
+  end
+  return empty?(stack)
+end
+
+function slice2(xs: List<String>, lo: Int, hi: Int) returns List<String>
+  effects pure
+do
+  var out: List<String> = []
+  for j in range(lo, hi) do
+    out = append(out, xs[j])
+  end
+  return out
+end
+
+function showBool(b: Bool) returns String
+  effects pure
+do
+  if b then
+    return "true"
+  else
+    return "false"
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  print(showBool(balanced?("()")))
+  print(showBool(balanced?("([])")))
+  print(showBool(balanced?("{[()]}")))
+  print(showBool(balanced?("([)]")))
+  print(showBool(balanced?("(((")))
+  print(showBool(balanced?("")))
+  print(showBool(balanced?("abc(def[ghi]jkl)mno")))
+  print(showBool(balanced?("}")))
+end

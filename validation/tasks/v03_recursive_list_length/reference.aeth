@@ -1,0 +1,5 @@
+function main() returns Unit
+  effects pure
+do
+  return
+end

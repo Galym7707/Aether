@@ -1,0 +1,35 @@
+function parseAndDouble(s: String) returns Result<Int, String>
+  effects pure
+do
+  match parseInt(s) do
+    case Ok(n) do
+      return Ok(2 * n)
+    end
+    case Err(msg) do
+      return Err(msg)
+    end
+  end
+end
+
+function describe(r: Result<Int, String>) returns String
+  effects pure
+do
+  match r do
+    case Ok(v) do
+      return join(["ok=", intToString(v)], "")
+    end
+    case Err(msg) do
+      return join(["err=", msg], "")
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  print(describe(parseAndDouble("21")))
+  print(describe(parseAndDouble("-5")))
+  print(describe(parseAndDouble("hello")))
+  print(describe(parseAndDouble("0")))
+  print(describe(parseAndDouble("")))
+end

@@ -1,0 +1,250 @@
+(* Aether v0.1 grammar — designed for hand-written LL(1) recursive descent.
+
+   Conventions:
+     UPPERCASE = terminals (tokens emitted by the lexer)
+     lowercase = nonterminals
+     "kw"      = keyword token
+     ?...?     = informal description
+     {x}       = zero or more
+     [x]       = optional
+     |         = alternation
+
+   Every top-level construct begins with a unique keyword, so the parser
+   can always look one token ahead to choose a production.
+
+   Operator precedence (low to high), left-associative unless noted:
+     1.  or            (short-circuit)
+     2.  and           (short-circuit)
+     3.  implies       (right-associative)
+     4.  not           (unary prefix)
+     5.  ==  !=
+     6.  <  <=  >  >=  is  in
+     7.  +  -
+     8.  *  /  %
+     9.  unary -
+     10. call, field-access, index   (postfix, left-assoc)
+     11. atom: literal, identifier, parenthesised, constructor
+
+   The parser implements precedence with a Pratt loop, but the EBNF below
+   spells out only the structural productions; precedence is comments. *)
+
+(* ============================================================ *)
+(* Top level                                                    *)
+(* ============================================================ *)
+
+program          = { top_decl } EOF ;
+
+top_decl         = module_decl
+                 | import_decl
+                 | function_decl
+                 | type_decl
+                 | record_decl
+                 | union_decl
+                 | const_decl ;
+
+(* ============================================================ *)
+(* Modules and imports                                          *)
+(* ============================================================ *)
+
+module_decl      = "module" IDENT module_body "end" ;
+
+module_body      = { capability_clause }
+                   [ exports_clause ] ;
+
+capability_clause = "requires" "capability" IDENT ;
+
+exports_clause   = "exports" ident_list ;
+
+import_decl      = "import" dotted_ident [ "as" IDENT ] ;
+
+ident_list       = IDENT { "," IDENT } ;
+
+dotted_ident     = IDENT { "." IDENT } ;
+
+(* ============================================================ *)
+(* Top-level constants                                          *)
+(* ============================================================ *)
+
+const_decl       = "const" IDENT ":" type_expr "=" expr ;
+
+(* ============================================================ *)
+(* Types                                                        *)
+(* ============================================================ *)
+
+type_decl        = "type" IDENT "=" type_expr [ "where" expr ] ;
+
+record_decl      = "record" IDENT "do" { record_field } "end" ;
+record_field     = IDENT ":" type_expr ;
+
+union_decl       = "union" IDENT "do" { union_case } "end" ;
+union_case       = "case" IDENT [ "(" param_list ")" ] ;
+
+type_expr        = type_atom { "<" type_expr { "," type_expr } ">" } ;
+type_atom        = IDENT
+                 | "function" "(" [ type_expr { "," type_expr } ] ")" "returns" type_expr ;
+
+(* ============================================================ *)
+(* Functions                                                    *)
+(* ============================================================ *)
+
+function_decl    = "function" IDENT [ generic_params ] "(" [ param_list ] ")"
+                   "returns" type_expr
+                   { contract_clause }
+                   effects_clause
+                   "do" block "end" ;
+
+generic_params   = "<" IDENT { "," IDENT } ">" ;
+
+param_list       = param { "," param } ;
+param            = IDENT ":" type_expr ;
+
+contract_clause  = "requires" expr
+                 | "ensures"  expr ;
+
+effects_clause   = "effects" effect_list ;
+effect_list      = effect { "," effect } ;
+effect           = "pure"
+                 | dotted_ident [ "(" expr ")" ] ;
+
+(* ============================================================ *)
+(* Statements and blocks                                        *)
+(* ============================================================ *)
+
+block            = { stmt } ;
+
+stmt             = let_stmt
+                 | var_stmt
+                 | assign_stmt
+                 | if_stmt
+                 | match_stmt
+                 | for_stmt
+                 | while_stmt
+                 | break_stmt
+                 | continue_stmt
+                 | return_stmt
+                 | expr_stmt ;
+
+let_stmt         = "let" IDENT [ ":" type_expr ] "=" expr ;
+var_stmt         = "var" IDENT [ ":" type_expr ] "=" expr ;
+
+(* assignment is restricted to lvalue := IDENT or IDENT.field; no compound-assign *)
+assign_stmt      = lvalue "=" expr ;
+lvalue           = IDENT { "." IDENT } ;
+
+if_stmt          = "if" expr "then" block
+                   { "elif" expr "then" block }
+                   [ "else" block ]
+                   "end" ;
+
+match_stmt       = "match" expr "do" { match_arm } "end" ;
+match_arm        = "case" pattern "do" block "end" ;
+
+for_stmt         = "for" IDENT "in" expr "do" block "end" ;
+while_stmt       = "while" expr "do" block "end" ;
+
+break_stmt       = "break" ;
+continue_stmt    = "continue" ;
+return_stmt      = "return" [ expr ] ;
+
+expr_stmt        = expr ;
+
+(* ============================================================ *)
+(* Patterns                                                     *)
+(* ============================================================ *)
+
+pattern          = "_"
+                 | literal
+                 | IDENT                                  (* binds *)
+                 | dotted_ident "(" [ pattern_list ] ")"  (* constructor *)
+                 | pattern "as" IDENT ;
+
+pattern_list     = pattern { "," pattern } ;
+
+(* ============================================================ *)
+(* Expressions  (precedence handled by Pratt loop in the parser) *)
+(* ============================================================ *)
+
+expr             = or_expr ;
+
+or_expr          = and_expr   { "or"      and_expr } ;
+and_expr         = imp_expr   { "and"     imp_expr } ;
+imp_expr         = not_expr   [ "implies" imp_expr ] ;     (* right-assoc *)
+not_expr         = [ "not" ] eq_expr ;
+eq_expr          = rel_expr   { ( "==" | "!=" ) rel_expr } ;
+rel_expr         = add_expr   { ( "<" | "<=" | ">" | ">=" | "is" | "in" ) add_expr } ;
+add_expr         = mul_expr   { ( "+" | "-" ) mul_expr } ;
+mul_expr         = unary_expr { ( "*" | "/" | "%" ) unary_expr } ;
+unary_expr       = [ "-" ] postfix_expr ;
+postfix_expr     = primary { call_suffix | field_suffix | index_suffix } ;
+
+call_suffix      = "(" [ arg_list ] ")" ;
+field_suffix     = "." IDENT ;
+index_suffix     = "[" expr "]" ;
+
+arg_list         = expr { "," expr } ;
+
+primary          = literal
+                 | IDENT
+                 | "(" expr ")"
+                 | if_expr
+                 | match_expr
+                 | record_literal
+                 | list_literal
+                 | map_literal
+                 | set_literal
+                 | "old" "(" expr ")" ;
+
+if_expr          = "if" expr "then" expr { "elif" expr "then" expr } "else" expr "end" ;
+match_expr       = "match" expr "do" { match_arm_expr } "end" ;
+match_arm_expr   = "case" pattern "do" expr "end" ;
+
+record_literal   = IDENT "{" [ field_init { "," field_init } ] "}" ;
+field_init       = IDENT "=" expr ;
+
+list_literal     = "[" [ expr { "," expr } ] "]" ;
+map_literal      = "{" [ expr ":" expr { "," expr ":" expr } ] "}" ;
+set_literal      = "Set" "{" [ expr { "," expr } ] "}" ;
+
+literal          = INT | FLOAT | STRING | "true" | "false" | "null" ;
+
+(* ============================================================ *)
+(* Lexical                                                      *)
+(* ============================================================ *)
+
+(*
+  IDENT     : [A-Za-z_][A-Za-z_0-9]*[?!]?
+  INT       : 0 | [1-9][0-9]* | "-" INT      (parsed as unary minus on a positive)
+  FLOAT     : INT "." [0-9]+ [ ("e"|"E") ["-"|"+"] INT ]
+  STRING    : "  ( escaped UTF-8 )  "
+  COMMENT   : "//" until end of line, or "/*" ... "*/"
+  WHITESPACE: spaces, tabs, newlines (insignificant)
+*)
+
+(* Notes on LL(1)-ness:
+
+   - Top-level: the seven productions (module/import/function/type/record/union/const)
+     each start with a distinct keyword, so first-set conflicts are impossible.
+
+   - Statement-level: same — eight statements all start with distinct keywords,
+     and `expr_stmt` uses one-token lookahead (if the next token isn't a stmt
+     keyword, fall through to expr).
+
+   - assign_stmt vs expr_stmt: both can start with IDENT. Resolved by
+     LL(1)+1 lookahead: scan IDENT { "." IDENT } and check whether the
+     next token is "=". This is a single-token lookahead past the lvalue,
+     conventional for hand-written parsers.
+
+   - record_literal vs IDENT: resolved by lookahead for "{". The lexer does
+     not produce "{" inside a function call argument unless inside a record
+     literal context, so the parser disambiguates by checking whether the
+     current expression context is allowed (record literals are only allowed
+     where a primary is expected, not in conditions of `if`/`while`).
+
+   - if/match expression form vs statement form: identical syntax up to the
+     position. The parser knows whether it's parsing a statement or an
+     expression, and chooses the production accordingly.
+
+   - generic_params <T>: collides with `<` as comparison operator. Resolved
+     positionally — only the function decl head allows generic_params, and
+     it appears immediately after IDENT and before "(".
+*)

@@ -1,0 +1,65 @@
+{
+  "model": "claude-opus-4-7",
+  "results": [
+    {
+      "task": "v01_tagged_union_evaluator",
+      "ok": true,
+      "stage": "exec",
+      "elapsed_ms": 1
+    },
+    {
+      "task": "v02_map_filter_chain",
+      "ok": true,
+      "stage": "exec",
+      "elapsed_ms": 1
+    },
+    {
+      "task": "v03_lookup_with_default",
+      "ok": true,
+      "stage": "exec",
+      "elapsed_ms": 1
+    },
+    {
+      "task": "v04_result_threading",
+      "ok": true,
+      "stage": "exec",
+      "elapsed_ms": 2
+    },
+    {
+      "task": "v05_shape_area",
+      "ok": true,
+      "stage": "exec",
+      "elapsed_ms": 1
+    },
+    {
+      "task": "v06_record_distance",
+      "ok": true,
+      "stage": "exec",
+      "elapsed_ms": 1
+    },
+    {
+      "task": "v07_partition_by_parity",
+      "ok": true,
+      "stage": "exec",
+      "elapsed_ms": 3
+    },
+    {
+      "task": "v08_parse_and_double",
+      "ok": true,
+      "stage": "exec",
+      "elapsed_ms": 2
+    },
+    {
+      "task": "v09_gcd_with_contracts",
+      "ok": true,
+      "stage": "exec",
+      "elapsed_ms": 1
+    },
+    {
+      "task": "v10_caesar_shift",
+      "ok": true,
+      "stage": "exec",
+      "elapsed_ms": 3
+    }
+  ]
+}

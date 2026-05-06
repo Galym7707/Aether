@@ -1,0 +1,9 @@
+{
+  "task": "v03_lookup_with_default",
+  "ok": true,
+  "stage": "exec",
+  "elapsed_ms": 1,
+  "diagnostic": null,
+  "expected": "4\n2\n0\n0\n0\n",
+  "actual": "4\n2\n0\n0\n0\n"
+}

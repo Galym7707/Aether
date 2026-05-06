@@ -1,0 +1,28 @@
+function square(x: Int) returns Int
+  effects pure
+do
+  return x * x
+end
+
+function even?(x: Int) returns Bool
+  effects pure
+do
+  return x % 2 == 0
+end
+
+function countEvenSquares(xs: List<Int>) returns Int
+  effects pure
+do
+  let squared: List<Int> = map(xs, square)
+  let evens: List<Int> = filter(squared, even?)
+  return length(evens)
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(countEvenSquares([1, 2, 3, 4])))
+  print(intToString(countEvenSquares([1, 3, 5])))
+  print(intToString(countEvenSquares([])))
+  print(intToString(countEvenSquares([2, 2, 2])))
+end

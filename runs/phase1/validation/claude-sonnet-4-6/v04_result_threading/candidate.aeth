@@ -1,0 +1,50 @@
+function validate(s: String) returns Result<Int, String>
+  effects pure
+do
+  match parseInt(s) do
+    case Ok(n) do
+      if n >= 1 and n <= 100 then
+        return Ok(n)
+      else
+        return Err("out of range")
+      end
+    end
+    case Err(_) do
+      return Err("parse error")
+    end
+  end
+end
+
+function describe(r: Result<Int, String>) returns String
+  effects pure
+do
+  match r do
+    case Ok(v) do
+      return join(["ok=", intToString(v)], "")
+    end
+    case Err(msg) do
+      return msg
+    end
+  end
+end
+
+function processLine() returns Unit
+  effects log
+do
+  match readLine() do
+    case Ok(line) do
+      print(describe(validate(line)))
+    end
+    case Err(_) do
+      return
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  processLine()
+  processLine()
+  processLine()
+end

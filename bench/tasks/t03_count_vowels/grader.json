@@ -1,0 +1,7 @@
+{
+  "expected_stdout": "2\n5\n0\n11\n",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "tags": ["strings", "loops", "control"],
+  "difficulty": "easy"
+}

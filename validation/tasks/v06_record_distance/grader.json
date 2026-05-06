@@ -1,0 +1,7 @@
+{
+  "expected_stdout": "25\n0\n16\n25\n",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "tags": ["record","fields","math"],
+  "difficulty": "medium"
+}

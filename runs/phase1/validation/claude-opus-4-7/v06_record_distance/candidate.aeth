@@ -1,0 +1,22 @@
+
+record Point do
+  x: Int
+  y: Int
+end
+
+function distSquared(a: Point, b: Point) returns Int
+  effects pure
+do
+  let dx: Int = a.x - b.x
+  let dy: Int = a.y - b.y
+  return dx * dx + dy * dy
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(distSquared(Point(0, 0), Point(3, 4))))
+  print(intToString(distSquared(Point(1, 1), Point(1, 1))))
+  print(intToString(distSquared(Point(-2, 0), Point(2, 0))))
+  print(intToString(distSquared(Point(5, 5), Point(2, 1))))
+end

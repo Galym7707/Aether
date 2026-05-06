@@ -1,0 +1,24 @@
+function gcd(a: Int, b: Int) returns Int
+  requires a >= 0 and b >= 0
+  requires a > 0 or b > 0
+  ensures result > 0
+  effects pure
+do
+  var x: Int = a
+  var y: Int = b
+  while y != 0 do
+    let tmp: Int = y
+    y = x % y
+    x = tmp
+  end
+  return x
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(gcd(54, 24)))
+  print(intToString(gcd(7, 1)))
+  print(intToString(gcd(0, 9)))
+  print(intToString(gcd(48, 18)))
+end

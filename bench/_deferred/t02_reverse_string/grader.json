@@ -1,0 +1,7 @@
+{
+  "expected_stdout": "rehtea\n\na\nracecar\n",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "tags": ["strings", "loops", "stdlib"],
+  "difficulty": "easy"
+}

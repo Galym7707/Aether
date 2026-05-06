@@ -1,0 +1,7 @@
+{
+  "expected_stdout": "ok=20\nok=0\nerr=empty\nok=7\nok=2\n",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "tags": ["lists", "result", "match", "contracts"],
+  "difficulty": "medium"
+}

@@ -1,0 +1,47 @@
+
+const ALPHA: List<String> = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
+
+function letterIndex(c: String) returns Int
+  effects pure
+do
+  var i: Int = 0
+  while i < length(ALPHA) do
+    if ALPHA[i] == c then
+      return i
+    end
+    i = i + 1
+  end
+  return -1
+end
+
+function caesarChar(c: String, k: Int) returns String
+  effects pure
+do
+  let idx: Int = letterIndex(c)
+  if idx < 0 then
+    return c
+  end
+  let shifted: Int = (idx + k) % 26
+  return ALPHA[shifted]
+end
+
+function caesar(s: String, k: Int) returns String
+  effects pure
+do
+  var out: List<String> = []
+  var i: Int = 0
+  while i < length(s) do
+    out = append(out, caesarChar(slice(s, i, i + 1), k))
+    i = i + 1
+  end
+  return join(out, "")
+end
+
+function main() returns Unit
+  effects log
+do
+  print(caesar("abc", 1))
+  print(caesar("xyz", 1))
+  print(caesar("hello", 13))
+  print(caesar("hi!", 25))
+end

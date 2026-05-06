@@ -1,0 +1,7 @@
+{
+  "expected_stdout": "ok=42\nok=-10\nerr=could not parse Int: 'hello'\nok=0\nerr=could not parse Int: ''\n",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "tags": ["result","match","strings","stdlib.parseInt"],
+  "difficulty": "medium"
+}

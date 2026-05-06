@@ -1,0 +1,41 @@
+union Climate do
+  case Cold
+  case Mild
+  case Hot
+end
+
+function classify(celsius: Int) returns Climate
+  effects pure
+do
+  if celsius < 10 then
+    return Climate.Cold()
+  elif celsius < 25 then
+    return Climate.Mild()
+  else
+    return Climate.Hot()
+  end
+end
+
+function describe(c: Climate) returns String
+  effects pure
+do
+  match c do
+    case Cold() do
+      return "cold"
+    end
+    case Mild() do
+      return "mild"
+    end
+    case Hot() do
+      return "hot"
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  for t in [-5, 5, 15, 22, 30, 45] do
+    print(join([intToString(t), ":", describe(classify(t))], ""))
+  end
+end
