@@ -1,0 +1,8 @@
+{
+  "task": "v10_caesar_shift",
+  "ok": false,
+  "reason": "no_candidate",
+  "stage": null,
+  "expected": "bcd\nyza\nuryyb\ngh!\n",
+  "actual": null
+}

@@ -1,0 +1,8 @@
+{
+  "task": "v05_shape_area",
+  "ok": false,
+  "reason": "no_candidate",
+  "stage": null,
+  "expected": "16\n15\n12\n0\n",
+  "actual": null
+}

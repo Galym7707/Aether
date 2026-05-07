@@ -1,0 +1,42 @@
+{
+  "pair_id": "0105__ref_05_sum_list__vs__ref_08_fib_memo",
+  "pair_index": 105,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:08_fib_memo",
+    "group": "reference",
+    "id": "08_fib_memo",
+    "path": "reference\\08_fib_memo\\program.aeth",
+    "sha256": "5b85f06cc120fa4102870ad40ca8913afc1dc9c6f4e1e14cf6e2215d445baa61"
+  },
+  "program_b": {
+    "label": "ref:05_sum_list",
+    "group": "reference",
+    "id": "05_sum_list",
+    "path": "reference\\05_sum_list\\program.aeth",
+    "sha256": "4c46d8aa04e2a6bf44a95ef890991fa5e56488b19cfcf9b03fdd6ddbebacf4c8"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a Fibonacci number, given a non-negative integer, producing an integer.\",\n  \"signature_b\": \"B computes the sum, given a list of integers, producing an integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": true,\n    \"confidence\": 0.82,\n    \"why\": \"Both use shared technique(s): loop.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a Fibonacci number, given a non-negative integer, producing an integer.",
+    "signature_b": "B computes the sum, given a list of integers, producing an integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": true,
+      "confidence": 0.82,
+      "why": "Both use shared technique(s): loop."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

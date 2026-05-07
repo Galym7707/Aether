@@ -1,0 +1,42 @@
+{
+  "pair_id": "0243__bench_t04_balanced_brackets__vs__bench_t05_safe_average",
+  "pair_index": 243,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "bench:t04_balanced_brackets",
+    "group": "bench",
+    "id": "t04_balanced_brackets",
+    "path": "bench\\tasks\\t04_balanced_brackets\\reference.aeth",
+    "sha256": "9c3683112ecdfbc7fb4889cb52295a30f91dfea2495124d810a8bfc1e9144a0e"
+  },
+  "program_b": {
+    "label": "bench:t05_safe_average",
+    "group": "bench",
+    "id": "t05_safe_average",
+    "path": "bench\\tasks\\t05_safe_average\\reference.aeth",
+    "sha256": "4f4dca7439a7f45e95f40f31a75023bae5a42dba06c47019f9ed0d8962f638c8"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes whether brackets are balanced, given a string, producing a boolean.\",\n  \"signature_b\": \"B computes an integer average or empty-list error, given a list of integers, producing a Result value.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes whether brackets are balanced, given a string, producing a boolean.",
+    "signature_b": "B computes an integer average or empty-list error, given a list of integers, producing a Result value.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

@@ -1,0 +1,42 @@
+{
+  "pair_id": "0110__ref_05_sum_list__vs__bench_t05_safe_average",
+  "pair_index": 110,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "bench:t05_safe_average",
+    "group": "bench",
+    "id": "t05_safe_average",
+    "path": "bench\\tasks\\t05_safe_average\\reference.aeth",
+    "sha256": "4f4dca7439a7f45e95f40f31a75023bae5a42dba06c47019f9ed0d8962f638c8"
+  },
+  "program_b": {
+    "label": "ref:05_sum_list",
+    "group": "reference",
+    "id": "05_sum_list",
+    "path": "reference\\05_sum_list\\program.aeth",
+    "sha256": "4c46d8aa04e2a6bf44a95ef890991fa5e56488b19cfcf9b03fdd6ddbebacf4c8"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes an integer average or empty-list error, given a list of integers, producing a Result value.\",\n  \"signature_b\": \"B computes the sum, given a list of integers, producing an integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": true,\n    \"confidence\": 0.82,\n    \"why\": \"Both use shared technique(s): additive-accumulator, loop.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): integer-lists.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes an integer average or empty-list error, given a list of integers, producing a Result value.",
+    "signature_b": "B computes the sum, given a list of integers, producing an integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": true,
+      "confidence": 0.82,
+      "why": "Both use shared technique(s): additive-accumulator, loop."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): integer-lists."
+    }
+  },
+  "parse_error": null
+}

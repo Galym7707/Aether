@@ -1,0 +1,42 @@
+{
+  "pair_id": "0028__ref_02_factorial_recursive__vs__ref_03_factorial_iterative",
+  "pair_index": 28,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:03_factorial_iterative",
+    "group": "reference",
+    "id": "03_factorial_iterative",
+    "path": "reference\\03_factorial_iterative\\program.aeth",
+    "sha256": "db24bf70069f170b64784d6cc8980b75dc5c77c4a9818c577448d1e9d6502988"
+  },
+  "program_b": {
+    "label": "ref:02_factorial_recursive",
+    "group": "reference",
+    "id": "02_factorial_recursive",
+    "path": "reference\\02_factorial_recursive\\program.aeth",
+    "sha256": "a9ae8c3b50034626fd4157ec10d7b7dab3cf030f99747b70ae9b49dac53a0a08"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes factorial, given a non-negative integer, producing an integer.\",\n  \"signature_b\": \"B computes factorial, given a non-negative integer, producing an integer.\",\n  \"same_problem\": {\n    \"verdict\": true,\n    \"confidence\": 0.98,\n    \"why\": \"Both compute factorial of a non-negative integer; the difference is recursive versus iterative implementation.\"\n  },\n  \"same_technique\": {\n    \"verdict\": true,\n    \"confidence\": 0.82,\n    \"why\": \"Both use shared technique(s): multiplicative-accumulator.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): integers.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes factorial, given a non-negative integer, producing an integer.",
+    "signature_b": "B computes factorial, given a non-negative integer, producing an integer.",
+    "same_problem": {
+      "verdict": true,
+      "confidence": 0.98,
+      "why": "Both compute factorial of a non-negative integer; the difference is recursive versus iterative implementation."
+    },
+    "same_technique": {
+      "verdict": true,
+      "confidence": 0.82,
+      "why": "Both use shared technique(s): multiplicative-accumulator."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): integers."
+    }
+  },
+  "parse_error": null
+}

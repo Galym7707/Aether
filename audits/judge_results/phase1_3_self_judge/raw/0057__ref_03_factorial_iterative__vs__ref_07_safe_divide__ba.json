@@ -1,0 +1,42 @@
+{
+  "pair_id": "0057__ref_03_factorial_iterative__vs__ref_07_safe_divide",
+  "pair_index": 57,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:07_safe_divide",
+    "group": "reference",
+    "id": "07_safe_divide",
+    "path": "reference\\07_safe_divide\\program.aeth",
+    "sha256": "61d6bc52cb60a40816b3f0c4e6fb59a969ae740951437e0081065e8de0271d66"
+  },
+  "program_b": {
+    "label": "ref:03_factorial_iterative",
+    "group": "reference",
+    "id": "03_factorial_iterative",
+    "path": "reference\\03_factorial_iterative\\program.aeth",
+    "sha256": "db24bf70069f170b64784d6cc8980b75dc5c77c4a9818c577448d1e9d6502988"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a quotient or error, given two integers, producing a Result value.\",\n  \"signature_b\": \"B computes factorial, given a non-negative integer, producing an integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): integers.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a quotient or error, given two integers, producing a Result value.",
+    "signature_b": "B computes factorial, given a non-negative integer, producing an integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): integers."
+    }
+  },
+  "parse_error": null
+}

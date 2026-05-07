@@ -1,0 +1,42 @@
+{
+  "pair_id": "0303__bench_t08_contract_positive_divisor__vs__val_v01_tagged_union_evaluator",
+  "pair_index": 303,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "bench:t08_contract_positive_divisor",
+    "group": "bench",
+    "id": "t08_contract_positive_divisor",
+    "path": "bench\\tasks\\t08_contract_positive_divisor\\reference.aeth",
+    "sha256": "ec8d38391b6daffdbddce0aad877d8bcc502cc8927d85c86050c4f24279cf2d0"
+  },
+  "program_b": {
+    "label": "val:v01_tagged_union_evaluator",
+    "group": "validation",
+    "id": "v01_tagged_union_evaluator",
+    "path": "validation\\tasks\\v01_tagged_union_evaluator\\reference.aeth",
+    "sha256": "2f90c4fab3c6501b2a6864944187fc9c87edbcb61f63af4d3ae1b2649d9a582c"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes an integer ratio, given a numerator and positive divisor, producing an integer.\",\n  \"signature_b\": \"B computes a selected arithmetic operation, given an operation tag and two integers, producing an integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): integers.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes an integer ratio, given a numerator and positive divisor, producing an integer.",
+    "signature_b": "B computes a selected arithmetic operation, given an operation tag and two integers, producing an integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): integers."
+    }
+  },
+  "parse_error": null
+}

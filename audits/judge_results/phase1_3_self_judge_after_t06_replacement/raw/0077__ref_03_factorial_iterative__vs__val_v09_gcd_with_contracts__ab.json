@@ -1,0 +1,42 @@
+{
+  "pair_id": "0077__ref_03_factorial_iterative__vs__val_v09_gcd_with_contracts",
+  "pair_index": 77,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:03_factorial_iterative",
+    "group": "reference",
+    "id": "03_factorial_iterative",
+    "path": "reference\\03_factorial_iterative\\program.aeth",
+    "sha256": "db24bf70069f170b64784d6cc8980b75dc5c77c4a9818c577448d1e9d6502988"
+  },
+  "program_b": {
+    "label": "val:v09_gcd_with_contracts",
+    "group": "validation",
+    "id": "v09_gcd_with_contracts",
+    "path": "validation\\tasks\\v09_gcd_with_contracts\\reference.aeth",
+    "sha256": "fc21a6c76c7e5fd0090f71f2518feb9b5f50aa82f677b1eadfd31af455bf1c03"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes factorial, given a non-negative integer, producing an integer.\",\n  \"signature_b\": \"B computes the greatest common divisor, given non-negative integers, producing a positive integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": true,\n    \"confidence\": 0.82,\n    \"why\": \"Both use shared technique(s): loop.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): integers.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes factorial, given a non-negative integer, producing an integer.",
+    "signature_b": "B computes the greatest common divisor, given non-negative integers, producing a positive integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": true,
+      "confidence": 0.82,
+      "why": "Both use shared technique(s): loop."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): integers."
+    }
+  },
+  "parse_error": null
+}

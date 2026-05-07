@@ -1,0 +1,42 @@
+{
+  "pair_id": "0332__bench_t10_contract_normalized_probability__vs__val_v09_gcd_with_contracts",
+  "pair_index": 332,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "bench:t10_contract_normalized_probability",
+    "group": "bench",
+    "id": "t10_contract_normalized_probability",
+    "path": "bench\\tasks\\t10_contract_normalized_probability\\reference.aeth",
+    "sha256": "53415ea0ff9b9a847f827aa22e3e770b489058a6e97f54c07955ef825a7de3d3"
+  },
+  "program_b": {
+    "label": "val:v09_gcd_with_contracts",
+    "group": "validation",
+    "id": "v09_gcd_with_contracts",
+    "path": "validation\\tasks\\v09_gcd_with_contracts\\reference.aeth",
+    "sha256": "fc21a6c76c7e5fd0090f71f2518feb9b5f50aa82f677b1eadfd31af455bf1c03"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a weighted bucket index, given normalized integer weights and a threshold, producing an index.\",\n  \"signature_b\": \"B computes the greatest common divisor, given non-negative integers, producing a positive integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": true,\n    \"confidence\": 0.82,\n    \"why\": \"Both use shared technique(s): loop, precondition-check.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a weighted bucket index, given normalized integer weights and a threshold, producing an index.",
+    "signature_b": "B computes the greatest common divisor, given non-negative integers, producing a positive integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": true,
+      "confidence": 0.82,
+      "why": "Both use shared technique(s): loop, precondition-check."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

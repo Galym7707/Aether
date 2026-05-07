@@ -1,0 +1,42 @@
+{
+  "pair_id": "0261__bench_t05_safe_average__vs__bench_t08_contract_positive_divisor",
+  "pair_index": 261,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "bench:t05_safe_average",
+    "group": "bench",
+    "id": "t05_safe_average",
+    "path": "bench\\tasks\\t05_safe_average\\reference.aeth",
+    "sha256": "4f4dca7439a7f45e95f40f31a75023bae5a42dba06c47019f9ed0d8962f638c8"
+  },
+  "program_b": {
+    "label": "bench:t08_contract_positive_divisor",
+    "group": "bench",
+    "id": "t08_contract_positive_divisor",
+    "path": "bench\\tasks\\t08_contract_positive_divisor\\reference.aeth",
+    "sha256": "ec8d38391b6daffdbddce0aad877d8bcc502cc8927d85c86050c4f24279cf2d0"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes an integer average or empty-list error, given a list of integers, producing a Result value.\",\n  \"signature_b\": \"B computes an integer ratio, given a numerator and positive divisor, producing an integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes an integer average or empty-list error, given a list of integers, producing a Result value.",
+    "signature_b": "B computes an integer ratio, given a numerator and positive divisor, producing an integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

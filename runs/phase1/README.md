@@ -12,6 +12,32 @@ experiment protocol. Each model gets its own subdirectory under
 
 A summary table is generated at `runs/phase1/validation_summary.md`.
 
+## Python baseline validation
+
+Phase 1.4 uses a separate Python baseline prompt:
+
+    prompt/python_system_prompt.md
+
+The same 10 active validation tasks have Python-specific prompts at:
+
+    validation/tasks/<task_id>/python_prompt.md
+
+Python candidate outputs are stored under:
+
+    runs/phase1/python_validation/<model>/<task_id>/candidate.py
+
+Grade Python candidates with:
+
+    python -B scripts/grade_phase1_python.py --model <model>
+
+Run Python reference sanity checks with:
+
+    python -B validation/run_python_validation.py
+
+As of the current workspace run, model validation through Claude Code CLI is
+blocked because `claude auth status` reports `loggedIn: false`. Details are in
+`runs/phase1/python_validation/BLOCKED.md`.
+
 ## Candidate-feeding contract for external runners
 
 If you have API access to a model not running in this session, you can

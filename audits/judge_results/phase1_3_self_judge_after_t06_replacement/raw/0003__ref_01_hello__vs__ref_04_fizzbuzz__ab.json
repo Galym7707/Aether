@@ -1,0 +1,42 @@
+{
+  "pair_id": "0003__ref_01_hello__vs__ref_04_fizzbuzz",
+  "pair_index": 3,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:01_hello",
+    "group": "reference",
+    "id": "01_hello",
+    "path": "reference\\01_hello\\program.aeth",
+    "sha256": "0a3cb6bd3c6d41d149f5acd4f90c39b8e863287d9b67b2b9da4066cca79867f8"
+  },
+  "program_b": {
+    "label": "ref:04_fizzbuzz",
+    "group": "reference",
+    "id": "04_fizzbuzz",
+    "path": "reference\\04_fizzbuzz\\program.aeth",
+    "sha256": "2c019003086d175e1e808406e7e1229302193ac8720ca0838f0c65d768d3c2ee"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a fixed greeting, given no input, producing one printed string.\",\n  \"signature_b\": \"B computes FizzBuzz labels, given positive integers, producing strings.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): strings.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a fixed greeting, given no input, producing one printed string.",
+    "signature_b": "B computes FizzBuzz labels, given positive integers, producing strings.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): strings."
+    }
+  },
+  "parse_error": null
+}

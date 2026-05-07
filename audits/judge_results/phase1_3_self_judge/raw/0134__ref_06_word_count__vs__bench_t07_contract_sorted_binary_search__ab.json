@@ -1,0 +1,42 @@
+{
+  "pair_id": "0134__ref_06_word_count__vs__bench_t07_contract_sorted_binary_search",
+  "pair_index": 134,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:06_word_count",
+    "group": "reference",
+    "id": "06_word_count",
+    "path": "reference\\06_word_count\\program.aeth",
+    "sha256": "d7273d072e84efa25c405f0e005c26f8bba7c9be72665709077f6803dec7e286"
+  },
+  "program_b": {
+    "label": "bench:t07_contract_sorted_binary_search",
+    "group": "bench",
+    "id": "t07_contract_sorted_binary_search",
+    "path": "bench\\tasks\\t07_contract_sorted_binary_search\\reference.aeth",
+    "sha256": "f893ae35eb0f6428624682012d37becfdcc8b709f5e478893f68708964bf8aed"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a word count, given a string, producing an integer.\",\n  \"signature_b\": \"B computes a binary-search index, given a sorted list and target integer, producing an index or -1.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a word count, given a string, producing an integer.",
+    "signature_b": "B computes a binary-search index, given a sorted list and target integer, producing an index or -1.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

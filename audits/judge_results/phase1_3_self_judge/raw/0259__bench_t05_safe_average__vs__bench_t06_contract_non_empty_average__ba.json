@@ -1,0 +1,42 @@
+{
+  "pair_id": "0259__bench_t05_safe_average__vs__bench_t06_contract_non_empty_average",
+  "pair_index": 259,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "bench:t06_contract_non_empty_average",
+    "group": "bench",
+    "id": "t06_contract_non_empty_average",
+    "path": "bench\\tasks\\t06_contract_non_empty_average\\reference.aeth",
+    "sha256": "bc6497243f4cc3920c5d602884063611cc28900c0ed680527276b44fb5199dd9"
+  },
+  "program_b": {
+    "label": "bench:t05_safe_average",
+    "group": "bench",
+    "id": "t05_safe_average",
+    "path": "bench\\tasks\\t05_safe_average\\reference.aeth",
+    "sha256": "4f4dca7439a7f45e95f40f31a75023bae5a42dba06c47019f9ed0d8962f638c8"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes an integer average, given a non-empty list of integers, producing an integer.\",\n  \"signature_b\": \"B computes an integer average or empty-list error, given a list of integers, producing a Result value.\",\n  \"same_problem\": {\n    \"verdict\": true,\n    \"confidence\": 0.84,\n    \"why\": \"Both compute integer average of a list of integers; the main difference is empty-input handling through Result versus refinement.\"\n  },\n  \"same_technique\": {\n    \"verdict\": true,\n    \"confidence\": 0.82,\n    \"why\": \"Both use shared technique(s): additive-accumulator, edge-case-empty, loop.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): integer-lists.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes an integer average, given a non-empty list of integers, producing an integer.",
+    "signature_b": "B computes an integer average or empty-list error, given a list of integers, producing a Result value.",
+    "same_problem": {
+      "verdict": true,
+      "confidence": 0.84,
+      "why": "Both compute integer average of a list of integers; the main difference is empty-input handling through Result versus refinement."
+    },
+    "same_technique": {
+      "verdict": true,
+      "confidence": 0.82,
+      "why": "Both use shared technique(s): additive-accumulator, edge-case-empty, loop."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): integer-lists."
+    }
+  },
+  "parse_error": null
+}

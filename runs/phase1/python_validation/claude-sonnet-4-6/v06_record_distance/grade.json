@@ -1,0 +1,8 @@
+{
+  "task": "v06_record_distance",
+  "ok": false,
+  "reason": "no_candidate",
+  "stage": null,
+  "expected": "25\n0\n16\n25\n",
+  "actual": null
+}

@@ -8,6 +8,7 @@ S-012 — harness enforces timeout_ms.
 from __future__ import annotations
 import os
 import sys
+import tempfile
 import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,7 +20,7 @@ from aether.parser import parse
 from aether.emitter import emit
 from aether.runtime import build_namespace
 from aether.diagnostics import AetherError
-from bench.harness import compile_and_run
+from bench.harness import compile_and_run, grade_task, run_python_equivalent
 
 
 def test_S011_lexer_tight_neq():
@@ -184,6 +185,73 @@ end
     print("S-002: honored refinement lets program complete")
 
 
+def test_harness_wedge_checks_diagnostic_code():
+    """Wedge grading must check exit code, stderr regex, and diagnostic code."""
+    src = """
+function positiveOnly(x: Int) returns Int
+  requires x > 0
+  effects pure
+do
+  return x
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(positiveOnly(0)))
+end
+"""
+    path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".aeth", delete=False, encoding="utf-8"
+        ) as f:
+            f.write(src)
+            path = f.name
+        task = {
+            "id": "harness_contract_wedge",
+            "config": {
+                "expected_stdout": "",
+                "expected_exit_code": 2,
+                "expected_stderr_pattern": "(?i)requires.*positiveOnly",
+                "expected_diagnostic_code": "E0301",
+                "expected_diagnostic_category": "contract",
+                "timeout_ms": 5000,
+            },
+        }
+        out = grade_task(task, path)
+        assert out["ok"] is True, out
+        assert out["checks"]["diagnostic_code_ok"] is True, out
+        assert out["checks"]["diagnostic_category_ok"] is True, out
+    finally:
+        if path and os.path.exists(path):
+            os.unlink(path)
+
+
+def test_harness_python_equivalent_metadata():
+    """Python equivalent metadata must be executable and gradeable by harness."""
+    with tempfile.TemporaryDirectory() as td:
+        py_path = os.path.join(td, "equivalent.py")
+        with open(py_path, "w", encoding="utf-8") as f:
+            f.write("print('wrong-but-silent')\n")
+        task = {
+            "id": "python_equivalent_metadata",
+            "dir": td,
+            "config": {
+                "python_equivalent": "equivalent.py",
+                "python_expected_exit_code": 0,
+                "python_expected_stdout": "wrong-but-silent\n",
+                "python_expected_stderr": "",
+                "python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement)",
+                "timeout_ms": 5000,
+            },
+        }
+        out = run_python_equivalent(task)
+        assert out["ok"] is True, out
+        assert out["exit_code"] == 0, out
+        assert out["stderr"] == "", out
+
+
 def test_capability_strict_blocks_undeclared():
     """--capability-strict must reject programs whose declared effects exceed
     the capabilities declared by any module."""
@@ -233,6 +301,8 @@ if __name__ == "__main__":
     test_S012_timeout_fires()
     test_S002_refinement_violation_raises()
     test_S002_refinement_passes_on_valid()
+    test_harness_wedge_checks_diagnostic_code()
+    test_harness_python_equivalent_metadata()
     test_capability_strict_blocks_undeclared()
     test_capability_strict_admits_declared()
     print("ALL REGRESSION TESTS PASS")

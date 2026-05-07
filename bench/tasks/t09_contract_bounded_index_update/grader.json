@@ -1,0 +1,16 @@
+{
+  "expected_stdout": "",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "expected_exit_code": 2,
+  "expected_diagnostic_code": "E0301",
+  "expected_diagnostic_category": "contract",
+  "expected_stderr_pattern": "(?i)(contract|requires|precondition).*(index|bounds|inBounds)",
+  "python_equivalent": "python_equivalent.py",
+  "python_expected_exit_code": 0,
+  "python_expected_stdout": "[1, 2, 3]\n",
+  "python_expected_stderr": "",
+  "python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition)",
+  "tags": ["contracts", "wedge", "lists", "bounds"],
+  "difficulty": "medium"
+}

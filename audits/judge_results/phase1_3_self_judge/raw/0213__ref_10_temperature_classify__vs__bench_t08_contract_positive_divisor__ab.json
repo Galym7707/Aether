@@ -1,0 +1,42 @@
+{
+  "pair_id": "0213__ref_10_temperature_classify__vs__bench_t08_contract_positive_divisor",
+  "pair_index": 213,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:10_temperature_classify",
+    "group": "reference",
+    "id": "10_temperature_classify",
+    "path": "reference\\10_temperature_classify\\program.aeth",
+    "sha256": "25ca5473cf984b58ab95a1bd285aaa1f0d6837033e67cfc6c50280451a48dfcd"
+  },
+  "program_b": {
+    "label": "bench:t08_contract_positive_divisor",
+    "group": "bench",
+    "id": "t08_contract_positive_divisor",
+    "path": "bench\\tasks\\t08_contract_positive_divisor\\reference.aeth",
+    "sha256": "ec8d38391b6daffdbddce0aad877d8bcc502cc8927d85c86050c4f24279cf2d0"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a temperature category, given Celsius integers, producing climate labels.\",\n  \"signature_b\": \"B computes an integer ratio, given a numerator and positive divisor, producing an integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): integers.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a temperature category, given Celsius integers, producing climate labels.",
+    "signature_b": "B computes an integer ratio, given a numerator and positive divisor, producing an integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): integers."
+    }
+  },
+  "parse_error": null
+}

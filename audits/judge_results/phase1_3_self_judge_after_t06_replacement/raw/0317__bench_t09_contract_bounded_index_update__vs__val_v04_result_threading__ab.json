@@ -1,0 +1,42 @@
+{
+  "pair_id": "0317__bench_t09_contract_bounded_index_update__vs__val_v04_result_threading",
+  "pair_index": 317,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "bench:t09_contract_bounded_index_update",
+    "group": "bench",
+    "id": "t09_contract_bounded_index_update",
+    "path": "bench\\tasks\\t09_contract_bounded_index_update\\reference.aeth",
+    "sha256": "47bde5662cbdcdc2deb4317279958ee2a53a94e40436d77f64f9d5cd78eac3e6"
+  },
+  "program_b": {
+    "label": "val:v04_result_threading",
+    "group": "validation",
+    "id": "v04_result_threading",
+    "path": "validation\\tasks\\v04_result_threading\\reference.aeth",
+    "sha256": "23836b001e7f1fa4ed1e2b2149eb0682debe4a9c61db4116b02505f789b24911"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes an updated list, given a list, in-bounds index, and value, producing a list.\",\n  \"signature_b\": \"B computes validation results, given input strings, producing ok or error messages.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes an updated list, given a list, in-bounds index, and value, producing a list.",
+    "signature_b": "B computes validation results, given input strings, producing ok or error messages.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

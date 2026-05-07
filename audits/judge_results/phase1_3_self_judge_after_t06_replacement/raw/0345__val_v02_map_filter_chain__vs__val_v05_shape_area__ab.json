@@ -1,0 +1,42 @@
+{
+  "pair_id": "0345__val_v02_map_filter_chain__vs__val_v05_shape_area",
+  "pair_index": 345,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "val:v02_map_filter_chain",
+    "group": "validation",
+    "id": "v02_map_filter_chain",
+    "path": "validation\\tasks\\v02_map_filter_chain\\reference.aeth",
+    "sha256": "a0218197928454cccf2f631944bc22e5a6519a2e2e72bce2cc227c10b7b2ead9"
+  },
+  "program_b": {
+    "label": "val:v05_shape_area",
+    "group": "validation",
+    "id": "v05_shape_area",
+    "path": "validation\\tasks\\v05_shape_area\\reference.aeth",
+    "sha256": "063f249171fd72b04153a1fe9d0479e2ffb022493fb4f49b847a9446ec229761"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes the count of even squared values, given a list of integers, producing an integer.\",\n  \"signature_b\": \"B computes area, given a tagged shape, producing an integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes the count of even squared values, given a list of integers, producing an integer.",
+    "signature_b": "B computes area, given a tagged shape, producing an integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

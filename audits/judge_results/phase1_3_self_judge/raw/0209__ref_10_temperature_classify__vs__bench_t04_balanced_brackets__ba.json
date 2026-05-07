@@ -1,0 +1,42 @@
+{
+  "pair_id": "0209__ref_10_temperature_classify__vs__bench_t04_balanced_brackets",
+  "pair_index": 209,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "bench:t04_balanced_brackets",
+    "group": "bench",
+    "id": "t04_balanced_brackets",
+    "path": "bench\\tasks\\t04_balanced_brackets\\reference.aeth",
+    "sha256": "9c3683112ecdfbc7fb4889cb52295a30f91dfea2495124d810a8bfc1e9144a0e"
+  },
+  "program_b": {
+    "label": "ref:10_temperature_classify",
+    "group": "reference",
+    "id": "10_temperature_classify",
+    "path": "reference\\10_temperature_classify\\program.aeth",
+    "sha256": "25ca5473cf984b58ab95a1bd285aaa1f0d6837033e67cfc6c50280451a48dfcd"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes whether brackets are balanced, given a string, producing a boolean.\",\n  \"signature_b\": \"B computes a temperature category, given Celsius integers, producing climate labels.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): strings.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes whether brackets are balanced, given a string, producing a boolean.",
+    "signature_b": "B computes a temperature category, given Celsius integers, producing climate labels.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): strings."
+    }
+  },
+  "parse_error": null
+}

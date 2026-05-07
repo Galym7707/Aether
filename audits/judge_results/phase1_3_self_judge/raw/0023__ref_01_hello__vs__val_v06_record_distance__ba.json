@@ -1,0 +1,42 @@
+{
+  "pair_id": "0023__ref_01_hello__vs__val_v06_record_distance",
+  "pair_index": 23,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "val:v06_record_distance",
+    "group": "validation",
+    "id": "v06_record_distance",
+    "path": "validation\\tasks\\v06_record_distance\\reference.aeth",
+    "sha256": "47597bd7a747a9c0bd5c2758b355b80bfe1dd7e0445714c5881f6372f3238087"
+  },
+  "program_b": {
+    "label": "ref:01_hello",
+    "group": "reference",
+    "id": "01_hello",
+    "path": "reference\\01_hello\\program.aeth",
+    "sha256": "0a3cb6bd3c6d41d149f5acd4f90c39b8e863287d9b67b2b9da4066cca79867f8"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes squared distance, given two points, producing an integer.\",\n  \"signature_b\": \"B computes a fixed greeting, given no input, producing one printed string.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes squared distance, given two points, producing an integer.",
+    "signature_b": "B computes a fixed greeting, given no input, producing one printed string.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

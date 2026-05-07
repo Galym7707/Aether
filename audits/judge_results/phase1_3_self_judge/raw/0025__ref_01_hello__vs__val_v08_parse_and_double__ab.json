@@ -1,0 +1,42 @@
+{
+  "pair_id": "0025__ref_01_hello__vs__val_v08_parse_and_double",
+  "pair_index": 25,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:01_hello",
+    "group": "reference",
+    "id": "01_hello",
+    "path": "reference\\01_hello\\program.aeth",
+    "sha256": "0a3cb6bd3c6d41d149f5acd4f90c39b8e863287d9b67b2b9da4066cca79867f8"
+  },
+  "program_b": {
+    "label": "val:v08_parse_and_double",
+    "group": "validation",
+    "id": "v08_parse_and_double",
+    "path": "validation\\tasks\\v08_parse_and_double\\reference.aeth",
+    "sha256": "879684a08ca1c0ddce68337b603d9d808bf22c7aec4d9c1a3aa47974ff2cfdf3"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a fixed greeting, given no input, producing one printed string.\",\n  \"signature_b\": \"B computes doubled parsed integers or parse errors, given strings, producing Result descriptions.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): strings.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a fixed greeting, given no input, producing one printed string.",
+    "signature_b": "B computes doubled parsed integers or parse errors, given strings, producing Result descriptions.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): strings."
+    }
+  },
+  "parse_error": null
+}

@@ -1,0 +1,42 @@
+{
+  "pair_id": "0106__ref_05_sum_list__vs__ref_09_kv_store",
+  "pair_index": 106,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:09_kv_store",
+    "group": "reference",
+    "id": "09_kv_store",
+    "path": "reference\\09_kv_store\\program.aeth",
+    "sha256": "a003dbff1c929e3f2d6eb2c8768e9e79ff3687cb4f7269c899626178222862fe"
+  },
+  "program_b": {
+    "label": "ref:05_sum_list",
+    "group": "reference",
+    "id": "05_sum_list",
+    "path": "reference\\05_sum_list\\program.aeth",
+    "sha256": "4c46d8aa04e2a6bf44a95ef890991fa5e56488b19cfcf9b03fdd6ddbebacf4c8"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes formatted key-value lookups, given fixed string keys, producing strings and a map size.\",\n  \"signature_b\": \"B computes the sum, given a list of integers, producing an integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes formatted key-value lookups, given fixed string keys, producing strings and a map size.",
+    "signature_b": "B computes the sum, given a list of integers, producing an integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

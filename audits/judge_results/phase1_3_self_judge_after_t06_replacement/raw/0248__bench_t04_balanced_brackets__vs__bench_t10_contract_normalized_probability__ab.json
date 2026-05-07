@@ -1,0 +1,42 @@
+{
+  "pair_id": "0248__bench_t04_balanced_brackets__vs__bench_t10_contract_normalized_probability",
+  "pair_index": 248,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "bench:t04_balanced_brackets",
+    "group": "bench",
+    "id": "t04_balanced_brackets",
+    "path": "bench\\tasks\\t04_balanced_brackets\\reference.aeth",
+    "sha256": "9c3683112ecdfbc7fb4889cb52295a30f91dfea2495124d810a8bfc1e9144a0e"
+  },
+  "program_b": {
+    "label": "bench:t10_contract_normalized_probability",
+    "group": "bench",
+    "id": "t10_contract_normalized_probability",
+    "path": "bench\\tasks\\t10_contract_normalized_probability\\reference.aeth",
+    "sha256": "53415ea0ff9b9a847f827aa22e3e770b489058a6e97f54c07955ef825a7de3d3"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes whether brackets are balanced, given a string, producing a boolean.\",\n  \"signature_b\": \"B computes a weighted bucket index, given normalized integer weights and a threshold, producing an index.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes whether brackets are balanced, given a string, producing a boolean.",
+    "signature_b": "B computes a weighted bucket index, given normalized integer weights and a threshold, producing an index.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

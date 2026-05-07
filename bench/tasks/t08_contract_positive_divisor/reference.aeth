@@ -1,0 +1,13 @@
+type PositiveDivisor = Int where self > 0
+
+function safeRatio(numerator: Int, denominator: PositiveDivisor) returns Int
+  effects pure
+do
+  return numerator / denominator
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(safeRatio(10, 0)))
+end

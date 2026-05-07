@@ -1,0 +1,42 @@
+{
+  "pair_id": "0322__bench_t09_contract_bounded_index_update__vs__val_v09_gcd_with_contracts",
+  "pair_index": 322,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "val:v09_gcd_with_contracts",
+    "group": "validation",
+    "id": "v09_gcd_with_contracts",
+    "path": "validation\\tasks\\v09_gcd_with_contracts\\reference.aeth",
+    "sha256": "fc21a6c76c7e5fd0090f71f2518feb9b5f50aa82f677b1eadfd31af455bf1c03"
+  },
+  "program_b": {
+    "label": "bench:t09_contract_bounded_index_update",
+    "group": "bench",
+    "id": "t09_contract_bounded_index_update",
+    "path": "bench\\tasks\\t09_contract_bounded_index_update\\reference.aeth",
+    "sha256": "47bde5662cbdcdc2deb4317279958ee2a53a94e40436d77f64f9d5cd78eac3e6"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes the greatest common divisor, given non-negative integers, producing a positive integer.\",\n  \"signature_b\": \"B computes an updated list, given a list, in-bounds index, and value, producing a list.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": true,\n    \"confidence\": 0.82,\n    \"why\": \"Both use shared technique(s): loop.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes the greatest common divisor, given non-negative integers, producing a positive integer.",
+    "signature_b": "B computes an updated list, given a list, in-bounds index, and value, producing a list.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": true,
+      "confidence": 0.82,
+      "why": "Both use shared technique(s): loop."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

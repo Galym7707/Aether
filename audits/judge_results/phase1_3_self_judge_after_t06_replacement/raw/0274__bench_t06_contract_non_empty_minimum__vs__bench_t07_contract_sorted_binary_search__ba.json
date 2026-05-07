@@ -1,0 +1,42 @@
+{
+  "pair_id": "0274__bench_t06_contract_non_empty_minimum__vs__bench_t07_contract_sorted_binary_search",
+  "pair_index": 274,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "bench:t07_contract_sorted_binary_search",
+    "group": "bench",
+    "id": "t07_contract_sorted_binary_search",
+    "path": "bench\\tasks\\t07_contract_sorted_binary_search\\reference.aeth",
+    "sha256": "f893ae35eb0f6428624682012d37becfdcc8b709f5e478893f68708964bf8aed"
+  },
+  "program_b": {
+    "label": "bench:t06_contract_non_empty_minimum",
+    "group": "bench",
+    "id": "t06_contract_non_empty_minimum",
+    "path": "bench\\tasks\\t06_contract_non_empty_minimum\\reference.aeth",
+    "sha256": "680bfd3e9cbef24c76172bdb623abdcd59802e455e24cd0cb560c132bf9b6d2d"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a binary-search index, given a sorted list and target integer, producing an index or -1.\",\n  \"signature_b\": \"B computes the minimum value, given a non-empty list of integers, producing an integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": true,\n    \"confidence\": 0.82,\n    \"why\": \"Both use shared technique(s): loop.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): integer-lists.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a binary-search index, given a sorted list and target integer, producing an index or -1.",
+    "signature_b": "B computes the minimum value, given a non-empty list of integers, producing an integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": true,
+      "confidence": 0.82,
+      "why": "Both use shared technique(s): loop."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): integer-lists."
+    }
+  },
+  "parse_error": null
+}

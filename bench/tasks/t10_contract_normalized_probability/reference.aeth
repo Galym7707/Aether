@@ -1,0 +1,50 @@
+function sumWeights(weights: List<Int>) returns Int
+  effects pure
+do
+  var total: Int = 0
+  for weight in weights do
+    total = total + weight
+  end
+  return total
+end
+
+function allWeightsNonNegative?(weights: List<Int>) returns Bool
+  effects pure
+do
+  for weight in weights do
+    if weight < 0 then
+      return false
+    end
+  end
+  return true
+end
+
+function validNormalizedProbabilityWeights?(weights: List<Int>) returns Bool
+  effects pure
+do
+  return length(weights) > 0 and allWeightsNonNegative?(weights) and sumWeights(weights) == 100
+end
+
+function chooseBucket(weights: List<Int>, threshold: Int) returns Int
+  requires validNormalizedProbabilityWeights?(weights)
+  requires threshold >= 0 and threshold < 100
+  ensures result >= 0 and result < length(weights)
+  effects pure
+do
+  var cumulative: Int = 0
+  var i: Int = 0
+  while i < length(weights) do
+    cumulative = cumulative + weights[i]
+    if threshold < cumulative then
+      return i
+    end
+    i = i + 1
+  end
+  return length(weights) - 1
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(chooseBucket([50, -20, 70], 25)))
+end

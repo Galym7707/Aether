@@ -1,0 +1,42 @@
+{
+  "pair_id": "0222__ref_10_temperature_classify__vs__val_v07_partition_by_parity",
+  "pair_index": 222,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:10_temperature_classify",
+    "group": "reference",
+    "id": "10_temperature_classify",
+    "path": "reference\\10_temperature_classify\\program.aeth",
+    "sha256": "25ca5473cf984b58ab95a1bd285aaa1f0d6837033e67cfc6c50280451a48dfcd"
+  },
+  "program_b": {
+    "label": "val:v07_partition_by_parity",
+    "group": "validation",
+    "id": "v07_partition_by_parity",
+    "path": "validation\\tasks\\v07_partition_by_parity\\reference.aeth",
+    "sha256": "35de07ef03b1e7cc76e7403f7056e007bddb0a24318d1df172f3434dcb8a194c"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a temperature category, given Celsius integers, producing climate labels.\",\n  \"signature_b\": \"B computes a parity partition, given a list of integers, producing rendered even and odd lists.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): strings.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a temperature category, given Celsius integers, producing climate labels.",
+    "signature_b": "B computes a parity partition, given a list of integers, producing rendered even and odd lists.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): strings."
+    }
+  },
+  "parse_error": null
+}

@@ -1,0 +1,42 @@
+{
+  "pair_id": "0168__ref_07_safe_divide__vs__val_v10_caesar_shift",
+  "pair_index": 168,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:07_safe_divide",
+    "group": "reference",
+    "id": "07_safe_divide",
+    "path": "reference\\07_safe_divide\\program.aeth",
+    "sha256": "61d6bc52cb60a40816b3f0c4e6fb59a969ae740951437e0081065e8de0271d66"
+  },
+  "program_b": {
+    "label": "val:v10_caesar_shift",
+    "group": "validation",
+    "id": "v10_caesar_shift",
+    "path": "validation\\tasks\\v10_caesar_shift\\reference.aeth",
+    "sha256": "b95b0d74acac7ae6f3495c3d0688723c0971919ddb8b9e8a78c8b75f6fc7b1e6"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a quotient or error, given two integers, producing a Result value.\",\n  \"signature_b\": \"B computes a Caesar-shifted string, given a lowercase string and shift, producing a string.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a quotient or error, given two integers, producing a Result value.",
+    "signature_b": "B computes a Caesar-shifted string, given a lowercase string and shift, producing a string.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

@@ -1,0 +1,16 @@
+{
+  "expected_stdout": "",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "expected_exit_code": 2,
+  "expected_diagnostic_code": "E0302",
+  "expected_diagnostic_category": "refinement",
+  "expected_stderr_pattern": "(?i)(refinement|contract).*non.?empty",
+  "python_equivalent": "python_equivalent.py",
+  "python_expected_exit_code": 0,
+  "python_expected_stdout": "0\n",
+  "python_expected_stderr": "",
+  "python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition)",
+  "tags": ["contracts", "refinement", "wedge", "lists"],
+  "difficulty": "medium"
+}

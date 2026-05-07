@@ -1,0 +1,42 @@
+{
+  "pair_id": "0232__bench_t03_count_vowels__vs__bench_t10_contract_normalized_probability",
+  "pair_index": 232,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "bench:t03_count_vowels",
+    "group": "bench",
+    "id": "t03_count_vowels",
+    "path": "bench\\tasks\\t03_count_vowels\\reference.aeth",
+    "sha256": "5d41d9b7ca17824e6909f68c92960fae40ebe1c4a3b330ef4f8f3a74d23976e9"
+  },
+  "program_b": {
+    "label": "bench:t10_contract_normalized_probability",
+    "group": "bench",
+    "id": "t10_contract_normalized_probability",
+    "path": "bench\\tasks\\t10_contract_normalized_probability\\reference.aeth",
+    "sha256": "53415ea0ff9b9a847f827aa22e3e770b489058a6e97f54c07955ef825a7de3d3"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a vowel count, given a string, producing an integer.\",\n  \"signature_b\": \"B computes a weighted bucket index, given normalized integer weights and a threshold, producing an index.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": true,\n    \"confidence\": 0.82,\n    \"why\": \"Both use shared technique(s): additive-accumulator.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a vowel count, given a string, producing an integer.",
+    "signature_b": "B computes a weighted bucket index, given normalized integer weights and a threshold, producing an index.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": true,
+      "confidence": 0.82,
+      "why": "Both use shared technique(s): additive-accumulator."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

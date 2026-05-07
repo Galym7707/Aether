@@ -1,0 +1,42 @@
+{
+  "pair_id": "0328__bench_t10_contract_normalized_probability__vs__val_v05_shape_area",
+  "pair_index": 328,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "val:v05_shape_area",
+    "group": "validation",
+    "id": "v05_shape_area",
+    "path": "validation\\tasks\\v05_shape_area\\reference.aeth",
+    "sha256": "063f249171fd72b04153a1fe9d0479e2ffb022493fb4f49b847a9446ec229761"
+  },
+  "program_b": {
+    "label": "bench:t10_contract_normalized_probability",
+    "group": "bench",
+    "id": "t10_contract_normalized_probability",
+    "path": "bench\\tasks\\t10_contract_normalized_probability\\reference.aeth",
+    "sha256": "53415ea0ff9b9a847f827aa22e3e770b489058a6e97f54c07955ef825a7de3d3"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes area, given a tagged shape, producing an integer.\",\n  \"signature_b\": \"B computes a weighted bucket index, given normalized integer weights and a threshold, producing an index.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes area, given a tagged shape, producing an integer.",
+    "signature_b": "B computes a weighted bucket index, given normalized integer weights and a threshold, producing an index.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

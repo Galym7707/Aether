@@ -1,0 +1,42 @@
+{
+  "pair_id": "0162__ref_07_safe_divide__vs__val_v04_result_threading",
+  "pair_index": 162,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "val:v04_result_threading",
+    "group": "validation",
+    "id": "v04_result_threading",
+    "path": "validation\\tasks\\v04_result_threading\\reference.aeth",
+    "sha256": "23836b001e7f1fa4ed1e2b2149eb0682debe4a9c61db4116b02505f789b24911"
+  },
+  "program_b": {
+    "label": "ref:07_safe_divide",
+    "group": "reference",
+    "id": "07_safe_divide",
+    "path": "reference\\07_safe_divide\\program.aeth",
+    "sha256": "61d6bc52cb60a40816b3f0c4e6fb59a969ae740951437e0081065e8de0271d66"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes validation results, given input strings, producing ok or error messages.\",\n  \"signature_b\": \"B computes a quotient or error, given two integers, producing a Result value.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": true,\n    \"confidence\": 0.82,\n    \"why\": \"Both use shared technique(s): result-error.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): integers, results.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes validation results, given input strings, producing ok or error messages.",
+    "signature_b": "B computes a quotient or error, given two integers, producing a Result value.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": true,
+      "confidence": 0.82,
+      "why": "Both use shared technique(s): result-error."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): integers, results."
+    }
+  },
+  "parse_error": null
+}

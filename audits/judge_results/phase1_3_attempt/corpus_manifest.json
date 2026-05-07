@@ -1,0 +1,214 @@
+{
+  "created_at_utc": "2026-05-06T17:03:10.933220+00:00",
+  "model": "gemini-2.5-pro",
+  "temperature": 0.0,
+  "program_count": 28,
+  "pair_count": 378,
+  "prompt_file": "audits\\llm_judge_prompt.md",
+  "prompt_file_sha256": "a2c886d8c771ee51853ed7b531b9bd609bb0470c2a677d8cf401161d425ce08e",
+  "prompt_body_sha256": "5524e842c79cd29bcb26361d482c777c4dabcfe637a8a178347401e6b3bb504d",
+  "programs": [
+    {
+      "label": "ref:01_hello",
+      "group": "reference",
+      "id": "01_hello",
+      "path": "reference\\01_hello\\program.aeth",
+      "sha256": "0a3cb6bd3c6d41d149f5acd4f90c39b8e863287d9b67b2b9da4066cca79867f8"
+    },
+    {
+      "label": "ref:02_factorial_recursive",
+      "group": "reference",
+      "id": "02_factorial_recursive",
+      "path": "reference\\02_factorial_recursive\\program.aeth",
+      "sha256": "a9ae8c3b50034626fd4157ec10d7b7dab3cf030f99747b70ae9b49dac53a0a08"
+    },
+    {
+      "label": "ref:03_factorial_iterative",
+      "group": "reference",
+      "id": "03_factorial_iterative",
+      "path": "reference\\03_factorial_iterative\\program.aeth",
+      "sha256": "db24bf70069f170b64784d6cc8980b75dc5c77c4a9818c577448d1e9d6502988"
+    },
+    {
+      "label": "ref:04_fizzbuzz",
+      "group": "reference",
+      "id": "04_fizzbuzz",
+      "path": "reference\\04_fizzbuzz\\program.aeth",
+      "sha256": "2c019003086d175e1e808406e7e1229302193ac8720ca0838f0c65d768d3c2ee"
+    },
+    {
+      "label": "ref:05_sum_list",
+      "group": "reference",
+      "id": "05_sum_list",
+      "path": "reference\\05_sum_list\\program.aeth",
+      "sha256": "4c46d8aa04e2a6bf44a95ef890991fa5e56488b19cfcf9b03fdd6ddbebacf4c8"
+    },
+    {
+      "label": "ref:06_word_count",
+      "group": "reference",
+      "id": "06_word_count",
+      "path": "reference\\06_word_count\\program.aeth",
+      "sha256": "d7273d072e84efa25c405f0e005c26f8bba7c9be72665709077f6803dec7e286"
+    },
+    {
+      "label": "ref:07_safe_divide",
+      "group": "reference",
+      "id": "07_safe_divide",
+      "path": "reference\\07_safe_divide\\program.aeth",
+      "sha256": "61d6bc52cb60a40816b3f0c4e6fb59a969ae740951437e0081065e8de0271d66"
+    },
+    {
+      "label": "ref:08_fib_memo",
+      "group": "reference",
+      "id": "08_fib_memo",
+      "path": "reference\\08_fib_memo\\program.aeth",
+      "sha256": "5b85f06cc120fa4102870ad40ca8913afc1dc9c6f4e1e14cf6e2215d445baa61"
+    },
+    {
+      "label": "ref:09_kv_store",
+      "group": "reference",
+      "id": "09_kv_store",
+      "path": "reference\\09_kv_store\\program.aeth",
+      "sha256": "a003dbff1c929e3f2d6eb2c8768e9e79ff3687cb4f7269c899626178222862fe"
+    },
+    {
+      "label": "ref:10_temperature_classify",
+      "group": "reference",
+      "id": "10_temperature_classify",
+      "path": "reference\\10_temperature_classify\\program.aeth",
+      "sha256": "25ca5473cf984b58ab95a1bd285aaa1f0d6837033e67cfc6c50280451a48dfcd"
+    },
+    {
+      "label": "bench:t03_count_vowels",
+      "group": "bench",
+      "id": "t03_count_vowels",
+      "path": "bench\\tasks\\t03_count_vowels\\reference.aeth",
+      "sha256": "5d41d9b7ca17824e6909f68c92960fae40ebe1c4a3b330ef4f8f3a74d23976e9"
+    },
+    {
+      "label": "bench:t04_balanced_brackets",
+      "group": "bench",
+      "id": "t04_balanced_brackets",
+      "path": "bench\\tasks\\t04_balanced_brackets\\reference.aeth",
+      "sha256": "9c3683112ecdfbc7fb4889cb52295a30f91dfea2495124d810a8bfc1e9144a0e"
+    },
+    {
+      "label": "bench:t05_safe_average",
+      "group": "bench",
+      "id": "t05_safe_average",
+      "path": "bench\\tasks\\t05_safe_average\\reference.aeth",
+      "sha256": "4f4dca7439a7f45e95f40f31a75023bae5a42dba06c47019f9ed0d8962f638c8"
+    },
+    {
+      "label": "bench:t06_contract_non_empty_average",
+      "group": "bench",
+      "id": "t06_contract_non_empty_average",
+      "path": "bench\\tasks\\t06_contract_non_empty_average\\reference.aeth",
+      "sha256": "bc6497243f4cc3920c5d602884063611cc28900c0ed680527276b44fb5199dd9"
+    },
+    {
+      "label": "bench:t07_contract_sorted_binary_search",
+      "group": "bench",
+      "id": "t07_contract_sorted_binary_search",
+      "path": "bench\\tasks\\t07_contract_sorted_binary_search\\reference.aeth",
+      "sha256": "f893ae35eb0f6428624682012d37becfdcc8b709f5e478893f68708964bf8aed"
+    },
+    {
+      "label": "bench:t08_contract_positive_divisor",
+      "group": "bench",
+      "id": "t08_contract_positive_divisor",
+      "path": "bench\\tasks\\t08_contract_positive_divisor\\reference.aeth",
+      "sha256": "ec8d38391b6daffdbddce0aad877d8bcc502cc8927d85c86050c4f24279cf2d0"
+    },
+    {
+      "label": "bench:t09_contract_bounded_index_update",
+      "group": "bench",
+      "id": "t09_contract_bounded_index_update",
+      "path": "bench\\tasks\\t09_contract_bounded_index_update\\reference.aeth",
+      "sha256": "47bde5662cbdcdc2deb4317279958ee2a53a94e40436d77f64f9d5cd78eac3e6"
+    },
+    {
+      "label": "bench:t10_contract_normalized_probability",
+      "group": "bench",
+      "id": "t10_contract_normalized_probability",
+      "path": "bench\\tasks\\t10_contract_normalized_probability\\reference.aeth",
+      "sha256": "53415ea0ff9b9a847f827aa22e3e770b489058a6e97f54c07955ef825a7de3d3"
+    },
+    {
+      "label": "val:v01_tagged_union_evaluator",
+      "group": "validation",
+      "id": "v01_tagged_union_evaluator",
+      "path": "validation\\tasks\\v01_tagged_union_evaluator\\reference.aeth",
+      "sha256": "2f90c4fab3c6501b2a6864944187fc9c87edbcb61f63af4d3ae1b2649d9a582c"
+    },
+    {
+      "label": "val:v02_map_filter_chain",
+      "group": "validation",
+      "id": "v02_map_filter_chain",
+      "path": "validation\\tasks\\v02_map_filter_chain\\reference.aeth",
+      "sha256": "a0218197928454cccf2f631944bc22e5a6519a2e2e72bce2cc227c10b7b2ead9"
+    },
+    {
+      "label": "val:v03_lookup_with_default",
+      "group": "validation",
+      "id": "v03_lookup_with_default",
+      "path": "validation\\tasks\\v03_lookup_with_default\\reference.aeth",
+      "sha256": "a46c4b9a1e7b438cbbd4a6b91d4f761fc102ceb811d5f48fda6001f12350cf97"
+    },
+    {
+      "label": "val:v04_result_threading",
+      "group": "validation",
+      "id": "v04_result_threading",
+      "path": "validation\\tasks\\v04_result_threading\\reference.aeth",
+      "sha256": "23836b001e7f1fa4ed1e2b2149eb0682debe4a9c61db4116b02505f789b24911"
+    },
+    {
+      "label": "val:v05_shape_area",
+      "group": "validation",
+      "id": "v05_shape_area",
+      "path": "validation\\tasks\\v05_shape_area\\reference.aeth",
+      "sha256": "063f249171fd72b04153a1fe9d0479e2ffb022493fb4f49b847a9446ec229761"
+    },
+    {
+      "label": "val:v06_record_distance",
+      "group": "validation",
+      "id": "v06_record_distance",
+      "path": "validation\\tasks\\v06_record_distance\\reference.aeth",
+      "sha256": "47597bd7a747a9c0bd5c2758b355b80bfe1dd7e0445714c5881f6372f3238087"
+    },
+    {
+      "label": "val:v07_partition_by_parity",
+      "group": "validation",
+      "id": "v07_partition_by_parity",
+      "path": "validation\\tasks\\v07_partition_by_parity\\reference.aeth",
+      "sha256": "35de07ef03b1e7cc76e7403f7056e007bddb0a24318d1df172f3434dcb8a194c"
+    },
+    {
+      "label": "val:v08_parse_and_double",
+      "group": "validation",
+      "id": "v08_parse_and_double",
+      "path": "validation\\tasks\\v08_parse_and_double\\reference.aeth",
+      "sha256": "879684a08ca1c0ddce68337b603d9d808bf22c7aec4d9c1a3aa47974ff2cfdf3"
+    },
+    {
+      "label": "val:v09_gcd_with_contracts",
+      "group": "validation",
+      "id": "v09_gcd_with_contracts",
+      "path": "validation\\tasks\\v09_gcd_with_contracts\\reference.aeth",
+      "sha256": "fc21a6c76c7e5fd0090f71f2518feb9b5f50aa82f677b1eadfd31af455bf1c03"
+    },
+    {
+      "label": "val:v10_caesar_shift",
+      "group": "validation",
+      "id": "v10_caesar_shift",
+      "path": "validation\\tasks\\v10_caesar_shift\\reference.aeth",
+      "sha256": "b95b0d74acac7ae6f3495c3d0688723c0971919ddb8b9e8a78c8b75f6fc7b1e6"
+    }
+  ],
+  "known_same_problem_pairs": [
+    [
+      "ref:02_factorial_recursive",
+      "ref:03_factorial_iterative"
+    ]
+  ]
+}

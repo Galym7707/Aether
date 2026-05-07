@@ -1,0 +1,42 @@
+{
+  "pair_id": "0208__ref_10_temperature_classify__vs__bench_t03_count_vowels",
+  "pair_index": 208,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:10_temperature_classify",
+    "group": "reference",
+    "id": "10_temperature_classify",
+    "path": "reference\\10_temperature_classify\\program.aeth",
+    "sha256": "25ca5473cf984b58ab95a1bd285aaa1f0d6837033e67cfc6c50280451a48dfcd"
+  },
+  "program_b": {
+    "label": "bench:t03_count_vowels",
+    "group": "bench",
+    "id": "t03_count_vowels",
+    "path": "bench\\tasks\\t03_count_vowels\\reference.aeth",
+    "sha256": "5d41d9b7ca17824e6909f68c92960fae40ebe1c4a3b330ef4f8f3a74d23976e9"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a temperature category, given Celsius integers, producing climate labels.\",\n  \"signature_b\": \"B computes a vowel count, given a string, producing an integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": true,\n    \"confidence\": 0.88,\n    \"why\": \"Both operate on shared domain(s): strings.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a temperature category, given Celsius integers, producing climate labels.",
+    "signature_b": "B computes a vowel count, given a string, producing an integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": true,
+      "confidence": 0.88,
+      "why": "Both operate on shared domain(s): strings."
+    }
+  },
+  "parse_error": null
+}

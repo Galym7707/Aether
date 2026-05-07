@@ -1,0 +1,42 @@
+{
+  "pair_id": "0031__ref_02_factorial_recursive__vs__ref_06_word_count",
+  "pair_index": 31,
+  "direction": "ba",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:06_word_count",
+    "group": "reference",
+    "id": "06_word_count",
+    "path": "reference\\06_word_count\\program.aeth",
+    "sha256": "d7273d072e84efa25c405f0e005c26f8bba7c9be72665709077f6803dec7e286"
+  },
+  "program_b": {
+    "label": "ref:02_factorial_recursive",
+    "group": "reference",
+    "id": "02_factorial_recursive",
+    "path": "reference\\02_factorial_recursive\\program.aeth",
+    "sha256": "a9ae8c3b50034626fd4157ec10d7b7dab3cf030f99747b70ae9b49dac53a0a08"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes a word count, given a string, producing an integer.\",\n  \"signature_b\": \"B computes factorial, given a non-negative integer, producing an integer.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes a word count, given a string, producing an integer.",
+    "signature_b": "B computes factorial, given a non-negative integer, producing an integer.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}

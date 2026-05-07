@@ -11,20 +11,26 @@ import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PYTHON = sys.executable
 
 
 def main() -> int:
     env = os.environ.copy()
     env["PYTHONDONTWRITEBYTECODE"] = "1"
 
-    results = {"reference_programs": [], "benchmark_tasks": [], "regression_tests": None}
+    results = {
+        "reference_programs": [],
+        "benchmark_tasks": [],
+        "python_equivalents": [],
+        "regression_tests": None,
+    }
 
     refdir = os.path.join(ROOT, "reference")
     for d in sorted(os.listdir(refdir)):
         td = os.path.join(refdir, d)
         if not os.path.isdir(td):
             continue
-        cmd = ["python3", "-B", "-m", "transpiler.aether.cli", "test", td]
+        cmd = [PYTHON, "-B", "-m", "transpiler.aether.cli", "test", td]
         r = subprocess.run(cmd, cwd=ROOT, env=env,
                            capture_output=True, text=True)
         results["reference_programs"].append(
@@ -32,7 +38,7 @@ def main() -> int:
              "stdout": r.stdout.strip(), "stderr": r.stderr.strip()}
         )
 
-    cmd = ["python3", "-B", "-m", "bench.harness", "run-reference"]
+    cmd = [PYTHON, "-B", "-m", "bench.harness", "run-reference"]
     r = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True)
     try:
         results["benchmark_tasks"] = json.loads(r.stdout)
@@ -41,9 +47,18 @@ def main() -> int:
             {"ok": False, "raw": r.stdout, "err": r.stderr}
         ]
 
+    cmd = [PYTHON, "-B", "-m", "bench.harness", "run-python-equivalents"]
+    r = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True)
+    try:
+        results["python_equivalents"] = json.loads(r.stdout)
+    except Exception:
+        results["python_equivalents"] = [
+            {"ok": False, "raw": r.stdout, "err": r.stderr}
+        ]
+
     reg = os.path.join(ROOT, "tests", "test_regressions.py")
     if os.path.isfile(reg):
-        cmd = ["python3", "-B", reg]
+        cmd = [PYTHON, "-B", reg]
         r = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True)
         results["regression_tests"] = {
             "ok": r.returncode == 0,
@@ -53,7 +68,7 @@ def main() -> int:
 
     fuzz = os.path.join(ROOT, "scripts", "fuzz_parser.py")
     if os.path.isfile(fuzz):
-        cmd = ["python3", "-B", fuzz, "--rounds", "200", "--mode", "all"]
+        cmd = [PYTHON, "-B", fuzz, "--rounds", "200", "--mode", "all"]
         r = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True)
         results["parser_fuzz"] = {
             "ok": r.returncode == 0,
@@ -66,13 +81,22 @@ def main() -> int:
     n_ref = len(results["reference_programs"])
     n_bench_ok = sum(1 for r in results["benchmark_tasks"] if r.get("ok"))
     n_bench = len(results["benchmark_tasks"])
+    n_py_ok = sum(1 for r in results["python_equivalents"] if r.get("ok"))
+    n_py = len(results["python_equivalents"])
     reg_ok = bool(results["regression_tests"] and results["regression_tests"]["ok"])
     fuzz_ok = bool(results.get("parser_fuzz") and results["parser_fuzz"]["ok"])
     print(f"# reference:    {n_ref_ok}/{n_ref}", file=sys.stderr)
     print(f"# bench:        {n_bench_ok}/{n_bench}", file=sys.stderr)
+    print(f"# python eq:    {n_py_ok}/{n_py}", file=sys.stderr)
     print(f"# regression:   {'PASS' if reg_ok else 'FAIL'}", file=sys.stderr)
     print(f"# fuzz:         {'PASS' if fuzz_ok else 'FAIL'} (200 rounds x 3 modes)", file=sys.stderr)
-    everything = (n_ref_ok == n_ref) and (n_bench_ok == n_bench) and reg_ok and fuzz_ok
+    everything = (
+        (n_ref_ok == n_ref)
+        and (n_bench_ok == n_bench)
+        and (n_py_ok == n_py)
+        and reg_ok
+        and fuzz_ok
+    )
     return 0 if everything else 1
 
 

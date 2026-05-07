@@ -1,0 +1,42 @@
+{
+  "pair_id": "0062__ref_03_factorial_iterative__vs__bench_t04_balanced_brackets",
+  "pair_index": 62,
+  "direction": "ab",
+  "model": "codex_self_judge",
+  "protocol_override": "User approved Codex/GPT self-judge instead of Gemini API.",
+  "program_a": {
+    "label": "ref:03_factorial_iterative",
+    "group": "reference",
+    "id": "03_factorial_iterative",
+    "path": "reference\\03_factorial_iterative\\program.aeth",
+    "sha256": "db24bf70069f170b64784d6cc8980b75dc5c77c4a9818c577448d1e9d6502988"
+  },
+  "program_b": {
+    "label": "bench:t04_balanced_brackets",
+    "group": "bench",
+    "id": "t04_balanced_brackets",
+    "path": "bench\\tasks\\t04_balanced_brackets\\reference.aeth",
+    "sha256": "9c3683112ecdfbc7fb4889cb52295a30f91dfea2495124d810a8bfc1e9144a0e"
+  },
+  "raw_text": "{\n  \"signature_a\": \"A computes factorial, given a non-negative integer, producing an integer.\",\n  \"signature_b\": \"B computes whether brackets are balanced, given a string, producing a boolean.\",\n  \"same_problem\": {\n    \"verdict\": false,\n    \"confidence\": 0.9,\n    \"why\": \"The programs compute different outputs or solve different requested tasks.\"\n  },\n  \"same_technique\": {\n    \"verdict\": false,\n    \"confidence\": 0.82,\n    \"why\": \"Their core programming techniques are different.\"\n  },\n  \"same_domain\": {\n    \"verdict\": false,\n    \"confidence\": 0.88,\n    \"why\": \"Their primary data domains do not overlap.\"\n  }\n}",
+  "parsed": {
+    "signature_a": "A computes factorial, given a non-negative integer, producing an integer.",
+    "signature_b": "B computes whether brackets are balanced, given a string, producing a boolean.",
+    "same_problem": {
+      "verdict": false,
+      "confidence": 0.9,
+      "why": "The programs compute different outputs or solve different requested tasks."
+    },
+    "same_technique": {
+      "verdict": false,
+      "confidence": 0.82,
+      "why": "Their core programming techniques are different."
+    },
+    "same_domain": {
+      "verdict": false,
+      "confidence": 0.88,
+      "why": "Their primary data domains do not overlap."
+    }
+  },
+  "parse_error": null
+}
