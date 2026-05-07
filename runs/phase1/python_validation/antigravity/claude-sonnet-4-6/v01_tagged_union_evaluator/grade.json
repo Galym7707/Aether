@@ -1,0 +1,8 @@
+{
+  "task": "v01_tagged_union_evaluator",
+  "ok": false,
+  "reason": "no_candidate",
+  "stage": null,
+  "expected": "7\n3\n42\n0\n",
+  "actual": null
+}

@@ -1,0 +1,8 @@
+{
+  "task": "v04_result_threading",
+  "ok": false,
+  "reason": "no_candidate",
+  "stage": null,
+  "expected": "ok=42\nparse error\nout of range\n",
+  "actual": null
+}

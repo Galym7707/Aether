@@ -1,0 +1,8 @@
+{
+  "task": "v08_parse_and_double",
+  "ok": false,
+  "reason": "no_candidate",
+  "stage": null,
+  "expected": "ok=42\nok=-10\nerr=could not parse Int: 'hello'\nok=0\nerr=could not parse Int: ''\n",
+  "actual": null
+}

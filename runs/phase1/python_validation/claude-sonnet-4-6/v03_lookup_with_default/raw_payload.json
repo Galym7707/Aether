@@ -3,12 +3,12 @@
   "subtype": "success",
   "is_error": true,
   "api_error_status": 400,
-  "duration_ms": 187,
+  "duration_ms": 167,
   "duration_api_ms": 0,
   "num_turns": 1,
   "result": "API Error: 400 {\"error\":{\"message\":\"Ambiguous model 'claude-sonnet-4-6'. Use provider/model prefix (ex: cc/claude-sonnet-4-6 or antigravity/claude-sonnet-4-6).\",\"type\":\"invalid_request_error\",\"code\":\"bad_request\"}}",
   "stop_reason": "stop_sequence",
-  "session_id": "6c979fee-62ec-49c4-bbda-24a41fed4a30",
+  "session_id": "8e1e5449-fbc0-4f23-812f-41311388182b",
   "total_cost_usd": 0,
   "usage": {
     "input_tokens": 0,
@@ -32,5 +32,5 @@
   "permission_denials": [],
   "terminal_reason": "completed",
   "fast_mode_state": "off",
-  "uuid": "7571405d-229b-4bc5-8e70-3487ee70c955"
+  "uuid": "65492920-9714-4991-a520-846b1414ef7f"
 }

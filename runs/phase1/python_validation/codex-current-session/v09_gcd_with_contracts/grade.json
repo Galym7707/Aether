@@ -1,0 +1,11 @@
+{
+  "task": "v09_gcd_with_contracts",
+  "ok": true,
+  "stage": "exec",
+  "elapsed_ms": 45,
+  "expected": "6\n1\n9\n6\n",
+  "actual": "6\n1\n9\n6\n",
+  "stderr": "",
+  "exit_code": 0,
+  "failure_messages": []
+}

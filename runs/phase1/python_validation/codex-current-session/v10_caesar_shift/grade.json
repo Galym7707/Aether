@@ -1,0 +1,11 @@
+{
+  "task": "v10_caesar_shift",
+  "ok": true,
+  "stage": "exec",
+  "elapsed_ms": 48,
+  "expected": "bcd\nyza\nuryyb\ngh!\n",
+  "actual": "bcd\nyza\nuryyb\ngh!\n",
+  "stderr": "",
+  "exit_code": 0,
+  "failure_messages": []
+}

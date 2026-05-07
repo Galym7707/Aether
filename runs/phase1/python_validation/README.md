@@ -39,3 +39,17 @@ The required Phase 1.4 model labels from the protocol are:
 
 As of this workspace run, Claude Code CLI was not logged in, so model
 validation is blocked. See BLOCKED.md.
+
+## Codex surrogate
+
+The user later requested a Codex-based surrogate completion of Phase 1.4.
+Artifacts are stored under:
+
+    runs/phase1/python_validation/codex-current-session/
+
+The summary is:
+
+    runs/phase1/python_validation_summary.md
+
+This is not the original Claude Opus/Sonnet gate. It is documented as a
+protocol deviation.

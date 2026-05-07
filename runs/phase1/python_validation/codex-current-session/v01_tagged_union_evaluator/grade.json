@@ -1,0 +1,11 @@
+{
+  "task": "v01_tagged_union_evaluator",
+  "ok": true,
+  "stage": "exec",
+  "elapsed_ms": 58,
+  "expected": "7\n3\n42\n0\n",
+  "actual": "7\n3\n42\n0\n",
+  "stderr": "",
+  "exit_code": 0,
+  "failure_messages": []
+}

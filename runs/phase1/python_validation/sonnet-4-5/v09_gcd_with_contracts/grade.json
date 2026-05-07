@@ -1,0 +1,8 @@
+{
+  "task": "v09_gcd_with_contracts",
+  "ok": false,
+  "reason": "no_candidate",
+  "stage": null,
+  "expected": "6\n1\n9\n6\n",
+  "actual": null
+}

@@ -1,0 +1,11 @@
+{
+  "task": "v03_lookup_with_default",
+  "ok": true,
+  "stage": "exec",
+  "elapsed_ms": 48,
+  "expected": "4\n2\n0\n0\n0\n",
+  "actual": "4\n2\n0\n0\n0\n",
+  "stderr": "",
+  "exit_code": 0,
+  "failure_messages": []
+}

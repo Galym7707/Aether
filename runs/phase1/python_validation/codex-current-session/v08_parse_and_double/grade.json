@@ -1,0 +1,11 @@
+{
+  "task": "v08_parse_and_double",
+  "ok": true,
+  "stage": "exec",
+  "elapsed_ms": 63,
+  "expected": "ok=42\nok=-10\nerr=could not parse Int: 'hello'\nok=0\nerr=could not parse Int: ''\n",
+  "actual": "ok=42\nok=-10\nerr=could not parse Int: 'hello'\nok=0\nerr=could not parse Int: ''\n",
+  "stderr": "",
+  "exit_code": 0,
+  "failure_messages": []
+}

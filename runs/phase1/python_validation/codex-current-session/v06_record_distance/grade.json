@@ -1,0 +1,11 @@
+{
+  "task": "v06_record_distance",
+  "ok": true,
+  "stage": "exec",
+  "elapsed_ms": 61,
+  "expected": "25\n0\n16\n25\n",
+  "actual": "25\n0\n16\n25\n",
+  "stderr": "",
+  "exit_code": 0,
+  "failure_messages": []
+}

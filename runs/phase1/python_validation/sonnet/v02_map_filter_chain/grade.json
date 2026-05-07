@@ -1,0 +1,8 @@
+{
+  "task": "v02_map_filter_chain",
+  "ok": false,
+  "reason": "no_candidate",
+  "stage": null,
+  "expected": "2\n0\n0\n3\n",
+  "actual": null
+}

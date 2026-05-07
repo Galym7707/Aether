@@ -1,0 +1,11 @@
+{
+  "task": "v04_result_threading",
+  "ok": true,
+  "stage": "exec",
+  "elapsed_ms": 72,
+  "expected": "ok=42\nparse error\nout of range\n",
+  "actual": "ok=42\nparse error\nout of range\n",
+  "stderr": "",
+  "exit_code": 0,
+  "failure_messages": []
+}

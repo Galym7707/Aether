@@ -1,0 +1,8 @@
+{
+  "task": "v03_lookup_with_default",
+  "ok": false,
+  "reason": "no_candidate",
+  "stage": null,
+  "expected": "4\n2\n0\n0\n0\n",
+  "actual": null
+}

@@ -1,0 +1,11 @@
+{
+  "task": "v02_map_filter_chain",
+  "ok": true,
+  "stage": "exec",
+  "elapsed_ms": 56,
+  "expected": "2\n0\n0\n3\n",
+  "actual": "2\n0\n0\n3\n",
+  "stderr": "",
+  "exit_code": 0,
+  "failure_messages": []
+}

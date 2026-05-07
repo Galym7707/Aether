@@ -1,0 +1,79 @@
+{
+  "model": "antigravity/claude-sonnet-4-6",
+  "language": "python",
+  "ok": 0,
+  "total": 10,
+  "first_attempt_pct": 0.0,
+  "results": [
+    {
+      "task": "v01_tagged_union_evaluator",
+      "ok": false,
+      "stage": null,
+      "elapsed_ms": null,
+      "reason": "no_candidate"
+    },
+    {
+      "task": "v02_map_filter_chain",
+      "ok": false,
+      "stage": null,
+      "elapsed_ms": null,
+      "reason": "no_candidate"
+    },
+    {
+      "task": "v03_lookup_with_default",
+      "ok": false,
+      "stage": null,
+      "elapsed_ms": null,
+      "reason": "no_candidate"
+    },
+    {
+      "task": "v04_result_threading",
+      "ok": false,
+      "stage": null,
+      "elapsed_ms": null,
+      "reason": "no_candidate"
+    },
+    {
+      "task": "v05_shape_area",
+      "ok": false,
+      "stage": null,
+      "elapsed_ms": null,
+      "reason": "no_candidate"
+    },
+    {
+      "task": "v06_record_distance",
+      "ok": false,
+      "stage": null,
+      "elapsed_ms": null,
+      "reason": "no_candidate"
+    },
+    {
+      "task": "v07_partition_by_parity",
+      "ok": false,
+      "stage": null,
+      "elapsed_ms": null,
+      "reason": "no_candidate"
+    },
+    {
+      "task": "v08_parse_and_double",
+      "ok": false,
+      "stage": null,
+      "elapsed_ms": null,
+      "reason": "no_candidate"
+    },
+    {
+      "task": "v09_gcd_with_contracts",
+      "ok": false,
+      "stage": null,
+      "elapsed_ms": null,
+      "reason": "no_candidate"
+    },
+    {
+      "task": "v10_caesar_shift",
+      "ok": false,
+      "stage": null,
+      "elapsed_ms": null,
+      "reason": "no_candidate"
+    }
+  ]
+}
