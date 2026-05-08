@@ -521,6 +521,47 @@ end
     print("SMT contract pass: arithmetic fragment proves and disproves clauses")
 
 
+def test_agent_sdk_parse_check_run_and_grade():
+    """Agent SDK exposes parse/check/run/grade without CLI parsing."""
+    from aether.agent_sdk import (
+        grade_candidate_source,
+        parse_source,
+        check_source,
+        run_source,
+    )
+
+    src = """
+function main() returns Unit
+  effects log
+do
+  print("sdk-ok")
+end
+"""
+    parsed = parse_source(src, "<sdk>")
+    assert parsed.ok is True, parsed.to_dict(include_artifacts=True)
+    assert parsed.ast and parsed.ast["kind"] == "Program", parsed
+
+    checked = check_source(src, "<sdk>")
+    assert checked.ok is True, checked.to_dict()
+    assert checked.python_source is not None, checked.to_dict()
+
+    ran = run_source(src, "<sdk>")
+    assert ran.ok is True, ran.to_dict()
+    assert ran.stdout == "sdk-ok\n", ran.to_dict()
+    assert ran.exit_code == 0, ran.to_dict()
+
+    graded = grade_candidate_source(
+        "sdk_grade",
+        {"expected_stdout": "sdk-ok\n", "timeout_ms": 5000},
+        "<sdk>",
+        src,
+    )
+    assert graded["ok"] is True, graded
+    assert graded["stage"] == "exec", graded
+    assert graded["checks"]["stdout_ok"] is True, graded
+    print("agent SDK: parse/check/run/grade API works without CLI parsing")
+
+
 def test_cli_run_rejects_smt_disproof_before_exec():
     """`aether run` must stop on E0901 before main can execute."""
     src = """
@@ -614,6 +655,7 @@ if __name__ == "__main__":
     test_S004_runtime_effect_glob_matching()
     test_canonical_ast_roundtrip_corpus()
     test_smt_contract_pass_arithmetic_fragment()
+    test_agent_sdk_parse_check_run_and_grade()
     test_cli_run_rejects_smt_disproof_before_exec()
     test_cli_check_rejects_pure_print_before_exec()
     print("ALL REGRESSION TESTS PASS")
