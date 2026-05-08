@@ -435,6 +435,32 @@ def test_S004_runtime_effect_glob_matching():
     print("S-004: runtime effect glob matcher handles broad and narrow effects")
 
 
+def test_canonical_ast_roundtrip_corpus():
+    """Every reference, bench, and validation program must print and reparse."""
+    from aether.printer import print_ast, strip_positions
+    from aether.parser import parse as _parse
+
+    paths = []
+    for subdir in ("reference", os.path.join("bench", "tasks"), os.path.join("validation", "tasks")):
+        base = os.path.join(ROOT, subdir)
+        for root, _, files in os.walk(base):
+            for name in files:
+                if name in {"program.aeth", "reference.aeth"}:
+                    paths.append(os.path.join(root, name))
+
+    assert paths, "no Aether corpus programs found"
+    checked = 0
+    for path in sorted(paths):
+        with open(path, encoding="utf-8") as f:
+            src = f.read()
+        ast = _parse(src, path)
+        canonical = print_ast(ast)
+        reparsed = _parse(canonical, "<canonical>")
+        assert strip_positions(reparsed) == strip_positions(ast), path
+        checked += 1
+    print(f"canonical AST round-trip: {checked} corpus programs pass")
+
+
 def test_cli_check_rejects_pure_print_before_exec():
     """`aether check` must reject an effect violation without executing main."""
     src = """
@@ -487,5 +513,6 @@ if __name__ == "__main__":
     test_static_effect_check_blocks_pure_print()
     test_S004_static_effect_glob_matching()
     test_S004_runtime_effect_glob_matching()
+    test_canonical_ast_roundtrip_corpus()
     test_cli_check_rejects_pure_print_before_exec()
     print("ALL REGRESSION TESTS PASS")

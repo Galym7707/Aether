@@ -30,7 +30,7 @@ The CLI emits structured JSON on `--json` so an agent can consume it.
 1. One syntactic form per semantic operation.
 2. Every public function declares contracts (`requires`, `ensures`) and effects.
 3. Modules declare their capabilities; the runtime grants only what's declared.
-4. The AST is canonical: `parse(print(ast)) == ast` and `print(parse(s)) == canonical(s)`.
+4. The AST is canonical modulo source-position metadata: `strip_positions(parse(print_ast(ast))) == strip_positions(ast)` and `print_ast(parse(s)) == canonical(s)`.
 5. Errors are structured; suggestions are machine-readable.
 
 See `grammar/keywords.md`, `grammar/types.md`, `grammar/effects.md`, `grammar/grammar.ebnf`, `grammar/stdlib.md`.

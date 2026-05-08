@@ -24,6 +24,8 @@ The invariant the parser must satisfy:
     the harness times out (we cap each parse to 1 second).
   - Never any other exception (TypeError, RecursionError uncaught, etc.).
   - Never silently accepts and emits broken Python.
+  - Every accepted AST must print to canonical Aether source that reparses to
+    the same AST after source-position metadata is stripped.
 
 Run as:
   python3 -B scripts/fuzz_parser.py --rounds 500 --mode random
@@ -49,6 +51,7 @@ from aether.diagnostics import AetherError       # noqa: E402
 from aether.parser import parse                  # noqa: E402
 from aether.lexer import tokenize, KEYWORDS      # noqa: E402
 from aether.emitter import emit                  # noqa: E402
+from aether.printer import print_ast, strip_positions  # noqa: E402
 
 
 # Each parse is wrapped in SIGALRM with this budget.
@@ -178,6 +181,7 @@ def run_fuzz(mode: str, rounds: int, seed: int, verbose: bool) -> dict:
         "timeouts": 0,
         "violations": [],
         "emit_violations": [],
+        "roundtrip_violations": [],
     }
     t0 = time.time()
     for r in range(rounds):
@@ -233,6 +237,37 @@ def run_fuzz(mode: str, rounds: int, seed: int, verbose: bool) -> dict:
                 "src_head": src[:200],
             })
 
+        try:
+            canonical = print_ast(ast)
+            reparsed = safe_parse(canonical)
+            if strip_positions(reparsed) != strip_positions(ast):
+                counts["roundtrip_violations"].append({
+                    "round": r,
+                    "kind": "ast_mismatch",
+                    "src_head": src[:200],
+                    "canonical_head": canonical[:200],
+                })
+        except AetherError as e:
+            counts["roundtrip_violations"].append({
+                "round": r,
+                "kind": "canonical_parse_error",
+                "msg": e.diag.message[:200],
+                "src_head": src[:200],
+            })
+        except _ParseTimeout:
+            counts["roundtrip_violations"].append({
+                "round": r,
+                "kind": "canonical_parse_timeout",
+                "src_head": src[:200],
+            })
+        except Exception as e:
+            counts["roundtrip_violations"].append({
+                "round": r,
+                "kind": f"{type(e).__name__}",
+                "msg": str(e)[:200],
+                "src_head": src[:200],
+            })
+
         if verbose and r % 100 == 0:
             print(f"  ... round {r}, parsed_ok={counts['parsed_ok']}, "
                   f"struct_reject={counts['structured_reject']}", file=sys.stderr)
@@ -240,7 +275,8 @@ def run_fuzz(mode: str, rounds: int, seed: int, verbose: bool) -> dict:
     counts["elapsed_s"] = round(time.time() - t0, 2)
     counts["ok"] = (
         len(counts["violations"]) == 0 and
-        len(counts["emit_violations"]) == 0
+        len(counts["emit_violations"]) == 0 and
+        len(counts["roundtrip_violations"]) == 0
     )
     return counts
 
@@ -265,6 +301,7 @@ def main() -> int:
         print(f"  timeouts:          {result.get('timeouts', 0)}")
         print(f"  violations:        {len(result.get('violations', []))}")
         print(f"  emit_violations:   {len(result.get('emit_violations', []))}")
+        print(f"  roundtrip_errors:  {len(result.get('roundtrip_violations', []))}")
         print(f"  elapsed:           {result.get('elapsed_s', 0)}s")
         if result.get("violations"):
             print("  first 3 violations:")
@@ -273,6 +310,10 @@ def main() -> int:
         if result.get("emit_violations"):
             print("  first 3 emit violations:")
             for v in result["emit_violations"][:3]:
+                print(f"    {v}")
+        if result.get("roundtrip_violations"):
+            print("  first 3 roundtrip violations:")
+            for v in result["roundtrip_violations"][:3]:
                 print(f"    {v}")
         if not result.get("ok"):
             overall_ok = False
