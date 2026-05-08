@@ -1,171 +1,148 @@
-# SPEC_ISSUES — v0.2 backlog
+# SPEC_ISSUES - post-v0.3 issue ledger
 
-Anything discovered while building v0.1 that should be fixed in v0.2 lands here.
-Do not edit the v0.1 grammar/spec to address these — work around them in v0.1
-and resolve them in a single revision pass.
+This file tracks implementation gaps against the Aether design/spec. Items in
+the v0.3 scope are now either resolved below or explicitly left outside v0.3 as
+v0.4+ work.
 
-This log was audited against the actual implementation on 2026-05-03 after an
-independent review. Resolved entries reflect the post-audit state.
+Last audited against the repository implementation on 2026-05-08 during Phase
+3.6. Evidence referenced here is local repository evidence: source files,
+regression tests, and the commands recorded in `STATUS.md` and
+`V03_CLOSEOUT.md`.
 
-## Open
+## Open - v0.4+
 
-### S-005 · Pattern-match expressions allocate a helper function per use site
+### S-005 - Pattern-match expressions allocate a helper function per use site
 `match ... do ... end` in expression position lowers to a generated
 `def _ae_matchexprN(_ae_scrut)` defined at module top. This is correct but
-verbose for nested cases. Consider lowering to an inline closure expression
-instead, perhaps using Python's pattern-matching at emit time (3.10+).
+verbose for nested cases. v0.4+ should consider lowering to an inline closure
+expression or using Python pattern matching at emit time.
 
-### S-006 · No support for record-update literal `Foo { x = ... }`
-The grammar / `types.md` describe a brace-init form. v0.1 does **not**
-accept `Point { x = 1.0, y = 2.0 }` — it parses `{...}` only as a map
-literal, and the diagnostic from the parser is misleading ("insert ':' here"
-suggests the wrong fix). Workaround in v0.1: use positional construction —
-`Point(1.0, 2.0)` — which works because record decls emit a positional
-constructor function. Fix in v0.2: implement `RecordLit` AST kind plus
-`{**existing, "x": ...}` emission, and either accept the brace form or
-delete it from `types.md`.
+### S-006 - No support for record-update literal `Foo { x = ... }`
+The grammar / `types.md` describe a brace-init form. The current parser does
+not accept `Point { x = 1.0, y = 2.0 }`; it parses `{...}` only as a map
+literal, and the diagnostic can suggest the wrong fix. Current workaround: use
+positional construction such as `Point(1.0, 2.0)`. v0.4+ should either
+implement a `RecordLit` AST kind or remove the form from the spec.
 
-### S-007 · Generic functions are accepted but not type-checked
-`function map<T, U>(...)` parses; `T`, `U` flow through emission unmangled
-because they appear only in type positions. v0.2 should add a type-check pass
-that at least confirms the generic parameters are used consistently.
+### S-007 - Generic functions are accepted but not type-checked
+`function map<T, U>(...)` parses, and generic names flow through emission
+because they appear only in type positions. v0.4+ should add a type-check pass
+that verifies generic parameters are used consistently.
 
-### S-009 · `time.now`, `random` not yet seedable for deterministic mode
-The runtime calls Python's wall clock directly. v0.2 should add a
-deterministic-mode flag that intercepts these.
+### S-009 - `time.now` and `random` are not seedable for deterministic mode
+The runtime still calls Python wall-clock / random behavior directly where
+available. v0.4+ should add deterministic-mode hooks for reproducible runs.
 
-### S-010 · CLI compile-cache friction with mounted filesystems
-`__pycache__` files on the user's mounted drive may be marked immutable from
-the sandbox, causing stale bytecode to be picked up after edits. Workaround:
-`PYTHONDONTWRITEBYTECODE=1` and `python3 -B`. v0.2: bake these into the
-CLI launcher so users never see the issue.
+### S-010 - CLI compile-cache friction with mounted filesystems
+`__pycache__` files on mounted Windows filesystems can create stale-bytecode
+friction. Current workaround: run with `python -B` or
+`PYTHONDONTWRITEBYTECODE=1`. v0.4+ should make this less visible in launcher
+scripts if the CLI packaging grows.
 
-### S-013 · `as` is parsed only as a pattern alias, not a value-level cast
+### S-013 - `as` is parsed only as a pattern alias, not a value-level cast
 `types.md` describes `let y = (3.14 as Float)` as a legal value-cast form, but
-the parser only accepts `as` inside `pattern as IDENT` (alias binding) and as
-the alias clause on `import ... as IDENT`. There is no expression-level cast in v0.1. Fix in v0.2: either implement an `As` expression node and runtime
-check, or delete the example from `types.md`. v0.1 doc has been updated to
-mark this form as v0.2-only.
+the parser only accepts `as` inside pattern aliases and import aliases. v0.4+
+should either implement an `As` expression node and runtime check or remove the
+example from the spec.
 
-### S-014 · Contract diagnostic positions are zero
-`requires` / `ensures` failures point at line 0, col 0 instead of the call
-site or the failing return. The function name and the failing clause text
-are present in the message, which is enough for a model loop, but a human
-reading the diagnostic gets no jump-to-source. Fix: thread the call-site
-position into `_ae_assert_contract`.
+### S-014 - Contract diagnostic positions are zero
+`requires` / `ensures` / refinement failures still commonly report line 0,
+column 0 instead of the call site or failing return. The function name,
+contract kind, and clause text are present, which is enough for the current
+agent loop, but human jump-to-source remains weak. v0.4+ should thread source
+positions through runtime contract assertions.
 
-### S-015 · `result` is reserved as a keyword everywhere, not contextually
-The lexer reserves `result` so it can be used inside `ensures` clauses to
-refer to the return value. Side effect: `let result = computeAnswer()`
-fails with a parse error. The collision rate matters because `result` is an
-extremely common identifier. Fix in v0.2: contextually reserve `result`
-only inside an `ensures` expression (the parser knows the context). v0.1
-workaround: documented in `prompt/system_prompt.md` under common mistakes.
+### S-015 - `result` is reserved as a keyword everywhere, not contextually
+The lexer reserves `result` so `ensures` clauses can refer to the return value.
+This means `let result = computeAnswer()` fails. v0.4+ should make `result`
+contextual to `ensures` parsing if the parser architecture permits it.
 
-### S-016 · Mangling collision between `foo?` / `foo_q` (and `foo!` / `foo_e`)
-`empty?` mangles to `_ae_empty_q`, and a user-defined `empty_q` would also
-mangle to `_ae_empty_q`. Latent — the v0.1 stdlib doesn't trigger it, and a
-user identifier ending in `_q` or `_e` is unusual but not impossible. Fix:
-use a non-identifier separator like `__pred__` / `__bang__`, or reject any
-user identifier that already ends in `_q` / `_e`.
+### S-016 - Mangling collision between `foo?` / `foo_q` and `foo!` / `foo_e`
+Predicate/effectful identifiers can collide with user identifiers after
+mangling. This is latent in the current corpus. v0.4+ should either use a
+non-identifier separator or reject user identifiers that collide after
+mangling.
 
 ## Resolved
 
-### S-001 · `ensures` clauses now fire at runtime  *(resolved 2026-05-03)*
-Previously a postcondition violation was silently ignored. The emitter now
-threads each function's `ensures` clauses through a new `ensures_stack` on
-`EmitContext`, and `emit_return` plus the implicit fall-through path emit
-`_ae_assert_contract(..., 'ensures', ...)` calls before returning. `old(x)`
-snapshots already collected at function entry are visible in scope.
-Verified: a function returning `x + x + 1` declared `ensures result == x * 2`
-now fails with `[E0301] ensures clause failed in double: (result == (x * 2))`,
-exit 2.
+### S-001 - `ensures` clauses fire at runtime (resolved 2026-05-03)
+The emitter threads each function's `ensures` clauses through return emission
+and raises structured contract diagnostics on failure. Regression coverage:
+`tests/test_regressions.py::test_S001_*`.
 
-### S-003 · Higher-order functions actually work  *(resolved — was never broken)*
-The original log entry claimed "function-typed parameters cannot be invoked."
-Audit on 2026-05-03 confirmed both `map(xs, double)` (with stdlib `map`) and
-a user-defined HOF — `function apply(f: function(Int) returns Int, x: Int) ...`
-called as `apply(square, 7)` — emit and execute correctly. The Pratt-style
-postfix loop already handles `f(x)` for any expression `f`, including a
-parameter-bound function value. The original analysis was wrong.
+### S-002 - Refinement-type runtime checks fire at boundaries (resolved 2026-05-03)
+The emitter collects `TypeDecl` refinements and inserts
+`_ae_check_refinement(...)` at function entry for refined parameters. Runtime
+diagnostics use `E0302` for predicate false and `E0303` for predicate crash.
+Regression coverage: `tests/test_regressions.py::test_S002_*`.
 
-### S-011 · Lexer mis-tokenized `x!=3` (no spaces)  *(resolved 2026-05-03)*
-Previously the lexer greedily ate `!` as the trailing-effectful identifier
-marker, leaving `=3` and producing a misleading "expected then" error. The
-fix in `lexer._read_ident_or_keyword` peeks one more character before
-consuming `!`: if the next char is `=`, leave `!` for the symbol scanner so
-`!=` can lex as a single two-character symbol.
+### S-003 - Higher-order functions work (resolved 2026-05-03; original issue was stale)
+Audit confirmed function-typed parameters and stdlib higher-order calls parse,
+emit, and execute. The original issue entry was incorrect.
 
-### S-012 · Harness now enforces `timeout_ms`  *(resolved 2026-05-03)*
-Previously `compile_and_run` ignored `timeout_ms` and a candidate with an
-infinite loop hung the harness. The fix uses POSIX `signal.SIGALRM` plus
-`setitimer(ITIMER_REAL, …)` to raise a private `_CandidateTimeout`
-exception inside `exec()`, which the harness catches and converts into a
-structured diagnostic with code `E0601`. Verified: an infinite-loop
-candidate against a 500ms task budget returns `ok=false` after ~506ms
-with `category: "timeout"` in the diagnostic. On Windows (no `SIGALRM`)
-the timeout silently degrades to a no-op; the harness header documents the
-recommended workaround (run on POSIX or wrap with an external `timeout`).
+### S-004 - Effect-glob subset matching (resolved 2026-05-08)
+`transpiler/aether/passes/effects.py` preserves string arguments in effect
+declarations and implements subset checks for broad effects, concrete strings,
+and trailing-star globs. Runtime strict mode in
+`transpiler/aether/runtime.py` accepts the same argumented effect shape.
+Regression coverage: `tests/test_regressions.py::test_S004_*`.
 
-### S-017 · Structural AST similarity is unreliable at v0.1's grammar size
-The Phase A audit found that with ~30 node kinds in the v0.1 grammar, any two
-non-trivial programs share 60–70% of their structural shape by virtue of
-boilerplate (`Program → FunctionDecl`, `function with body of statements`,
-etc.). A 0.70 threshold on weighted-Jaccard over node-kind and edge multisets
-sits *inside* this floor at corpus size ≥ 20, producing many false positives.
-The structural metric is fine as a Layer-1 *filter* but should not be used as
-a verdict; pair it with a Layer-2 problem-signature check (LLM-judged or
-hand-written one-line task descriptions) to actually answer "are these
-informational duplicates?". See `PHASE_A_AUDIT.md` for the resolved-flags
-table. v0.2 work that grows the grammar (records-as-keys, refinements, more
-control constructs) will widen the structural floor's gap to true
-near-clones, making the metric more useful — but Layer 2 should remain the
-authoritative check.
+### S-008 - Parser fuzzer added (resolved 2026-05-03)
+`scripts/fuzz_parser.py` runs random, mutate, and token-perturbation modes and
+is wired into `scripts/run_all.py`. The current fast gate runs 200 rounds per
+mode.
 
-### S-002 · Refinement-type runtime checks now fire at boundaries  *(resolved 2026-05-03)*
-The emitter now collects every `TypeDecl` with a `where` clause into
-`EmitContext.refinements`, then for every function parameter whose declared
-type matches a refinement, emits a `_ae_check_refinement(value, lambda
-_ae_self: <predicate>, type_name, binding_name)` call at function entry.
-The runtime helper raises `[E0302]` if the predicate returns false and
-`[E0303]` if the predicate itself crashes. Verified: `function show(n:
-PositiveInt)` declared `type PositiveInt = Int where self > 0` rejects
-`show(0)` with structured diagnostic, accepts `show(42)`. Regression test
-in `tests/test_regressions.py::test_S002_*`.
+### S-011 - Lexer no longer mis-tokenizes `x!=3` (resolved 2026-05-03)
+The lexer leaves `!` for the symbol scanner when followed by `=`, so `!=`
+lexes as one symbol. Regression coverage:
+`tests/test_regressions.py::test_S011_lexer_tight_neq`.
 
-### S-018 · Capability gating implemented as a static pass *(resolved 2026-05-03; new entry)*
-Previously module `requires capability X` declarations parsed but were
-never enforced. v0.2 adds a static analysis pass at
-`transpiler/aether/passes/capability.py` plus a CLI flag
-`--capability-strict` available on `aether check` and `aether run`. The
-pass collects every capability declared by every `ModuleDecl`, then walks
-each `FunctionDecl`'s effects clause and rejects any effect whose required
-capability isn't declared. Effect-to-capability mapping: first segment of
-the dotted path (so `fs.read` → `fs`, `net.fetch` → `net`); `pure`,
-`panic`, and `mutate(_)` need no capability. Diagnostic code `E0701`,
-category `capability`. Default mode (without `--capability-strict`) is
-unchanged from v0.1 so existing programs still run. Regression tests in
-`tests/test_regressions.py::test_capability_*`.
+### S-012 - Harness enforces `timeout_ms` on POSIX (resolved 2026-05-03)
+`compile_and_run` uses `SIGALRM` where available and returns structured
+timeout diagnostic `E0601`. On Windows, `SIGALRM` is unavailable; the current
+regression test records that platform limitation as a skip.
 
-### S-008 · Parser fuzzer added  *(resolved 2026-05-03)*
-`scripts/fuzz_parser.py` generates random / mutated / token-perturbed
-input streams and asserts the parser invariants: either return a valid
-AST, raise `AetherError`, or hit the per-parse `SIGALRM` timeout — never
-any other exception, never silent acceptance of malformed input that
-breaks emit. Three modes (`random`, `mutate`, `tokens`); 6,000 rounds
-total at 0 invariant violations, 0 emit violations, 0 timeouts. Wired
-into `scripts/run_all.py` at 200 rounds × 3 modes for fast CI.
+### S-017 - Structural AST similarity is not authoritative (resolved 2026-05-03)
+The Phase A audit established that structural AST similarity has a high common
+floor for this grammar size and should remain a filter, not a contamination
+verdict. Pairwise problem-signature checks are the authoritative path.
 
-### S-004 · Effect-glob subset matching  *(resolved 2026-05-08)*
-The static effect checker now preserves string arguments in effect
-declarations and treats an unargumented caller effect such as `net.fetch` as
-covering narrower callee declarations such as
-`net.fetch("https://api.x/users/42")`. The reverse direction is rejected:
-`net.fetch("https://api.x/*")` does not cover a callee that declares broad
-`net.fetch`. Matching also accepts concrete strings covered by a caller glob
-and the common trailing-star subset case such as
-`net.fetch("https://api.x/*")` covering
-`net.fetch("https://api.x/users/*")`. The runtime strict-mode
-`EffectTracker._prefix_match` accepts the same legacy tuple format plus the
-new `(path_tuple, arg)` format. Regression coverage:
-`tests/test_regressions.py::test_S004_*`.
+### S-018 - Capability gating exists as an opt-in static pass (resolved 2026-05-03)
+`transpiler/aether/passes/capability.py` checks module-declared capabilities
+against function effects when `--capability-strict` is enabled. Regression
+coverage: `tests/test_regressions.py::test_capability_*`.
+
+### S-019 - Static effect checking is wired by default (resolved 2026-05-08)
+`transpiler/aether/passes/effects.py` walks each `FunctionDecl`, checks direct
+calls to known local and stdlib functions, and reports `E0801` when callee
+effects are not covered by caller effects. `aether check`, `aether run`,
+`aether test`, the benchmark harness, and the agent SDK call this pass by
+default. Regression coverage:
+`tests/test_regressions.py::test_static_effect_check_blocks_pure_print` and
+`tests/test_regressions.py::test_cli_check_rejects_pure_print_before_exec`.
+
+### S-020 - Canonical AST printer round-trips the corpus (resolved 2026-05-08)
+`transpiler/aether/printer.py` prints canonical Aether source from parsed ASTs
+and provides `strip_positions` / `ast_round_trips` helpers. The regression
+suite reparses every `reference/`, `bench/tasks/`, and `validation/tasks/`
+program and compares position-stripped ASTs. Current checked corpus size in
+the regression output: 33 programs.
+
+### S-021 - Scoped SMT contract pass exists for arithmetic clauses (resolved 2026-05-08)
+`transpiler/aether/passes/smt.py` uses `z3-solver` when installed to classify
+pure arithmetic `requires` / `ensures` clauses over numeric parameters and
+simple arithmetic lets. Statically disproved clauses produce `E0901`;
+statically proved clauses produce informational `E0902` for direct pass
+callers and remain non-fatal in CLI/harness integration. Unsupported clauses
+fall back to runtime checks. Regression coverage:
+`tests/test_regressions.py::test_smt_contract_pass_arithmetic_fragment` and
+`tests/test_regressions.py::test_cli_run_rejects_smt_disproof_before_exec`.
+
+### S-022 - Agent SDK surface exists (resolved 2026-05-08)
+`transpiler/aether/agent_sdk.py` exposes typed, structured functions for
+parse/check/run and benchmark grading without CLI parsing:
+`parse_source`, `check_ast`, `check_source`, `run_source`,
+`grade_candidate_source`, `grade_candidate_file`, and
+`run_python_equivalent_file`. `bench/harness.py` now delegates core execution
+and grading behavior to this SDK while preserving its CLI wrappers. Regression
+coverage: `tests/test_regressions.py::test_agent_sdk_parse_check_run_and_grade`.

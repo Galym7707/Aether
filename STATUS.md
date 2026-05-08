@@ -1,128 +1,120 @@
-# Aether v0.1 — Phase 1 Status Report
+# Aether post-v0.3 status
 
-**Date:** 2026-05-03 (post-audit)
-**Scope:** Phase 1 bootstrap as described in the project plan: spec, reference programs, transpiler, system prompt, benchmark harness. Independent review on 2026-05-03 surfaced three critical issues; all three are now fixed.
+**Date:** 2026-05-08
+**Scope:** repository state after Phase 3.5 and Phase 3.6 documentation work.
+**Protocol note:** Phase 2 was run under the active `EXPERIMENT.md` protocol
+with `codex-current-session`, not the earlier external Claude Opus/Sonnet
+lineup.
 
-## End-to-end verification
+## Current Gate Snapshot
 
-`python3 -B scripts/run_all.py` reports:
+The current repository has passed the local gates below on Windows from
+`C:\Users\galym\Desktop\Aether`:
 
-    # reference:    10/10
-    # bench:        5/5
-    # regression:   PASS
+| Command | Result |
+|---|---|
+| `python -m py_compile transpiler\aether\agent_sdk.py bench\harness.py tests\test_regressions.py` | pass |
+| `python -B tests\test_regressions.py` | pass; `S-012` skipped because Windows has no `SIGALRM` |
+| `python -B scripts\run_all.py` | pass: reference `10/10`, bench `8/8`, python equivalents `5/5`, regression PASS, fuzz PASS |
+| `python -B validation\run_validation.py` | pass: active validation references `10/10`; 5 deprecated tasks skipped |
+| `python -B validation\run_python_validation.py` | pass: python validation references `10/10` |
+| `git diff --check` | pass; Windows line-ending warnings only |
 
-Exit code 0 from the project root.
+## What Exists Now
 
-## Post-audit fixes (2026-05-03)
+### Core compiler/runtime
 
-| ID | Fix | Verified |
+| Area | Status | Evidence |
 |---|---|---|
-| S-001 | `ensures` postconditions are now runtime-checked at every return site, including the implicit fall-through path. Violations raise `[E0301]` with the failing clause text and function name. | Regression test in `tests/test_regressions.py::test_S001_*` |
-| S-011 | Lexer no longer mis-tokenizes `x!=3`. The `!` trailer is consumed only when the next char isn't `=`, so `!=` lexes as a single 2-char symbol. Predicate (`isVowel?`) and effectful (`readFile!`) idents still tokenize correctly. | `tests/test_regressions.py::test_S011_*` |
-| S-012 | Harness enforces `timeout_ms` via POSIX `SIGALRM` + `setitimer`. Infinite-loop candidates fail with code `E0601`, category `timeout`. Verified at 301ms against a 300ms budget. On Windows (no SIGALRM) timeouts degrade to no-op; the harness header documents the workaround. | `tests/test_regressions.py::test_S012_*` |
+| Lexer/parser/emitter/runtime | Working for current reference, benchmark, and validation corpora. | `scripts/run_all.py`, `validation/run_validation.py` |
+| Runtime `requires` / `ensures` contracts | Implemented with structured diagnostics. | `tests/test_regressions.py::test_S001_*` |
+| Refinement-typed parameter checks | Implemented at function boundaries. | `tests/test_regressions.py::test_S002_*` |
+| Capability gating | Implemented as opt-in `--capability-strict`. | `tests/test_regressions.py::test_capability_*` |
+| Parser fuzzer | Wired into `scripts/run_all.py`. | run output: fuzz PASS, 200 rounds x 3 modes |
 
-The audit also corrected a stale issue (S-003): higher-order functions actually work; the original log entry was wrong. Three new entries (S-013, S-014, S-015, S-016) were added for spec-vs-implementation gaps the audit surfaced (value-level `as`, zero-position diagnostics, `result` reservation, mangling collision).
+### v0.3 additions
 
-## What ships in v0.1
+| Phase item | Status | Evidence |
+|---|---|---|
+| 3.1 Static effect checking | Implemented by default for `aether check`, `aether run`, `aether test`, harness, and SDK. Violations use `E0801`. | `transpiler/aether/passes/effects.py`; CLI check/run regression tests |
+| 3.2 Effect-glob matching | Implemented for broad/narrow effects, concrete strings, and trailing-star globs. | `tests/test_regressions.py::test_S004_*` |
+| 3.3 Canonical AST round-trip | Implemented in `transpiler/aether/printer.py`; corpus round-trip regression passes. | regression output: 33 corpus programs pass |
+| 3.4 Scoped SMT contract pass | Implemented in `transpiler/aether/passes/smt.py`; arithmetic `E0901`/`E0902` fragment only. | `tests/test_regressions.py::test_smt_contract_pass_arithmetic_fragment` |
+| 3.5 Agent SDK skeleton | Implemented in `transpiler/aether/agent_sdk.py`; harness delegates core execution/grading to it. | `tests/test_regressions.py::test_agent_sdk_parse_check_run_and_grade` |
+| 3.6 Status/closeout docs | Implemented by this update. | `SPEC_ISSUES.md`, `STATUS.md`, `V03_CLOSEOUT.md` |
 
-### Specification (`grammar/`)
+## Experiment State
 
-| File | Status |
-|---|---|
-| `keywords.md`      | 47 reserved words, locked, organised by category |
-| `types.md`         | Primitives, generics, records, tagged unions, refinement types, capability types — v0.2-only forms (brace record literal, value-level `as`) are now explicitly flagged |
-| `effects.md`       | Effect lattice with 11 categories + capability mapping |
-| `grammar.ebnf`     | LL(1)-friendly EBNF, Pratt precedence documented inline |
-| `stdlib.md`        | ~70 functions across List/Map/Set/String/IO/Time/Hash/Math/Result/Option |
+### Phase 1 apparatus
 
-### Reference programs (`reference/`)
+- `EXPERIMENT.md` exists and records the active Codex-session protocol.
+- `prompt/system_prompt.md` and `prompt/python_system_prompt.md` are the locked
+  prompt artifacts for that protocol.
+- `bench/tasks/` contains 8 active benchmark tasks: 3 standard stdout tasks and
+  5 contract-wedge tasks.
+- `bench/CONTRACT_TASKS.md` documents the 5 contract-wedge tasks.
 
-10 programs, each with `program.aeth` source and `expected_stdout.txt`. They cover: pure functions, recursion, iteration, conditional chains, list iteration, string manipulation, `Result`/`Option` matching, `Map` building and lookup, tagged-union construction and matching.
+### Phase 2 run
 
-### Transpiler (`transpiler/aether/`)
+Accepted run directory:
 
-| Module | Purpose |
-|---|---|
-| `lexer.py`       | Hand-written, ~270 LOC, produces token stream with positions; handles `?` and `!` ident trailers without colliding with `!=` |
-| `parser.py`      | Recursive descent + Pratt precedence, ~690 LOC, full v0.1 grammar |
-| `emitter.py`     | AST → Python, ~510 LOC, emits `requires` AND `ensures` runtime checks, supports effects, patterns, unions, HOFs |
-| `runtime.py`     | Mangled stdlib functions + EffectTracker + Result/Option constructors |
-| `diagnostics.py` | Structured `Diagnostic` records with code/category/severity/suggestion |
-| `cli.py`         | `aether parse|emit|check|run|test` subcommands; `--json` for agents |
+`runs/phase2/20260508_155402_+0600`
 
-### Generation prompt (`prompt/system_prompt.md`)
+`runs/phase2/20260508_155402_+0600/REPORT.md` records:
 
-Locked, ~3,500 tokens. Includes syntax cheat sheet, type system summary, effect system, stdlib quick reference, a complete worked example, and 12 common-mistake warnings (the original 8 plus four added in the audit: `result` is reserved; brace record literal not in v0.1; value-level `as` not in v0.1; tight `x!=3` works but spaces help readers).
+- Aether first-attempt success: `8/8`.
+- Python first-attempt success: `8/8`.
+- Gap: `0.0pp`, inconclusive under the pre-registered 8 percentage point
+  threshold.
+- Aether contract-catch rate on wedge tasks: `5/5`.
+- Provider token counts: not available for `codex-current-session`.
+- Anomaly scan: clear, 0 anomalies.
 
-### Benchmark harness (`bench/`)
+This is a single active-model run. It is not evidence for external Claude
+Opus/Sonnet performance.
 
-| Component | Notes |
-|---|---|
-| `bench/harness.py`     | Compile + run + grade against expected stdout. Now enforces `timeout_ms` via SIGALRM. |
-| `bench/tasks/t01–t05/` | 5 tasks with `prompt.md`, `grader.json`, `reference.aeth` |
+## Known Limits
 
-The harness emits structured JSON suitable for an agent to parse:
+Open v0.4+ items remain in `SPEC_ISSUES.md`:
 
-    {
-      "task_id": "t01_sum_to_n",
-      "candidate": "...",
-      "stage": "parse|emit|exec|grade",
-      "ok": true|false,
-      "diagnostic": null | { ... },
-      "expected": "...",
-      "actual": "...",
-      "elapsed_ms": ...
-    }
+- S-005 pattern-match expression helper verbosity.
+- S-006 brace record-update literal.
+- S-007 generic-function type checking.
+- S-009 deterministic time/random mode.
+- S-010 compile-cache ergonomics on mounted filesystems.
+- S-013 value-level `as` cast.
+- S-014 non-zero contract diagnostic positions.
+- S-015 contextual reservation of `result`.
+- S-016 mangling-collision avoidance.
 
-Plus a new diagnostic for timeouts:
+Additional caveats from current verification:
 
-    "diagnostic": {
-      "code": "E0601",
-      "category": "timeout",
-      "severity": "error",
-      "message": "candidate exceeded timeout_ms=...",
-      "suggestion": "check for infinite loops or runaway recursion"
-    }
+- Timeout enforcement depends on POSIX `SIGALRM`; Windows regression skips
+  `S-012`.
+- SMT checking depends on `z3-solver` being importable; unsupported clauses are
+  intentionally left to runtime checks.
+- Official provider token counts were not available in the accepted Phase 2
+  run.
 
-### Regression suite (`tests/`)
+## Quick Verification Commands
 
-`tests/test_regressions.py` exercises each of the three audit fixes (lexer, ensures, timeout) so they cannot silently regress in v0.2.
+From the repository root:
 
-## How to use this with Claude
+```powershell
+python -B scripts\run_all.py
+python -B validation\run_validation.py
+python -B validation\run_python_validation.py
+python -B tests\test_regressions.py
+```
 
-The harness deliberately does not call any LLM. The intended loop is:
+Use `python -B` on Windows to avoid stale bytecode issues described in S-010.
 
-1. `python3 -B -m bench.harness show-prompt <task_id>`
-2. Send the prompt to Claude (or any model) along with `prompt/system_prompt.md`
-3. Save the model's response as `candidate.aeth`
-4. `python3 -B -m bench.harness run-task <task_id> --candidate candidate.aeth`
-5. If `ok` is false, hand the diagnostic back to the model and ask it to fix
+## Current Assessment
 
-The diagnostic output is structured so the model can act on it without parsing free text. The `stage` field tells the agent whether the failure was in parse, emit, exec, or grading; the `suggestion` field gives a one-line hint generated by the parser.
-
-## Quick start
-
-    cd <project-root>
-
-    # Everything: 10 reference programs + 5 benchmark references + regression suite
-    PYTHONDONTWRITEBYTECODE=1 python3 -B scripts/run_all.py
-
-    # Just the regression tests
-    PYTHONDONTWRITEBYTECODE=1 python3 -B tests/test_regressions.py
-
-    # Inspect a single task's prompt
-    PYTHONDONTWRITEBYTECODE=1 python3 -B -m bench.harness show-prompt t04_balanced_brackets
-
-    # Run the reference solution for a task
-    PYTHONDONTWRITEBYTECODE=1 python3 -B -m bench.harness run-task t04_balanced_brackets \
-      --candidate bench/tasks/t04_balanced_brackets/reference.aeth
-
-The `PYTHONDONTWRITEBYTECODE=1 python3 -B` form suppresses `__pycache__` writes that interact badly with mounted Windows filesystems (see SPEC_ISSUES S-010).
-
-## Honest assessment
-
-v0.1 was a runnable language but with caveats large enough to distort an experimental run: ensures was silently disabled, the lexer ate `!=`, and an infinite-loop candidate hung the harness. After the audit-driven fixes, the contract claim is genuine for both directions (precondition + postcondition), the lexer accepts the syntax models are likely to produce, and the harness can survive misbehaving candidates.
-
-What's still parked for v0.2 (open in `SPEC_ISSUES.md`): pattern-match expression helper verbosity (S-005), record-update brace literal (S-006), generic-function type checking (S-007), deterministic mode (S-009), CLI compile-cache friction (S-010), value-level `as` (S-013), better contract diagnostic positions (S-014), contextual reservation of `result` (S-015), and the mangling separator (S-016). None block running the v0.1 generation/test loop today; all are either small fixes or non-blocking ergonomic improvements.
-
-The system is now sufficient for the core experiment.
+Aether now has a defensible v0.3 substrate for the scoped claims in the project
+plan: default static effect checking, effect glob matching, canonical AST
+printing, a small SMT-backed contract fragment, and an SDK entrypoint for
+agent integrations. The project is still experimental. The strongest verified
+behavior is contract/effect diagnostic feedback on the current corpus; the
+weakest areas are still type-system depth, diagnostic source positions, and
+some spec forms that remain v0.4+ work.
