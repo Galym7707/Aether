@@ -96,17 +96,27 @@ do
   return length(stack) == 0
 end
 
+function showBool(b: Bool) returns String
+  effects pure
+do
+  if b then
+    return "true"
+  else
+    return "false"
+  end
+end
+
 function main() returns Unit
   effects log
 do
-  print(balanced?("()"))
-  print(balanced?("([])"))
-  print(balanced?("{[()]}"))
-  print(balanced?("([)]"))
-  print(balanced?("((("))
-  print(balanced?(""))
-  print(balanced?("abc(def[ghi]jkl)mno"))
-  print(balanced?("}"))
+  print(showBool(balanced?("()")))
+  print(showBool(balanced?("([])")))
+  print(showBool(balanced?("{[()]}")))
+  print(showBool(balanced?("([)]")))
+  print(showBool(balanced?("(((")))
+  print(showBool(balanced?("")))
+  print(showBool(balanced?("abc(def[ghi]jkl)mno")))
+  print(showBool(balanced?("}")))
 end
 """,
     "t05_safe_average": """function average(xs: List<Int>) returns Result<Int, String>
@@ -228,7 +238,7 @@ end
 
 function updateAt(xs: List<Int>, index: Int, value: Int) returns List<Int>
   requires inBounds?(xs, index)
-  ensures length(result) == length(old(xs))
+  ensures length(result) == length(xs)
   effects pure
 do
   var out: List<Int> = []

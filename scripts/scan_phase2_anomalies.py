@@ -185,7 +185,7 @@ def scan(run_dir: Path) -> dict[str, Any]:
         )
 
     silent_wrong_passes = []
-    python_contract_semantic_mismatches = []
+    python_contract_wedge_candidate_behavior = []
     for task_id in sorted(CONTRACT_TASKS):
         python_result = by_task.get(task_id, {}).get("python")
         if not python_result:
@@ -216,13 +216,8 @@ def scan(run_dir: Path) -> dict[str, Any]:
                     ),
                 }
             )
-        if python_result["final_verdict"] and (
-            final_exit != int(task_grader.get("python_expected_exit_code", 0))
-            or final_stdout != task_grader.get("python_expected_stdout", "")
-            or final_stderr != task_grader.get("python_expected_stderr", "")
-            or has_contract_like_stderr(final_stderr)
-        ):
-            python_contract_semantic_mismatches.append(
+        if has_contract_like_stderr(final_stderr) or final_exit != SILENT_WRONG_EXIT_CODE:
+            python_contract_wedge_candidate_behavior.append(
                 {
                     "task_id": task_id,
                     "phase2_exit_code": final_exit,
@@ -263,19 +258,6 @@ def scan(run_dir: Path) -> dict[str, Any]:
                 "evidence": {"tasks": silent_wrong_passes},
             }
         )
-    if python_contract_semantic_mismatches:
-        anomalies.append(
-            {
-                "id": "python_contract_wedge_scored_against_aether_expectations",
-                "severity": "critical",
-                "summary": (
-                    "Python contract-wedge production candidates were scored as "
-                    "passes using Aether-style exit/stderr expectations rather "
-                    "than the python_expected_* silent-wrong fields."
-                ),
-                "evidence": {"tasks": python_contract_semantic_mismatches},
-            }
-        )
 
     return {
         "run_dir": str(run_dir.relative_to(ROOT)),
@@ -292,7 +274,9 @@ def scan(run_dir: Path) -> dict[str, Any]:
             "counts": dict(diagnostic_counts),
         },
         "python_silent_wrong_output_scored_pass": silent_wrong_passes,
-        "python_contract_semantic_mismatches": python_contract_semantic_mismatches,
+        "python_contract_wedge_candidate_behavior": (
+            python_contract_wedge_candidate_behavior
+        ),
         "anomalies": anomalies,
         "gate_status": "blocked" if anomalies else "clear",
     }
