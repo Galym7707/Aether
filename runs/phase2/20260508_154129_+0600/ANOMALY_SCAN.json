@@ -1,0 +1,196 @@
+{
+  "run_dir": "runs\\phase2\\20260508_154129_+0600",
+  "scan_scope": {
+    "models": [
+      "codex-current-session"
+    ],
+    "languages": [
+      "aether",
+      "python"
+    ],
+    "tasks": [
+      "t03_count_vowels",
+      "t04_balanced_brackets",
+      "t05_safe_average",
+      "t06_contract_non_empty_minimum",
+      "t07_contract_sorted_binary_search",
+      "t08_contract_positive_divisor",
+      "t09_contract_bounded_index_update",
+      "t10_contract_normalized_probability"
+    ],
+    "result_count": 16
+  },
+  "language_rates": {
+    "aether": {
+      "tasks": 8,
+      "first_attempt_successes": 6,
+      "final_successes": 8,
+      "first_attempt_success_rate": 75.0,
+      "final_success_rate": 100.0
+    },
+    "python": {
+      "tasks": 8,
+      "first_attempt_successes": 8,
+      "final_successes": 8,
+      "first_attempt_success_rate": 100.0,
+      "final_success_rate": 100.0
+    }
+  },
+  "both_failed_tasks": [],
+  "failed_attempt_diagnostics": {
+    "failed_attempt_count": 2,
+    "counts": {
+      "stdout_mismatch": 1,
+      "E9002:internal:unexpected indent (candidate.aeth.py, line 17)": 1
+    }
+  },
+  "python_silent_wrong_output_scored_pass": [],
+  "python_contract_semantic_mismatches": [
+    {
+      "task_id": "t06_contract_non_empty_minimum",
+      "phase2_exit_code": 2,
+      "phase2_stdout": "",
+      "phase2_stderr": "contract requires non-empty list violation\n",
+      "grader_python_expected_exit_code": 0,
+      "grader_python_expected_stdout": "0\n",
+      "grader_python_expected_stderr": "",
+      "grader_python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition)",
+      "final_json": "runs\\phase2\\20260508_154129_+0600\\codex-current-session\\python\\t06_contract_non_empty_minimum\\final.json"
+    },
+    {
+      "task_id": "t07_contract_sorted_binary_search",
+      "phase2_exit_code": 2,
+      "phase2_stdout": "",
+      "phase2_stderr": "contract requires sorted input violation\n",
+      "grader_python_expected_exit_code": 0,
+      "grader_python_expected_stdout": "-1\n",
+      "grader_python_expected_stderr": "",
+      "grader_python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition)",
+      "final_json": "runs\\phase2\\20260508_154129_+0600\\codex-current-session\\python\\t07_contract_sorted_binary_search\\final.json"
+    },
+    {
+      "task_id": "t08_contract_positive_divisor",
+      "phase2_exit_code": 2,
+      "phase2_stdout": "",
+      "phase2_stderr": "contract requires positive divisor denominator violation\n",
+      "grader_python_expected_exit_code": 0,
+      "grader_python_expected_stdout": "10\n",
+      "grader_python_expected_stderr": "",
+      "grader_python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition)",
+      "final_json": "runs\\phase2\\20260508_154129_+0600\\codex-current-session\\python\\t08_contract_positive_divisor\\final.json"
+    },
+    {
+      "task_id": "t09_contract_bounded_index_update",
+      "phase2_exit_code": 2,
+      "phase2_stdout": "",
+      "phase2_stderr": "contract requires index in bounds violation\n",
+      "grader_python_expected_exit_code": 0,
+      "grader_python_expected_stdout": "[1, 2, 3]\n",
+      "grader_python_expected_stderr": "",
+      "grader_python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition)",
+      "final_json": "runs\\phase2\\20260508_154129_+0600\\codex-current-session\\python\\t09_contract_bounded_index_update\\final.json"
+    },
+    {
+      "task_id": "t10_contract_normalized_probability",
+      "phase2_exit_code": 2,
+      "phase2_stdout": "",
+      "phase2_stderr": "contract requires probability weight normalization violation\n",
+      "grader_python_expected_exit_code": 0,
+      "grader_python_expected_stdout": "bucket=0\n",
+      "grader_python_expected_stderr": "",
+      "grader_python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition)",
+      "final_json": "runs\\phase2\\20260508_154129_+0600\\codex-current-session\\python\\t10_contract_normalized_probability\\final.json"
+    }
+  ],
+  "anomalies": [
+    {
+      "id": "language_first_attempt_gap_gt_20pp",
+      "severity": "high",
+      "summary": "python first-attempt success exceeded aether by 25.0 percentage points.",
+      "evidence": {
+        "basis": "primary metric: first-attempt success rate",
+        "rates": {
+          "aether": {
+            "tasks": 8,
+            "first_attempt_successes": 6,
+            "final_successes": 8,
+            "first_attempt_success_rate": 75.0,
+            "final_success_rate": 100.0
+          },
+          "python": {
+            "tasks": 8,
+            "first_attempt_successes": 8,
+            "final_successes": 8,
+            "first_attempt_success_rate": 100.0,
+            "final_success_rate": 100.0
+          }
+        }
+      }
+    },
+    {
+      "id": "python_contract_wedge_scored_against_aether_expectations",
+      "severity": "critical",
+      "summary": "Python contract-wedge production candidates were scored as passes using Aether-style exit/stderr expectations rather than the python_expected_* silent-wrong fields.",
+      "evidence": {
+        "tasks": [
+          {
+            "task_id": "t06_contract_non_empty_minimum",
+            "phase2_exit_code": 2,
+            "phase2_stdout": "",
+            "phase2_stderr": "contract requires non-empty list violation\n",
+            "grader_python_expected_exit_code": 0,
+            "grader_python_expected_stdout": "0\n",
+            "grader_python_expected_stderr": "",
+            "grader_python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition)",
+            "final_json": "runs\\phase2\\20260508_154129_+0600\\codex-current-session\\python\\t06_contract_non_empty_minimum\\final.json"
+          },
+          {
+            "task_id": "t07_contract_sorted_binary_search",
+            "phase2_exit_code": 2,
+            "phase2_stdout": "",
+            "phase2_stderr": "contract requires sorted input violation\n",
+            "grader_python_expected_exit_code": 0,
+            "grader_python_expected_stdout": "-1\n",
+            "grader_python_expected_stderr": "",
+            "grader_python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition)",
+            "final_json": "runs\\phase2\\20260508_154129_+0600\\codex-current-session\\python\\t07_contract_sorted_binary_search\\final.json"
+          },
+          {
+            "task_id": "t08_contract_positive_divisor",
+            "phase2_exit_code": 2,
+            "phase2_stdout": "",
+            "phase2_stderr": "contract requires positive divisor denominator violation\n",
+            "grader_python_expected_exit_code": 0,
+            "grader_python_expected_stdout": "10\n",
+            "grader_python_expected_stderr": "",
+            "grader_python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition)",
+            "final_json": "runs\\phase2\\20260508_154129_+0600\\codex-current-session\\python\\t08_contract_positive_divisor\\final.json"
+          },
+          {
+            "task_id": "t09_contract_bounded_index_update",
+            "phase2_exit_code": 2,
+            "phase2_stdout": "",
+            "phase2_stderr": "contract requires index in bounds violation\n",
+            "grader_python_expected_exit_code": 0,
+            "grader_python_expected_stdout": "[1, 2, 3]\n",
+            "grader_python_expected_stderr": "",
+            "grader_python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition)",
+            "final_json": "runs\\phase2\\20260508_154129_+0600\\codex-current-session\\python\\t09_contract_bounded_index_update\\final.json"
+          },
+          {
+            "task_id": "t10_contract_normalized_probability",
+            "phase2_exit_code": 2,
+            "phase2_stdout": "",
+            "phase2_stderr": "contract requires probability weight normalization violation\n",
+            "grader_python_expected_exit_code": 0,
+            "grader_python_expected_stdout": "bucket=0\n",
+            "grader_python_expected_stderr": "",
+            "grader_python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition)",
+            "final_json": "runs\\phase2\\20260508_154129_+0600\\codex-current-session\\python\\t10_contract_normalized_probability\\final.json"
+          }
+        ]
+      }
+    }
+  ],
+  "gate_status": "blocked"
+}
