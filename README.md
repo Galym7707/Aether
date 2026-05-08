@@ -8,12 +8,13 @@ This repository is the **Phase 1 bootstrap** described in the project plan. It i
 
     grammar/        Specification: keywords, types, effects, EBNF, stdlib
     reference/      Reference programs (source + canonical AST + Python equivalent + tests)
-    transpiler/     The aether compiler/runtime, pure Python, no third-party deps
+    transpiler/     The aether compiler/runtime; the SMT pass uses z3-solver
     prompt/         The locked system prompt used for generation
     bench/          Benchmark harness — drives the prompt+compiler+test loop
     tests/          Top-level integration tests
     scripts/        Helper scripts (run_all, fuzz, etc.)
     SPEC_ISSUES.md  Log of v0.2 issues discovered during v0.1 work
+    requirements.txt Python dependencies for the current toolchain
 
 ## Quick start
 

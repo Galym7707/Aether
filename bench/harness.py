@@ -59,6 +59,7 @@ from aether.diagnostics import AetherError, Diagnostic       # noqa: E402
 from aether.parser import parse                              # noqa: E402
 from aether.emitter import emit                              # noqa: E402
 from aether.passes.effects import check_effects              # noqa: E402
+from aether.passes.smt import check_smt_contracts            # noqa: E402
 from aether.runtime import build_namespace                   # noqa: E402
 
 
@@ -156,6 +157,19 @@ def compile_and_run(src: str, filename: str, stdin_text: str = "",
             "stdout": "",
             "actual": "",
             "stderr": "".join(_format_diag_as_stderr(d) for d in effect_diags),
+            "exit_code": 2,
+            "elapsed_ms": elapsed(),
+        }
+    smt_diags = [d for d in check_smt_contracts(ast) if d.severity == "error"]
+    if smt_diags:
+        diag = smt_diags[0]
+        return {
+            "stage": "check",
+            "ok": False,
+            "diagnostic": diag.to_dict(),
+            "stdout": "",
+            "actual": "",
+            "stderr": "".join(_format_diag_as_stderr(d) for d in smt_diags),
             "exit_code": 2,
             "elapsed_ms": elapsed(),
         }

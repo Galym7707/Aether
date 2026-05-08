@@ -461,6 +461,105 @@ def test_canonical_ast_roundtrip_corpus():
     print(f"canonical AST round-trip: {checked} corpus programs pass")
 
 
+def test_smt_contract_pass_arithmetic_fragment():
+    """SMT pass proves/disproves only the supported arithmetic fragment."""
+    from aether.parser import parse as _parse
+    from aether.passes.smt import check_smt_contracts
+
+    src = """
+function impossible(x: Int) returns Int
+  requires x > x + 1
+  effects pure
+do
+  return x
+end
+
+function tautology(x: Int) returns Int
+  requires x == x
+  effects pure
+do
+  return x
+end
+
+function badEnsures(x: Int) returns Int
+  ensures result > x
+  effects pure
+do
+  return x - 1
+end
+
+function goodEnsures(x: Int) returns Int
+  ensures result > x
+  effects pure
+do
+  let y: Int = x + 1
+  return y
+end
+
+function skipped(x: Int) returns Int
+  requires abs(x) > 0
+  effects pure
+do
+  return x
+end
+"""
+    diags = check_smt_contracts(_parse(src, "<smt>"))
+    errors = [d for d in diags if d.code == "E0901"]
+    infos = [d for d in diags if d.code == "E0902"]
+    assert len(errors) == 2, [d.to_dict() for d in errors]
+    assert {d.extra["function"] for d in errors} == {"impossible", "badEnsures"}
+    assert len(infos) == 2, [d.to_dict() for d in infos]
+    assert {d.extra["function"] for d in infos} == {"tautology", "goodEnsures"}
+    assert all(d.extra["function"] != "skipped" for d in diags), [
+        d.to_dict() for d in diags
+    ]
+    harness_out = compile_and_run(src, "<smt>")
+    assert harness_out["ok"] is False, harness_out
+    assert harness_out["stage"] == "check", harness_out
+    assert harness_out["exit_code"] == 2, harness_out
+    assert harness_out["diagnostic"]["code"] == "E0901", harness_out
+    print("SMT contract pass: arithmetic fragment proves and disproves clauses")
+
+
+def test_cli_run_rejects_smt_disproof_before_exec():
+    """`aether run` must stop on E0901 before main can execute."""
+    src = """
+function impossible(x: Int) returns Int
+  requires x > x + 1
+  effects pure
+do
+  return x
+end
+
+function main() returns Unit
+  effects log
+do
+  print("main ran")
+  print(intToString(impossible(1)))
+end
+"""
+    path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".aeth", delete=False, encoding="utf-8"
+        ) as f:
+            f.write(src)
+            path = f.name
+        proc = subprocess.run(
+            [sys.executable, "-B", "-m", "transpiler.aether.cli", "run", path],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        assert proc.returncode == 2, proc
+        assert "E0901" in proc.stderr, proc.stderr
+        assert "main ran" not in proc.stdout, proc.stdout
+        assert "main ran" not in proc.stderr, proc.stderr
+    finally:
+        if path and os.path.exists(path):
+            os.unlink(path)
+
+
 def test_cli_check_rejects_pure_print_before_exec():
     """`aether check` must reject an effect violation without executing main."""
     src = """
@@ -514,5 +613,7 @@ if __name__ == "__main__":
     test_S004_static_effect_glob_matching()
     test_S004_runtime_effect_glob_matching()
     test_canonical_ast_roundtrip_corpus()
+    test_smt_contract_pass_arithmetic_fragment()
+    test_cli_run_rejects_smt_disproof_before_exec()
     test_cli_check_rejects_pure_print_before_exec()
     print("ALL REGRESSION TESTS PASS")

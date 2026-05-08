@@ -57,7 +57,10 @@ Constructors are accessed as `Shape.Circle(2.0)`. Pattern matching is exhaustive
 
 Inside the refinement clause, `self` is the candidate value. The predicate is checked at runtime when a value crosses a function or module boundary into the refined type. Inside a function body, the refinement is *assumed* — the type checker does not re-prove it.
 
-This is intentional: v0.1 trades static guarantees for low complexity. v0.2 may add an SMT pass.
+This is intentional: v0.1 traded static guarantees for low complexity. The
+current toolchain includes a scoped Z3-backed SMT pass for requires/ensures
+clauses that fit a pure Int/Float arithmetic fragment; other refinement
+predicates remain runtime checks.
 
 ## Capability types
 

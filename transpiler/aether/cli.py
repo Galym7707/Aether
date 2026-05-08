@@ -27,6 +27,7 @@ from .parser import parse
 from .emitter import emit
 from .passes.capability import check_capabilities
 from .passes.effects import check_effects
+from .passes.smt import check_smt_contracts
 from .runtime import build_namespace, set_effect_strict
 
 
@@ -92,10 +93,23 @@ def _run_effect_check(ast, as_json) -> int:
     return 2
 
 
+def _run_smt_check(ast, as_json) -> int:
+    """Returns 0 unless the SMT pass finds error-severity diagnostics."""
+    diags = [d for d in check_smt_contracts(ast) if d.severity == "error"]
+    if not diags:
+        return 0
+    for d in diags:
+        _emit_error(d, as_json)
+    return 2
+
+
 def cmd_check(args) -> int:
     src = _read(args.file)
     ast = parse(src, args.file)
     rc = _run_effect_check(ast, args.json)
+    if rc != 0:
+        return rc
+    rc = _run_smt_check(ast, args.json)
     if rc != 0:
         return rc
     py = emit(ast)
@@ -119,6 +133,9 @@ def cmd_run(args) -> int:
     src = _read(args.file)
     ast = parse(src, args.file)
     rc = _run_effect_check(ast, args.json)
+    if rc != 0:
+        return rc
+    rc = _run_smt_check(ast, args.json)
     if rc != 0:
         return rc
     if getattr(args, "capability_strict", False):
@@ -150,6 +167,9 @@ def cmd_test(args) -> int:
     try:
         ast = parse(src, src_path)
         rc = _run_effect_check(ast, args.json)
+        if rc != 0:
+            return rc
+        rc = _run_smt_check(ast, args.json)
         if rc != 0:
             return rc
         py = emit(ast)
