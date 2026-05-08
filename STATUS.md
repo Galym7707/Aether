@@ -123,6 +123,6 @@ The `PYTHONDONTWRITEBYTECODE=1 python3 -B` form suppresses `__pycache__` writes 
 
 v0.1 was a runnable language but with caveats large enough to distort an experimental run: ensures was silently disabled, the lexer ate `!=`, and an infinite-loop candidate hung the harness. After the audit-driven fixes, the contract claim is genuine for both directions (precondition + postcondition), the lexer accepts the syntax models are likely to produce, and the harness can survive misbehaving candidates.
 
-What's still parked for v0.2 (open in `SPEC_ISSUES.md`): refinement-type runtime enforcement (S-002), effect-glob subset matching (S-004), record-update brace literal (S-006), property-based fuzzing (S-008), deterministic mode (S-009), better contract diagnostic positions (S-014), contextual reservation of `result` (S-015), and the mangling separator (S-016). None block running the v0.1 generation/test loop today; all are either small fixes or non-blocking ergonomic improvements.
+What's still parked for v0.2 (open in `SPEC_ISSUES.md`): pattern-match expression helper verbosity (S-005), record-update brace literal (S-006), generic-function type checking (S-007), deterministic mode (S-009), CLI compile-cache friction (S-010), value-level `as` (S-013), better contract diagnostic positions (S-014), contextual reservation of `result` (S-015), and the mangling separator (S-016). None block running the v0.1 generation/test loop today; all are either small fixes or non-blocking ergonomic improvements.
 
 The system is now sufficient for the core experiment.

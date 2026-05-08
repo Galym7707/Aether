@@ -43,7 +43,7 @@ Validation runner: 10/10 active.
 
 ## What v0.2 does NOT add (still parked for later)
 
-- `S-004` effect-prefix subset matching (e.g., `net.fetch("https://api.x/*")` ⊆ `net.fetch`). Still a string-equality check.
+- `S-004` effect-prefix subset matching (e.g., `net.fetch("https://api.x/*")` ⊆ `net.fetch`). This remained open at v0.2 closeout and was resolved later during v0.3 Phase 3.2.
 - `S-006` brace record-update literal `Foo { x = 1.0 }`. Use positional `Foo(1.0)`.
 - `S-007` generic-function type-checking.
 - `S-009` deterministic-mode (seedable `time.now`/`random`).

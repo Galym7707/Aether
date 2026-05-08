@@ -9,6 +9,8 @@ left to runtime behavior or future type analysis.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from fnmatch import fnmatchcase
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from ..diagnostics import Diagnostic, Position
@@ -17,10 +19,24 @@ from ..diagnostics import Diagnostic, Position
 EffectPath = Tuple[str, ...]
 
 
-_PURE: Tuple[EffectPath, ...] = ()
+@dataclass(frozen=True)
+class EffectSpec:
+    path: EffectPath
+    arg: Optional[str] = None
+    has_arg: bool = False
 
 
-_STDLIB_EFFECTS: Dict[str, Tuple[EffectPath, ...]] = {
+EffectSet = Tuple[EffectSpec, ...]
+
+
+def _spec(path: Iterable[str], arg: Optional[str] = None) -> EffectSpec:
+    return EffectSpec(tuple(path), arg, arg is not None)
+
+
+_PURE: EffectSet = ()
+
+
+_STDLIB_EFFECTS: Dict[str, EffectSet] = {
     # Built-in union constructors.
     "Some": _PURE,
     "None": _PURE,
@@ -64,12 +80,12 @@ _STDLIB_EFFECTS: Dict[str, Tuple[EffectPath, ...]] = {
     "parseFloat": _PURE,
     "intToString": _PURE,
     # IO.
-    "print": (("log",),),
-    "readLine": (("log",),),
-    "readFile": (("fs", "read"),),
-    "writeFile": (("fs", "write"),),
+    "print": (_spec(("log",)),),
+    "readLine": (_spec(("log",)),),
+    "readFile": (_spec(("fs", "read")),),
+    "writeFile": (_spec(("fs", "write")),),
     # Time / Hash / Math.
-    "now": (("time", "now"),),
+    "now": (_spec(("time", "now")),),
     "sha256": _PURE,
     "sha1": _PURE,
     "md5": _PURE,
@@ -90,41 +106,99 @@ _STDLIB_EFFECTS: Dict[str, Tuple[EffectPath, ...]] = {
 }
 
 
-def _effect_paths(effects: Iterable[Dict[str, Any]]) -> Tuple[EffectPath, ...]:
-    paths: List[EffectPath] = []
+def _literal_string_arg(expr: Optional[Dict[str, Any]]) -> Optional[str]:
+    if expr and expr.get("kind") == "StringLit":
+        return expr["value"]
+    return None
+
+
+def _effect_specs(effects: Iterable[Dict[str, Any]]) -> EffectSet:
+    specs: List[EffectSpec] = []
     for effect in effects:
         path = tuple(effect.get("path") or ())
         if not path or path == ("pure",):
             continue
-        paths.append(path)
-    return tuple(paths)
+        arg_expr = effect.get("arg")
+        specs.append(
+            EffectSpec(path, _literal_string_arg(arg_expr), arg_expr is not None)
+        )
+    return tuple(specs)
 
 
-def _effect_name(path: EffectPath) -> str:
-    return ".".join(path)
+def _effect_name(effect: EffectSpec) -> str:
+    name = ".".join(effect.path)
+    if effect.has_arg:
+        if effect.arg is None:
+            return f"{name}(?)"
+        return f"{name}({effect.arg!r})"
+    return name
 
 
-def _covers(declared: EffectPath, required: EffectPath) -> bool:
+def _has_glob(pattern: str) -> bool:
+    return any(ch in pattern for ch in "*?[")
+
+
+def _trailing_star_prefix(pattern: str) -> Optional[str]:
+    if not pattern.endswith("*"):
+        return None
+    prefix = pattern[:-1]
+    if _has_glob(prefix):
+        return None
+    return prefix
+
+
+def _glob_covers(declared_pattern: str, required_pattern: str) -> bool:
+    """True when every required URL is covered by the declared URL glob.
+
+    General glob-subset solving is intentionally out of scope. This accepts
+    exact equality, concrete required strings matched by the caller glob, and
+    the common trailing-star subset case used by `net.fetch(".../*")`.
+    """
+    if declared_pattern == required_pattern:
+        return True
+    if not _has_glob(required_pattern):
+        return fnmatchcase(required_pattern, declared_pattern)
+    declared_prefix = _trailing_star_prefix(declared_pattern)
+    required_prefix = _trailing_star_prefix(required_pattern)
+    if declared_prefix is None or required_prefix is None:
+        return False
+    return required_prefix.startswith(declared_prefix)
+
+
+def _covers(declared: EffectSpec, required: EffectSpec) -> bool:
     """True when a caller declaration covers a callee effect.
 
     This mirrors the current runtime prefix rule: declaring `fs` covers
     `fs.read`, while declaring `fs.read` does not cover a callee that declares
-    broader `fs`.
+    broader `fs`. For equal paths, an unargumented caller effect such as
+    `net.fetch` covers an argumented callee effect like
+    `net.fetch("https://api.x/*")`; a narrower caller glob does not cover a
+    broader callee declaration.
     """
-    if len(declared) > len(required):
+    if len(declared.path) > len(required.path):
         return False
-    return declared == required[: len(declared)]
+    if declared.path != required.path[: len(declared.path)]:
+        return False
+    if len(declared.path) < len(required.path):
+        return True
+    if not declared.has_arg:
+        return True
+    if not required.has_arg:
+        return False
+    if declared.arg is None or required.arg is None:
+        return False
+    return _glob_covers(declared.arg, required.arg)
 
 
-def _effect_allowed(required: EffectPath, caller_effects: Tuple[EffectPath, ...]) -> bool:
+def _effect_allowed(required: EffectSpec, caller_effects: EffectSet) -> bool:
     return any(_covers(declared, required) for declared in caller_effects)
 
 
-def _local_effect_table(ast: Dict[str, Any]) -> Dict[str, Tuple[EffectPath, ...]]:
-    table: Dict[str, Tuple[EffectPath, ...]] = {}
+def _local_effect_table(ast: Dict[str, Any]) -> Dict[str, EffectSet]:
+    table: Dict[str, EffectSet] = {}
     for decl in ast.get("decls", []):
         if decl.get("kind") == "FunctionDecl":
-            table[decl["name"]] = _effect_paths(decl.get("effects", []))
+            table[decl["name"]] = _effect_specs(decl.get("effects", []))
         elif decl.get("kind") == "RecordDecl":
             table[decl["name"]] = _PURE
         elif decl.get("kind") == "UnionDecl":
@@ -242,7 +316,7 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
         if fn.get("kind") != "FunctionDecl":
             continue
         caller = fn["name"]
-        caller_effects = _effect_paths(fn.get("effects", []))
+        caller_effects = _effect_specs(fn.get("effects", []))
         pos = fn.get("pos") or {"line": 0, "column": 0}
 
         for root_expr in _function_expressions(fn):
@@ -278,7 +352,7 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
                                 "caller": caller,
                                 "callee": callee,
                                 "caller_effects": [
-                                    _effect_name(path) for path in caller_effects
+                                    _effect_name(effect) for effect in caller_effects
                                 ],
                                 "required_effect": _effect_name(required),
                             },
@@ -287,7 +361,7 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
     return diags
 
 
-def _format_effect_set(effects: Tuple[EffectPath, ...]) -> str:
+def _format_effect_set(effects: EffectSet) -> str:
     if not effects:
         return "'pure'"
     return ", ".join(repr(_effect_name(effect)) for effect in effects)

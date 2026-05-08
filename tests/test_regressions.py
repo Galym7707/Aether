@@ -323,6 +323,118 @@ end
     print("static effect checker: pure function calling print flagged with E0801")
 
 
+def test_S004_static_effect_glob_matching():
+    """Effect subset checking must respect broad, narrow, and globbed effects."""
+    from aether.passes.effects import check_effects
+    from aether.parser import parse as _parse
+
+    broad_caller = """
+function fetchUser() returns String
+  effects net.fetch("https://api.x/*")
+do
+  return "ok"
+end
+
+function caller() returns String
+  effects net.fetch
+do
+  return fetchUser()
+end
+"""
+    ast = _parse(broad_caller, "<effect-glob>")
+    assert check_effects(ast) == []
+
+    glob_caller = """
+function fetchUser() returns String
+  effects net.fetch("https://api.x/users/42")
+do
+  return "ok"
+end
+
+function caller() returns String
+  effects net.fetch("https://api.x/*")
+do
+  return fetchUser()
+end
+"""
+    ast = _parse(glob_caller, "<effect-glob>")
+    assert check_effects(ast) == []
+
+    narrow_caller = """
+function fetchAny() returns String
+  effects net.fetch
+do
+  return "ok"
+end
+
+function caller() returns String
+  effects net.fetch("https://api.x/*")
+do
+  return fetchAny()
+end
+"""
+    ast = _parse(narrow_caller, "<effect-glob>")
+    diags = check_effects(ast)
+    assert len(diags) == 1, diags
+    assert diags[0].code == "E0801", diags[0].to_dict()
+    assert diags[0].extra["caller"] == "caller", diags[0].to_dict()
+    assert diags[0].extra["callee"] == "fetchAny", diags[0].to_dict()
+    assert diags[0].extra["required_effect"] == "net.fetch", diags[0].to_dict()
+
+    wrong_domain = """
+function fetchUser() returns String
+  effects net.fetch("https://api.x/users/42")
+do
+  return "ok"
+end
+
+function caller() returns String
+  effects net.fetch("https://api.y/*")
+do
+  return fetchUser()
+end
+"""
+    ast = _parse(wrong_domain, "<effect-glob>")
+    diags = check_effects(ast)
+    assert len(diags) == 1, diags
+    assert diags[0].code == "E0801", diags[0].to_dict()
+    assert diags[0].extra["required_effect"] == (
+        "net.fetch('https://api.x/users/42')"
+    ), diags[0].to_dict()
+    print("S-004: static effect glob matching accepts broad callers and rejects narrow ones")
+
+
+def test_S004_runtime_effect_glob_matching():
+    """Runtime strict matcher must keep old tuple effects and new arg effects."""
+    from aether.runtime import EffectTracker
+
+    assert EffectTracker._prefix_match(
+        ("net", "fetch"),
+        (("net", "fetch"), "https://api.x/users/42"),
+    )
+    assert EffectTracker._prefix_match(
+        (("net", "fetch"), "https://api.x/*"),
+        (("net", "fetch"), "https://api.x/users/42"),
+    )
+    assert EffectTracker._prefix_match(
+        (("net", "fetch"), "https://api.x/*"),
+        (("net", "fetch"), "https://api.x/users/*"),
+    )
+    assert not EffectTracker._prefix_match(
+        (("net", "fetch"), "https://api.x/users/*"),
+        (("net", "fetch"), "https://api.x/*"),
+    )
+    assert not EffectTracker._prefix_match(
+        (("net", "fetch"), "https://api.x/*"),
+        ("net", "fetch"),
+    )
+    assert not EffectTracker._prefix_match(
+        (("net", "fetch"), "https://api.y/*"),
+        (("net", "fetch"), "https://api.x/users/42"),
+    )
+    print("S-004: runtime effect glob matcher handles broad and narrow effects")
+
+
 def test_cli_check_rejects_pure_print_before_exec():
     """`aether check` must reject an effect violation without executing main."""
     src = """
@@ -373,5 +485,7 @@ if __name__ == "__main__":
     test_capability_strict_blocks_undeclared()
     test_capability_strict_admits_declared()
     test_static_effect_check_blocks_pure_print()
+    test_S004_static_effect_glob_matching()
+    test_S004_runtime_effect_glob_matching()
     test_cli_check_rejects_pure_print_before_exec()
     print("ALL REGRESSION TESTS PASS")

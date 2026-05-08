@@ -9,18 +9,6 @@ independent review. Resolved entries reflect the post-audit state.
 
 ## Open
 
-### S-002 · Refinement types are not runtime-checked at boundary crossings
-`type Email = String where matches?(self, ...)` parses, but no runtime check
-runs when a `String` is passed to a parameter typed `Email`. Fix: emit a
-`_ae_check_refinement(value, predicate, name)` call at the start of the
-callee, parameterised by the refinement predicate.
-
-### S-004 · No effect-prefix subset checking
-A function declaring `effects net.fetch` cannot, in the strict-effect runtime,
-satisfy a check for `net.fetch("https://api.x/*")`. v0.1 compares whole tuples
-of strings. Fix: implement glob-aware prefix matching in
-`runtime.EffectTracker._prefix_match`.
-
 ### S-005 · Pattern-match expressions allocate a helper function per use site
 `match ... do ... end` in expression position lowers to a generated
 `def _ae_matchexprN(_ae_scrut)` defined at module top. This is correct but
@@ -41,12 +29,6 @@ delete it from `types.md`.
 `function map<T, U>(...)` parses; `T`, `U` flow through emission unmangled
 because they appear only in type positions. v0.2 should add a type-check pass
 that at least confirms the generic parameters are used consistently.
-
-### S-008 · No fuzzer or negative reference set
-The plan called for property-based fuzzing of the parser plus a
-"deliberately wrong" set for negative tests. v0.2 should add `bench/fuzz/`
-using Hypothesis to confirm the parser never crashes and never silently
-accepts malformed input.
 
 ### S-009 · `time.now`, `random` not yet seedable for deterministic mode
 The runtime calls Python's wall clock directly. v0.2 should add a
@@ -173,3 +155,17 @@ any other exception, never silent acceptance of malformed input that
 breaks emit. Three modes (`random`, `mutate`, `tokens`); 6,000 rounds
 total at 0 invariant violations, 0 emit violations, 0 timeouts. Wired
 into `scripts/run_all.py` at 200 rounds × 3 modes for fast CI.
+
+### S-004 · Effect-glob subset matching  *(resolved 2026-05-08)*
+The static effect checker now preserves string arguments in effect
+declarations and treats an unargumented caller effect such as `net.fetch` as
+covering narrower callee declarations such as
+`net.fetch("https://api.x/users/42")`. The reverse direction is rejected:
+`net.fetch("https://api.x/*")` does not cover a callee that declares broad
+`net.fetch`. Matching also accepts concrete strings covered by a caller glob
+and the common trailing-star subset case such as
+`net.fetch("https://api.x/*")` covering
+`net.fetch("https://api.x/users/*")`. The runtime strict-mode
+`EffectTracker._prefix_match` accepts the same legacy tuple format plus the
+new `(path_tuple, arg)` format. Regression coverage:
+`tests/test_regressions.py::test_S004_*`.

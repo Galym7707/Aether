@@ -20,13 +20,19 @@ An effect is a dotted path: `category.action` or `category.action(arg)`.
     mutate(name)         — mutates a named module-level binding
     panic                — may abort with a structured panic
 
-In v0.1 these are tracked as opaque strings — the runtime stores the declared set and asserts that operations not listed in the set are not invoked at runtime when running in `--effect-strict` mode. Static enforcement of subset relations on dotted paths (e.g. `net.fetch("https://api.x/*")` ⊆ `net.fetch`) is parked for v0.2.
+In v0.1 these were tracked as opaque strings. The current checker preserves
+string arguments for effects such as `net.fetch("https://api.x/*")` and
+supports prefix/glob-aware subset checks for direct function calls. The runtime
+strict checker keeps the same compatibility rule for observed effects.
 
 ## Composition rule
 
 A function `f` may invoke another function `g` only if every effect in `g`'s declared set is also in `f`'s declared set, **except** that `pure` is the bottom element: a `pure` function may only call `pure` functions.
 
-The type checker enforces this conservatively in v0.1: literal effect strings are compared as plain strings.
+The checker enforces this conservatively: dotted path prefixes are allowed, an
+unargumented caller declaration such as `net.fetch` covers narrower
+argumented callee declarations, and a caller glob can cover concrete matching
+URLs or a narrower trailing-star glob. The reverse direction is rejected.
 
 ## Capability gating
 

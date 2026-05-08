@@ -177,7 +177,14 @@ def emit_function(ctx: EmitContext, d: Dict[str, Any]):
     with ctx.block():
         eff_lits = []
         for e in d["effects"]:
-            eff_lits.append("(" + ", ".join(repr(p) for p in e["path"]) + ",)")
+            path_lit = "(" + ", ".join(repr(p) for p in e["path"]) + ",)"
+            arg = e.get("arg")
+            if arg and arg.get("kind") == "StringLit":
+                eff_lits.append(f"({path_lit}, {arg['value']!r})")
+            elif arg is not None:
+                eff_lits.append(f"({path_lit}, None)")
+            else:
+                eff_lits.append(path_lit)
         ctx.emit(f"push_effect_frame([{', '.join(eff_lits)}])")
         old_marker_idx = len(ctx.lines)
         # Emit refinement-type boundary checks for any parameter whose

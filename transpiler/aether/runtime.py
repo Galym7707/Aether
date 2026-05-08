@@ -13,6 +13,7 @@ just calls them directly.
 """
 
 from __future__ import annotations
+from fnmatch import fnmatchcase
 from typing import Any, Callable, Dict, List, Tuple, Optional
 
 
@@ -48,46 +49,107 @@ class EffectTracker:
 
     def __init__(self, strict: bool = False):
         self.strict = strict
-        self.allowed: List[Tuple[str, ...]] = []
-        self.observed: List[Tuple[str, ...]] = []
+        self.allowed: List[Any] = []
+        self.observed: List[Any] = []
 
-    def push_frame(self, declared: List[Tuple[str, ...]]):
+    def push_frame(self, declared: List[Any]):
         self.allowed.append(declared)
 
     def pop_frame(self):
         self.allowed.pop()
 
-    def record(self, path: Tuple[str, ...]):
-        self.observed.append(path)
+    def record(self, effect):
+        observed_path, _, _ = self._split_effect(effect)
+        self.observed.append(effect)
         if self.strict and self.allowed:
             top = self.allowed[-1]
-            if ("pure",) in top:
+            if any(self._split_effect(declared)[0] == ("pure",) for declared in top):
                 # pure means no effects allowed
                 from .diagnostics import AetherError, Diagnostic, Position
                 raise AetherError(Diagnostic(
                     code="E0501", category="effect", severity="error",
-                    message=f"effect {'.'.join(path)} performed in a function declared 'pure'",
+                    message=(f"effect {self._effect_name(effect)} performed in "
+                             "a function declared 'pure'"),
                     position=Position(0, 0),
                     suggestion="declare this effect in the function's effects clause",
                     confidence=1.0,
                 ))
             # match-prefix check
-            ok = any(self._prefix_match(declared, path) for declared in top)
+            ok = any(self._prefix_match(declared, effect) for declared in top)
             if not ok:
                 from .diagnostics import AetherError, Diagnostic, Position
                 raise AetherError(Diagnostic(
                     code="E0502", category="effect", severity="error",
-                    message=f"effect {'.'.join(path)} not in declared effect set",
+                    message=f"effect {self._effect_name(effect)} not in declared effect set",
                     position=Position(0, 0),
-                    suggestion=f"add '{'.'.join(path)}' to the function's effects clause",
+                    suggestion=(f"add '{'.'.join(observed_path)}' to the "
+                                "function's effects clause"),
                     confidence=1.0,
                 ))
 
     @staticmethod
-    def _prefix_match(declared: Tuple[str, ...], observed: Tuple[str, ...]) -> bool:
-        if len(declared) > len(observed):
+    def _split_effect(effect):
+        if (
+            isinstance(effect, tuple)
+            and len(effect) == 2
+            and isinstance(effect[0], tuple)
+            and (effect[1] is None or isinstance(effect[1], str))
+        ):
+            return tuple(effect[0]), effect[1], True
+        return tuple(effect), None, False
+
+    @staticmethod
+    def _has_glob(pattern: str) -> bool:
+        return any(ch in pattern for ch in "*?[")
+
+    @classmethod
+    def _trailing_star_prefix(cls, pattern: str):
+        if not pattern.endswith("*"):
+            return None
+        prefix = pattern[:-1]
+        if cls._has_glob(prefix):
+            return None
+        return prefix
+
+    @classmethod
+    def _glob_covers(cls, declared_pattern: str, observed_pattern: str) -> bool:
+        if declared_pattern == observed_pattern:
+            return True
+        if not cls._has_glob(observed_pattern):
+            return fnmatchcase(observed_pattern, declared_pattern)
+        declared_prefix = cls._trailing_star_prefix(declared_pattern)
+        observed_prefix = cls._trailing_star_prefix(observed_pattern)
+        if declared_prefix is None or observed_prefix is None:
             return False
-        return declared == observed[:len(declared)]
+        return observed_prefix.startswith(declared_prefix)
+
+    @classmethod
+    def _effect_name(cls, effect) -> str:
+        path, arg, has_arg = cls._split_effect(effect)
+        name = ".".join(path)
+        if has_arg:
+            if arg is None:
+                return f"{name}(?)"
+            return f"{name}({arg!r})"
+        return name
+
+    @classmethod
+    def _prefix_match(cls, declared, observed) -> bool:
+        declared_path, declared_arg, declared_has_arg = cls._split_effect(declared)
+        observed_path, observed_arg, observed_has_arg = cls._split_effect(observed)
+        if len(declared_path) > len(observed_path):
+            return False
+        if declared_path != observed_path[:len(declared_path)]:
+            return False
+        if len(declared_path) < len(observed_path):
+            return True
+        if not declared_has_arg:
+            return True
+        if not observed_has_arg:
+            return False
+        if declared_arg is None or observed_arg is None:
+            return False
+        return cls._glob_covers(declared_arg, observed_arg)
 
 
 _TRACKER = EffectTracker(strict=False)
@@ -107,6 +169,10 @@ def pop_effect_frame():
 
 def record_effect(*path):
     _TRACKER.record(path)
+
+
+def record_effect_arg(arg, *path):
+    _TRACKER.record((tuple(path), arg))
 
 
 # ----------------------------------------------------------------------
@@ -378,6 +444,7 @@ def build_namespace() -> Dict[str, Any]:
             "_make_union", "_TRACKER",
             "push_effect_frame", "pop_effect_frame",
             "record_effect", "set_effect_strict",
+            "record_effect_arg",
         }:
             g[name] = val
     return g
