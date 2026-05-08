@@ -1,0 +1,13 @@
+{
+  "provider_counts": {
+    "input_tokens": "not_available",
+    "output_tokens": "not_available",
+    "total_tokens": "not_available"
+  },
+  "whitespace_estimate": {
+    "input_tokens": 896,
+    "output_tokens": 61,
+    "total_tokens": 957,
+    "official_metric": false
+  }
+}

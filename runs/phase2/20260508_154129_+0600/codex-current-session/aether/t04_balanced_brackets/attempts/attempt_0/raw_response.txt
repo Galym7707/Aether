@@ -1,0 +1,42 @@
+function matching?(open: String, close: String) returns Bool
+  effects pure
+do
+  return (open == "(" and close == ")") or (open == "[" and close == "]") or (open == "{" and close == "}")
+end
+
+function balanced?(s: String) returns Bool
+  effects pure
+do
+  var stack: String = ""
+  var i: Int = 0
+  while i < length(s) do
+    let c: String = slice(s, i, i + 1)
+    if c == "(" or c == "[" or c == "{" then
+      stack = join([stack, c], "")
+    elif c == ")" or c == "]" or c == "}" then
+      if length(stack) == 0 then
+        return false
+      end
+      let top: String = slice(stack, length(stack) - 1, length(stack))
+      if not matching?(top, c) then
+        return false
+      end
+      stack = slice(stack, 0, length(stack) - 1)
+    end
+    i = i + 1
+  end
+  return length(stack) == 0
+end
+
+function main() returns Unit
+  effects log
+do
+  print(balanced?("()"))
+  print(balanced?("([])"))
+  print(balanced?("{[()]}"))
+  print(balanced?("([)]"))
+  print(balanced?("((("))
+  print(balanced?(""))
+  print(balanced?("abc(def[ghi]jkl)mno"))
+  print(balanced?("}"))
+end

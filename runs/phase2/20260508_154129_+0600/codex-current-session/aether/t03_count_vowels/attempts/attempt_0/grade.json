@@ -1,0 +1,29 @@
+{
+  "task_id": "t03_count_vowels",
+  "candidate": "C:\\Users\\galym\\Desktop\\Aether\\runs\\phase2\\20260508_154129_+0600\\codex-current-session\\aether\\t03_count_vowels\\attempts\\attempt_0\\candidate.aeth",
+  "stage": "exec",
+  "ok": true,
+  "stdout": "2\n5\n0\n11\n",
+  "actual": "2\n5\n0\n11\n",
+  "stderr": "",
+  "exit_code": 0,
+  "elapsed_ms": 1,
+  "expected": "2\n5\n0\n11\n",
+  "match": true,
+  "wedge_mode": false,
+  "failure_messages": [],
+  "checks": {
+    "stdout_ok": true,
+    "exit_code_ok": true,
+    "stderr_pattern_ok": true,
+    "expected_exit_code": null,
+    "expected_stderr_pattern": null,
+    "actual_exit_code": 0,
+    "expected_diagnostic_code": null,
+    "expected_diagnostic_category": null,
+    "actual_diagnostic_code": null,
+    "actual_diagnostic_category": null,
+    "diagnostic_code_ok": true,
+    "diagnostic_category_ok": true
+  }
+}

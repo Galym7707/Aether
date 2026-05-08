@@ -1,0 +1,21 @@
+type NonEmptyIntList = List<Int> where length(self) > 0
+
+function minimum(xs: NonEmptyIntList) returns Int
+  effects pure
+do
+  var best: Int = xs[0]
+  var i: Int = 1
+  while i < length(xs) do
+    if xs[i] < best then
+      best = xs[i]
+    end
+    i = i + 1
+  end
+  return best
+end
+
+function main() returns Unit
+  effects log
+do
+  minimum([])
+end

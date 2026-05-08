@@ -1,0 +1,22 @@
+{
+  "timestamp": "20260508_154129_+0600",
+  "model": "codex-current-session",
+  "git_head": "15b6e03b57c355f3a7756a77b07b6f9e085d6cf5",
+  "protocol": "EXPERIMENT.md",
+  "languages": [
+    "aether",
+    "python"
+  ],
+  "tasks": [
+    "t03_count_vowels",
+    "t04_balanced_brackets",
+    "t05_safe_average",
+    "t06_contract_non_empty_minimum",
+    "t07_contract_sorted_binary_search",
+    "t08_contract_positive_divisor",
+    "t09_contract_bounded_index_update",
+    "t10_contract_normalized_probability"
+  ],
+  "external_model_api": "not_used_current_session_surrogate",
+  "provider_token_counts": "not_available"
+}

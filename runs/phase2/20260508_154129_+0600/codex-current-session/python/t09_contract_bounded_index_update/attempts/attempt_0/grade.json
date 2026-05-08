@@ -1,0 +1,24 @@
+{
+  "task_id": "t09_contract_bounded_index_update",
+  "candidate": "runs\\phase2\\20260508_154129_+0600\\codex-current-session\\python\\t09_contract_bounded_index_update\\attempts\\attempt_0\\candidate.py",
+  "language": "python",
+  "stage": "exec",
+  "ok": true,
+  "diagnostic": null,
+  "stdout": "",
+  "stderr": "contract requires index in bounds violation\n",
+  "exit_code": 2,
+  "elapsed_ms": 44,
+  "expected": "",
+  "match": true,
+  "failure_messages": [],
+  "checks": {
+    "stdout_ok": true,
+    "exit_code_ok": true,
+    "stderr_pattern_ok": true,
+    "expected_exit_code": 2,
+    "expected_stderr_pattern": "(?i)(contract|requires|precondition).*(index|bounds|inBounds)",
+    "expected_diagnostic_code": "not_applicable_to_python_runner",
+    "expected_diagnostic_category": "not_applicable_to_python_runner"
+  }
+}

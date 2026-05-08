@@ -1,0 +1,594 @@
+{
+  "manifest": {
+    "timestamp": "20260508_154129_+0600",
+    "model": "codex-current-session",
+    "git_head": "15b6e03b57c355f3a7756a77b07b6f9e085d6cf5",
+    "protocol": "EXPERIMENT.md",
+    "languages": [
+      "aether",
+      "python"
+    ],
+    "tasks": [
+      "t03_count_vowels",
+      "t04_balanced_brackets",
+      "t05_safe_average",
+      "t06_contract_non_empty_minimum",
+      "t07_contract_sorted_binary_search",
+      "t08_contract_positive_divisor",
+      "t09_contract_bounded_index_update",
+      "t10_contract_normalized_probability"
+    ],
+    "external_model_api": "not_used_current_session_surrogate",
+    "provider_token_counts": "not_available"
+  },
+  "results": [
+    {
+      "model": "codex-current-session",
+      "language": "aether",
+      "task_id": "t03_count_vowels",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 0,
+      "final_stdout": "2\n5\n0\n11\n",
+      "final_stderr": "",
+      "diagnostics_returned": [],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 892,
+          "output_tokens": 99,
+          "total_tokens": 991,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\aether\\t03_count_vowels\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "python",
+      "task_id": "t03_count_vowels",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 0,
+      "final_stdout": "2\n5\n0\n11\n",
+      "final_stderr": "",
+      "diagnostics_returned": [],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 885,
+          "output_tokens": 39,
+          "total_tokens": 924,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\python\\t03_count_vowels\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "aether",
+      "task_id": "t04_balanced_brackets",
+      "attempts": 2,
+      "retry_count": 1,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 0,
+      "final_stdout": "true\ntrue\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\n",
+      "final_stderr": "",
+      "diagnostics_returned": [],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 2005,
+          "output_tokens": 380,
+          "total_tokens": 2385,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\aether\\t04_balanced_brackets\\attempts\\attempt_0",
+        "codex-current-session\\aether\\t04_balanced_brackets\\attempts\\attempt_1"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "python",
+      "task_id": "t04_balanced_brackets",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 0,
+      "final_stdout": "true\ntrue\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\n",
+      "final_stderr": "",
+      "diagnostics_returned": [],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 892,
+          "output_tokens": 86,
+          "total_tokens": 978,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\python\\t04_balanced_brackets\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "aether",
+      "task_id": "t05_safe_average",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 0,
+      "final_stdout": "ok=20\nok=0\nerr=empty\nok=7\nok=2\n",
+      "final_stderr": "",
+      "diagnostics_returned": [],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 923,
+          "output_tokens": 89,
+          "total_tokens": 1012,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\aether\\t05_safe_average\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "python",
+      "task_id": "t05_safe_average",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 0,
+      "final_stdout": "ok=20\nok=0\nerr=empty\nok=7\nok=2\n",
+      "final_stderr": "",
+      "diagnostics_returned": [],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 916,
+          "output_tokens": 110,
+          "total_tokens": 1026,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\python\\t05_safe_average\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "aether",
+      "task_id": "t06_contract_non_empty_minimum",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 2,
+      "final_stdout": "",
+      "final_stderr": "[E0302] error (refinement) at line 0, col 0: value bound to 'xs' fails refinement NonEmptyIntList\n  hint: caller must ensure xs satisfies NonEmptyIntList's refinement clause\n",
+      "diagnostics_returned": [
+        {
+          "code": "E0302",
+          "category": "refinement",
+          "severity": "error",
+          "message": "value bound to 'xs' fails refinement NonEmptyIntList",
+          "position": {
+            "line": 0,
+            "column": 0
+          },
+          "suggestion": "caller must ensure xs satisfies NonEmptyIntList's refinement clause",
+          "confidence": 1.0,
+          "extra": {
+            "value_repr": "[]"
+          }
+        }
+      ],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 901,
+          "output_tokens": 58,
+          "total_tokens": 959,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\aether\\t06_contract_non_empty_minimum\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "python",
+      "task_id": "t06_contract_non_empty_minimum",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 2,
+      "final_stdout": "",
+      "final_stderr": "contract requires non-empty list violation\n",
+      "diagnostics_returned": [],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 894,
+          "output_tokens": 52,
+          "total_tokens": 946,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\python\\t06_contract_non_empty_minimum\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "aether",
+      "task_id": "t07_contract_sorted_binary_search",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 2,
+      "final_stdout": "",
+      "final_stderr": "[E0301] error (contract) at line 0, col 0: requires clause failed in binarySearch: sorted?(...)\n  hint: check inputs to binarySearch\n",
+      "diagnostics_returned": [
+        {
+          "code": "E0301",
+          "category": "contract",
+          "severity": "error",
+          "message": "requires clause failed in binarySearch: sorted?(...)",
+          "position": {
+            "line": 0,
+            "column": 0
+          },
+          "suggestion": "check inputs to binarySearch",
+          "confidence": 1.0,
+          "extra": {
+            "args": {}
+          }
+        }
+      ],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 907,
+          "output_tokens": 115,
+          "total_tokens": 1022,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\aether\\t07_contract_sorted_binary_search\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "python",
+      "task_id": "t07_contract_sorted_binary_search",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 2,
+      "final_stdout": "",
+      "final_stderr": "contract requires sorted input violation\n",
+      "diagnostics_returned": [],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 900,
+          "output_tokens": 115,
+          "total_tokens": 1015,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\python\\t07_contract_sorted_binary_search\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "aether",
+      "task_id": "t08_contract_positive_divisor",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 2,
+      "final_stdout": "",
+      "final_stderr": "[E0302] error (refinement) at line 0, col 0: value bound to 'denominator' fails refinement PositiveDivisor\n  hint: caller must ensure denominator satisfies PositiveDivisor's refinement clause\n",
+      "diagnostics_returned": [
+        {
+          "code": "E0302",
+          "category": "refinement",
+          "severity": "error",
+          "message": "value bound to 'denominator' fails refinement PositiveDivisor",
+          "position": {
+            "line": 0,
+            "column": 0
+          },
+          "suggestion": "caller must ensure denominator satisfies PositiveDivisor's refinement clause",
+          "confidence": 1.0,
+          "extra": {
+            "value_repr": "0"
+          }
+        }
+      ],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 903,
+          "output_tokens": 33,
+          "total_tokens": 936,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\aether\\t08_contract_positive_divisor\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "python",
+      "task_id": "t08_contract_positive_divisor",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 2,
+      "final_stdout": "",
+      "final_stderr": "contract requires positive divisor denominator violation\n",
+      "diagnostics_returned": [],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 896,
+          "output_tokens": 61,
+          "total_tokens": 957,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\python\\t08_contract_positive_divisor\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "aether",
+      "task_id": "t09_contract_bounded_index_update",
+      "attempts": 2,
+      "retry_count": 1,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 2,
+      "final_stdout": "",
+      "final_stderr": "[E0301] error (contract) at line 0, col 0: requires clause failed in updateAt: inBounds?(...)\n  hint: check inputs to updateAt\n",
+      "diagnostics_returned": [
+        {
+          "message": "unexpected indent (candidate.aeth.py, line 17)",
+          "category": "internal",
+          "code": "E9002"
+        },
+        {
+          "code": "E0301",
+          "category": "contract",
+          "severity": "error",
+          "message": "requires clause failed in updateAt: inBounds?(...)",
+          "position": {
+            "line": 0,
+            "column": 0
+          },
+          "suggestion": "check inputs to updateAt",
+          "confidence": 1.0,
+          "extra": {
+            "args": {}
+          }
+        }
+      ],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 2014,
+          "output_tokens": 180,
+          "total_tokens": 2194,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\aether\\t09_contract_bounded_index_update\\attempts\\attempt_0",
+        "codex-current-session\\aether\\t09_contract_bounded_index_update\\attempts\\attempt_1"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "python",
+      "task_id": "t09_contract_bounded_index_update",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 2,
+      "final_stdout": "",
+      "final_stderr": "contract requires index in bounds violation\n",
+      "diagnostics_returned": [],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 901,
+          "output_tokens": 102,
+          "total_tokens": 1003,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\python\\t09_contract_bounded_index_update\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "aether",
+      "task_id": "t10_contract_normalized_probability",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 2,
+      "final_stdout": "",
+      "final_stderr": "[E0301] error (contract) at line 0, col 0: requires clause failed in chooseBucket: validWeights?(...)\n  hint: check inputs to chooseBucket\n",
+      "diagnostics_returned": [
+        {
+          "code": "E0301",
+          "category": "contract",
+          "severity": "error",
+          "message": "requires clause failed in chooseBucket: validWeights?(...)",
+          "position": {
+            "line": 0,
+            "column": 0
+          },
+          "suggestion": "check inputs to chooseBucket",
+          "confidence": 1.0,
+          "extra": {
+            "args": {}
+          }
+        }
+      ],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 918,
+          "output_tokens": 106,
+          "total_tokens": 1024,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\aether\\t10_contract_normalized_probability\\attempts\\attempt_0"
+      ]
+    },
+    {
+      "model": "codex-current-session",
+      "language": "python",
+      "task_id": "t10_contract_normalized_probability",
+      "attempts": 1,
+      "retry_count": 0,
+      "final_verdict": true,
+      "final_stage": "exec",
+      "final_exit_code": 2,
+      "final_stdout": "",
+      "final_stderr": "contract requires probability weight normalization violation\n",
+      "diagnostics_returned": [],
+      "failure_messages": [],
+      "token_counts": {
+        "provider_counts": {
+          "input_tokens": "not_available",
+          "output_tokens": "not_available",
+          "total_tokens": "not_available"
+        },
+        "whitespace_estimate": {
+          "input_tokens": 911,
+          "output_tokens": 103,
+          "total_tokens": 1014,
+          "official_metric": false
+        }
+      },
+      "attempt_paths": [
+        "codex-current-session\\python\\t10_contract_normalized_probability\\attempts\\attempt_0"
+      ]
+    }
+  ],
+  "note": "Phase 2.1 production artifacts only; no interpretation."
+}

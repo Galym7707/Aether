@@ -1,0 +1,40 @@
+{
+  "task_id": "t09_contract_bounded_index_update",
+  "candidate": "C:\\Users\\galym\\Desktop\\Aether\\runs\\phase2\\20260508_154129_+0600\\codex-current-session\\aether\\t09_contract_bounded_index_update\\attempts\\attempt_0\\candidate.aeth",
+  "stage": "emit-compile",
+  "ok": false,
+  "diagnostic": {
+    "message": "unexpected indent (candidate.aeth.py, line 17)",
+    "category": "internal",
+    "code": "E9002"
+  },
+  "stdout": "",
+  "actual": "",
+  "stderr": "internal error (emitter produced bad python): unexpected indent (candidate.aeth.py, line 17)\n",
+  "exit_code": 1,
+  "elapsed_ms": 0,
+  "expected": "",
+  "match": false,
+  "wedge_mode": true,
+  "failure_messages": [
+    "exit_code mismatch: expected 2, got 1",
+    "stderr did not match pattern '(?i)(contract|requires|precondition).*(index|bounds|inBounds)': actual stderr was 'internal error (emitter produced bad python): unexpected indent (candidate.aeth.py, line 17)\\n'",
+    "diagnostic code mismatch: expected 'E0301', got 'E9002'",
+    "diagnostic category mismatch: expected 'contract', got 'internal'",
+    "compilation failed during emit-compile"
+  ],
+  "checks": {
+    "stdout_ok": true,
+    "exit_code_ok": false,
+    "stderr_pattern_ok": false,
+    "expected_exit_code": 2,
+    "expected_stderr_pattern": "(?i)(contract|requires|precondition).*(index|bounds|inBounds)",
+    "actual_exit_code": 1,
+    "expected_diagnostic_code": "E0301",
+    "expected_diagnostic_category": "contract",
+    "actual_diagnostic_code": "E9002",
+    "actual_diagnostic_category": "internal",
+    "diagnostic_code_ok": false,
+    "diagnostic_category_ok": false
+  }
+}

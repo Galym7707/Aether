@@ -1,0 +1,24 @@
+{
+  "task_id": "t03_count_vowels",
+  "candidate": "runs\\phase2\\20260508_154129_+0600\\codex-current-session\\python\\t03_count_vowels\\attempts\\attempt_0\\candidate.py",
+  "language": "python",
+  "stage": "exec",
+  "ok": true,
+  "diagnostic": null,
+  "stdout": "2\n5\n0\n11\n",
+  "stderr": "",
+  "exit_code": 0,
+  "elapsed_ms": 40,
+  "expected": "2\n5\n0\n11\n",
+  "match": true,
+  "failure_messages": [],
+  "checks": {
+    "stdout_ok": true,
+    "exit_code_ok": true,
+    "stderr_pattern_ok": true,
+    "expected_exit_code": 0,
+    "expected_stderr_pattern": null,
+    "expected_diagnostic_code": "not_applicable_to_python_runner",
+    "expected_diagnostic_category": "not_applicable_to_python_runner"
+  }
+}

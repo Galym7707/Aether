@@ -1,0 +1,44 @@
+{
+  "task_id": "t09_contract_bounded_index_update",
+  "candidate": "C:\\Users\\galym\\Desktop\\Aether\\runs\\phase2\\20260508_154129_+0600\\codex-current-session\\aether\\t09_contract_bounded_index_update\\attempts\\attempt_1\\candidate.aeth",
+  "stage": "exec",
+  "ok": true,
+  "diagnostic": {
+    "code": "E0301",
+    "category": "contract",
+    "severity": "error",
+    "message": "requires clause failed in updateAt: inBounds?(...)",
+    "position": {
+      "line": 0,
+      "column": 0
+    },
+    "suggestion": "check inputs to updateAt",
+    "confidence": 1.0,
+    "extra": {
+      "args": {}
+    }
+  },
+  "stdout": "",
+  "actual": "",
+  "stderr": "[E0301] error (contract) at line 0, col 0: requires clause failed in updateAt: inBounds?(...)\n  hint: check inputs to updateAt\n",
+  "exit_code": 2,
+  "elapsed_ms": 0,
+  "expected": "",
+  "match": true,
+  "wedge_mode": true,
+  "failure_messages": [],
+  "checks": {
+    "stdout_ok": true,
+    "exit_code_ok": true,
+    "stderr_pattern_ok": true,
+    "expected_exit_code": 2,
+    "expected_stderr_pattern": "(?i)(contract|requires|precondition).*(index|bounds|inBounds)",
+    "actual_exit_code": 2,
+    "expected_diagnostic_code": "E0301",
+    "expected_diagnostic_category": "contract",
+    "actual_diagnostic_code": "E0301",
+    "actual_diagnostic_category": "contract",
+    "diagnostic_code_ok": true,
+    "diagnostic_category_ok": true
+  }
+}
