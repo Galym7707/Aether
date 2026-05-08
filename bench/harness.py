@@ -58,6 +58,7 @@ sys.path.insert(0, os.path.join(ROOT, "transpiler"))
 from aether.diagnostics import AetherError, Diagnostic       # noqa: E402
 from aether.parser import parse                              # noqa: E402
 from aether.emitter import emit                              # noqa: E402
+from aether.passes.effects import check_effects              # noqa: E402
 from aether.runtime import build_namespace                   # noqa: E402
 
 
@@ -142,6 +143,19 @@ def compile_and_run(src: str, filename: str, stdin_text: str = "",
             "stdout": "",
             "actual": "",
             "stderr": _format_diag_as_stderr(e.diag),
+            "exit_code": 2,
+            "elapsed_ms": elapsed(),
+        }
+    effect_diags = check_effects(ast)
+    if effect_diags:
+        diag = effect_diags[0]
+        return {
+            "stage": "check",
+            "ok": False,
+            "diagnostic": diag.to_dict(),
+            "stdout": "",
+            "actual": "",
+            "stderr": "".join(_format_diag_as_stderr(d) for d in effect_diags),
             "exit_code": 2,
             "elapsed_ms": elapsed(),
         }

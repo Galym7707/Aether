@@ -26,6 +26,7 @@ from .lexer import tokenize
 from .parser import parse
 from .emitter import emit
 from .passes.capability import check_capabilities
+from .passes.effects import check_effects
 from .runtime import build_namespace, set_effect_strict
 
 
@@ -81,9 +82,22 @@ def _run_capability_check(ast, as_json) -> int:
     return 2
 
 
+def _run_effect_check(ast, as_json) -> int:
+    """Returns 0 if all effect subsets OK, 2 otherwise."""
+    diags = check_effects(ast)
+    if not diags:
+        return 0
+    for d in diags:
+        _emit_error(d, as_json)
+    return 2
+
+
 def cmd_check(args) -> int:
     src = _read(args.file)
     ast = parse(src, args.file)
+    rc = _run_effect_check(ast, args.json)
+    if rc != 0:
+        return rc
     py = emit(ast)
     # Compile but don't execute.
     compile(py, args.file + ".py", "exec")
@@ -104,6 +118,9 @@ def cmd_run(args) -> int:
         set_effect_strict(True)
     src = _read(args.file)
     ast = parse(src, args.file)
+    rc = _run_effect_check(ast, args.json)
+    if rc != 0:
+        return rc
     if getattr(args, "capability_strict", False):
         rc = _run_capability_check(ast, args.json)
         if rc != 0:
@@ -132,6 +149,9 @@ def cmd_test(args) -> int:
     expected = _read(exp_path) if os.path.isfile(exp_path) else ""
     try:
         ast = parse(src, src_path)
+        rc = _run_effect_check(ast, args.json)
+        if rc != 0:
+            return rc
         py = emit(ast)
         code = compile(py, src_path + ".py", "exec")
         g = build_namespace()

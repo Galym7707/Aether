@@ -7,6 +7,7 @@ S-012 — harness enforces timeout_ms.
 
 from __future__ import annotations
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -294,6 +295,72 @@ end
     print("capability gating: declared capability admits the function")
 
 
+def test_static_effect_check_blocks_pure_print():
+    """A pure function calling print must fail statically with E0801."""
+    from aether.passes.effects import check_effects
+    from aether.parser import parse as _parse
+    src = """
+function helper() returns Unit
+  effects pure
+do
+  print("bad")
+end
+
+function main() returns Unit
+  effects log
+do
+  helper()
+end
+"""
+    ast = _parse(src, "<effect>")
+    diags = check_effects(ast)
+    assert len(diags) == 1, diags
+    assert diags[0].code == "E0801", diags[0].to_dict()
+    assert diags[0].category == "effect", diags[0].to_dict()
+    assert diags[0].extra["caller"] == "helper", diags[0].to_dict()
+    assert diags[0].extra["callee"] == "print", diags[0].to_dict()
+    assert diags[0].extra["required_effect"] == "log", diags[0].to_dict()
+    print("static effect checker: pure function calling print flagged with E0801")
+
+
+def test_cli_check_rejects_pure_print_before_exec():
+    """`aether check` must reject an effect violation without executing main."""
+    src = """
+function helper() returns Unit
+  effects pure
+do
+  print("bad")
+end
+
+function main() returns Unit
+  effects log
+do
+  print("main ran")
+  helper()
+end
+"""
+    path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".aeth", delete=False, encoding="utf-8"
+        ) as f:
+            f.write(src)
+            path = f.name
+        proc = subprocess.run(
+            [sys.executable, "-B", "-m", "transpiler.aether.cli", "check", path],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        assert proc.returncode == 2, proc
+        assert "E0801" in proc.stderr, proc.stderr
+        assert "main ran" not in proc.stdout, proc.stdout
+        assert "main ran" not in proc.stderr, proc.stderr
+    finally:
+        if path and os.path.exists(path):
+            os.unlink(path)
+
+
 if __name__ == "__main__":
     test_S011_lexer_tight_neq()
     test_S001_ensures_violation_raises()
@@ -305,4 +372,6 @@ if __name__ == "__main__":
     test_harness_python_equivalent_metadata()
     test_capability_strict_blocks_undeclared()
     test_capability_strict_admits_declared()
+    test_static_effect_check_blocks_pure_print()
+    test_cli_check_rejects_pure_print_before_exec()
     print("ALL REGRESSION TESTS PASS")
