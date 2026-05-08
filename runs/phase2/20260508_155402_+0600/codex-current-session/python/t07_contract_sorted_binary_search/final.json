@@ -1,0 +1,30 @@
+{
+  "model": "codex-current-session",
+  "language": "python",
+  "task_id": "t07_contract_sorted_binary_search",
+  "attempts": 1,
+  "retry_count": 0,
+  "final_verdict": true,
+  "final_stage": "exec",
+  "final_exit_code": 2,
+  "final_stdout": "",
+  "final_stderr": "contract requires sorted input violation\n",
+  "diagnostics_returned": [],
+  "failure_messages": [],
+  "token_counts": {
+    "provider_counts": {
+      "input_tokens": "not_available",
+      "output_tokens": "not_available",
+      "total_tokens": "not_available"
+    },
+    "whitespace_estimate": {
+      "input_tokens": 900,
+      "output_tokens": 115,
+      "total_tokens": 1015,
+      "official_metric": false
+    }
+  },
+  "attempt_paths": [
+    "codex-current-session\\python\\t07_contract_sorted_binary_search\\attempts\\attempt_0"
+  ]
+}

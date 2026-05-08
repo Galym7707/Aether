@@ -1,0 +1,44 @@
+{
+  "task_id": "t10_contract_normalized_probability",
+  "candidate": "C:\\Users\\galym\\Desktop\\Aether\\runs\\phase2\\20260508_155402_+0600\\codex-current-session\\aether\\t10_contract_normalized_probability\\attempts\\attempt_0\\candidate.aeth",
+  "stage": "exec",
+  "ok": true,
+  "diagnostic": {
+    "code": "E0301",
+    "category": "contract",
+    "severity": "error",
+    "message": "requires clause failed in chooseBucket: validWeights?(...)",
+    "position": {
+      "line": 0,
+      "column": 0
+    },
+    "suggestion": "check inputs to chooseBucket",
+    "confidence": 1.0,
+    "extra": {
+      "args": {}
+    }
+  },
+  "stdout": "",
+  "actual": "",
+  "stderr": "[E0301] error (contract) at line 0, col 0: requires clause failed in chooseBucket: validWeights?(...)\n  hint: check inputs to chooseBucket\n",
+  "exit_code": 2,
+  "elapsed_ms": 1,
+  "expected": "",
+  "match": true,
+  "wedge_mode": true,
+  "failure_messages": [],
+  "checks": {
+    "stdout_ok": true,
+    "exit_code_ok": true,
+    "stderr_pattern_ok": true,
+    "expected_exit_code": 2,
+    "expected_stderr_pattern": "(?i)(contract|requires|precondition).*(probability|weight|normal)",
+    "actual_exit_code": 2,
+    "expected_diagnostic_code": "E0301",
+    "expected_diagnostic_category": "contract",
+    "actual_diagnostic_code": "E0301",
+    "actual_diagnostic_category": "contract",
+    "diagnostic_code_ok": true,
+    "diagnostic_category_ok": true
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "task_id": "t08_contract_positive_divisor",
+  "candidate": "C:\\Users\\galym\\Desktop\\Aether\\runs\\phase2\\20260508_155402_+0600\\codex-current-session\\aether\\t08_contract_positive_divisor\\attempts\\attempt_0\\candidate.aeth",
+  "stage": "exec",
+  "ok": true,
+  "diagnostic": {
+    "code": "E0302",
+    "category": "refinement",
+    "severity": "error",
+    "message": "value bound to 'denominator' fails refinement PositiveDivisor",
+    "position": {
+      "line": 0,
+      "column": 0
+    },
+    "suggestion": "caller must ensure denominator satisfies PositiveDivisor's refinement clause",
+    "confidence": 1.0,
+    "extra": {
+      "value_repr": "0"
+    }
+  },
+  "stdout": "",
+  "actual": "",
+  "stderr": "[E0302] error (refinement) at line 0, col 0: value bound to 'denominator' fails refinement PositiveDivisor\n  hint: caller must ensure denominator satisfies PositiveDivisor's refinement clause\n",
+  "exit_code": 2,
+  "elapsed_ms": 1,
+  "expected": "",
+  "match": true,
+  "wedge_mode": true,
+  "failure_messages": [],
+  "checks": {
+    "stdout_ok": true,
+    "exit_code_ok": true,
+    "stderr_pattern_ok": true,
+    "expected_exit_code": 2,
+    "expected_stderr_pattern": "(?i)(refinement|contract).*(positive|divisor|denominator)",
+    "actual_exit_code": 2,
+    "expected_diagnostic_code": "E0302",
+    "expected_diagnostic_category": "refinement",
+    "actual_diagnostic_code": "E0302",
+    "actual_diagnostic_category": "refinement",
+    "diagnostic_code_ok": true,
+    "diagnostic_category_ok": true
+  }
+}

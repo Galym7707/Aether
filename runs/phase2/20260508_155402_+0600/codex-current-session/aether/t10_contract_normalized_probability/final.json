@@ -1,0 +1,46 @@
+{
+  "model": "codex-current-session",
+  "language": "aether",
+  "task_id": "t10_contract_normalized_probability",
+  "attempts": 1,
+  "retry_count": 0,
+  "final_verdict": true,
+  "final_stage": "exec",
+  "final_exit_code": 2,
+  "final_stdout": "",
+  "final_stderr": "[E0301] error (contract) at line 0, col 0: requires clause failed in chooseBucket: validWeights?(...)\n  hint: check inputs to chooseBucket\n",
+  "diagnostics_returned": [
+    {
+      "code": "E0301",
+      "category": "contract",
+      "severity": "error",
+      "message": "requires clause failed in chooseBucket: validWeights?(...)",
+      "position": {
+        "line": 0,
+        "column": 0
+      },
+      "suggestion": "check inputs to chooseBucket",
+      "confidence": 1.0,
+      "extra": {
+        "args": {}
+      }
+    }
+  ],
+  "failure_messages": [],
+  "token_counts": {
+    "provider_counts": {
+      "input_tokens": "not_available",
+      "output_tokens": "not_available",
+      "total_tokens": "not_available"
+    },
+    "whitespace_estimate": {
+      "input_tokens": 918,
+      "output_tokens": 106,
+      "total_tokens": 1024,
+      "official_metric": false
+    }
+  },
+  "attempt_paths": [
+    "codex-current-session\\aether\\t10_contract_normalized_probability\\attempts\\attempt_0"
+  ]
+}
