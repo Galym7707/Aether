@@ -1,0 +1,229 @@
+# SYSTEM
+
+# Python v0.1 - Generation System Prompt
+
+You generate code in Python for the Aether experiment's Python baseline.
+Output a single complete Python program. Do not output Markdown fences,
+explanations, or alternatives - only the program source.
+
+Target Python: 3.11+ standard library only.
+
+## Output shape
+
+Write one complete `.py` file. Include imports only from the Python standard
+library. The program should run directly with:
+
+```python
+if __name__ == "__main__":
+    main()
+```
+
+Print exactly the requested output, one line per requested result, with no
+extra debug text.
+
+## Types and records
+
+Use precise type hints:
+
+```python
+def add(a: int, b: int) -> int:
+    """Effects: pure."""
+    return a + b
+```
+
+Use `@dataclass(frozen=True)` for record-like data:
+
+```python
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class Point:
+    x: int
+    y: int
+```
+
+## Tagged unions
+
+For no-payload cases, use `Enum` when matching only needs the case name:
+
+```python
+from enum import Enum
+
+class Op(Enum):
+    ADD = "Add"
+    SUB = "Sub"
+    MUL = "Mul"
+```
+
+For payload cases, use frozen dataclasses plus a type alias:
+
+```python
+from dataclasses import dataclass
+from typing import TypeAlias
+
+@dataclass(frozen=True)
+class Square:
+    side: int
+
+@dataclass(frozen=True)
+class Rectangle:
+    width: int
+    height: int
+
+Shape: TypeAlias = Square | Rectangle
+```
+
+Use `isinstance` or `match` to destructure payload variants. Keep branches
+exhaustive for the cases the task defines.
+
+## Option and Result
+
+Use Python `None` only for ordinary optional values. When a task asks for
+`Option<T>`, model it as `T | None`.
+
+When a task asks for `Result<T, E>` or explicit error threading, use structured
+dataclasses:
+
+```python
+from dataclasses import dataclass
+from typing import Generic, TypeAlias, TypeVar
+
+T = TypeVar("T")
+E = TypeVar("E")
+
+@dataclass(frozen=True)
+class Ok(Generic[T]):
+    value: T
+
+@dataclass(frozen=True)
+class Err(Generic[E]):
+    error: E
+
+Result: TypeAlias = Ok[T] | Err[E]
+```
+
+Pattern:
+
+```python
+def parse_int(s: str) -> Result[int, str]:
+    """Effects: pure."""
+    try:
+        return Ok(int(s))
+    except ValueError:
+        return Err(f"could not parse Int: {s!r}")
+```
+
+## Contracts with asserts
+
+When a task states `requires`, `ensures`, a valid range, a non-empty list, a
+sorted input, a positive divisor, or a bounded index, encode it directly with
+`assert`. Put precondition asserts at function entry. Put postcondition asserts
+immediately before returning or immediately after computing the return value.
+
+```python
+def gcd(a: int, b: int) -> int:
+    """Effects: pure.
+
+    Requires:
+      - a >= 0 and b >= 0
+      - a > 0 or b > 0
+    Ensures:
+      - result > 0
+    """
+    assert a >= 0 and b >= 0, "requires: a and b must be non-negative"
+    assert a > 0 or b > 0, "requires: at least one input must be positive"
+    x = a
+    y = b
+    while y != 0:
+        x, y = y, x % y
+    result = x
+    assert result > 0, "ensures: result must be positive"
+    return result
+```
+
+Assert messages should be short and diagnostic:
+
+- `"requires: list must be non-empty"`
+- `"requires: input must be sorted"`
+- `"requires: denominator must be positive"`
+- `"requires: index out of bounds"`
+- `"ensures: probability distribution is normalized"`
+
+Do not silently swallow invalid input when the task states a contract.
+
+## Effect categories in docstrings
+
+Every function should include an `Effects:` line in its docstring. Use these
+names where possible:
+
+- `pure`
+- `log`
+- `fs.read`
+- `fs.write`
+- `net.fetch`
+- `net.serve`
+- `db.read`
+- `db.write`
+- `time.now`
+- `time.sleep`
+- `random`
+- `panic`
+
+If a function only computes and returns a value, use `Effects: pure.` If it
+prints, use `Effects: log.` If it reads stdin with `input()` or `sys.stdin`,
+use `Effects: fs.read, log.` for a top-level function that also prints.
+
+## Standard-library equivalents
+
+Use idiomatic Python equivalents for common Aether helpers:
+
+| Aether idea | Python equivalent |
+|---|---|
+| `List<T>` | `list[T]` |
+| `Map<K,V>` | `dict[K, V]` |
+| `Set<T>` | `set[T]` |
+| `length(xs)` | `len(xs)` |
+| `empty?(xs)` | `len(xs) == 0` or `not xs` |
+| `append(xs, x)` | `xs + [x]` for pure style or `xs.append(x)` locally |
+| `map(xs, f)` | `[f(x) for x in xs]` |
+| `filter(xs, p)` | `[x for x in xs if p(x)]` |
+| `get(map, key)` | `mapping.get(key)` |
+| `join(parts, sep)` | `sep.join(parts)` |
+| `slice(s, i, j)` | `s[i:j]` |
+| `parseInt(s)` | structured `parse_int(s)` returning `Ok` or `Err` |
+
+Prefer readable code over clever one-liners.
+
+## Common mistakes to avoid
+
+1. Do not output Markdown fences or explanation text.
+2. Do not omit `main()` and the `if __name__ == "__main__": main()` guard.
+3. Do not print prompts, labels, debug output, or type names unless requested.
+4. Do not use external packages.
+5. Do not silently swallow invalid input when the task states a contract.
+6. Do not replace structured `Result` handling with exceptions when the task
+   asks for Result-style threading.
+7. Do not forget type hints on helpers.
+8. Do not use floating-point arithmetic for integer tasks unless requested.
+9. Do not catch all exceptions with bare `except`.
+
+Output only the Python source. No fences, no commentary.
+
+
+# USER
+
+# Task: contract sorted binary search
+
+Write an Aether function `binarySearch(xs: List<Int>, target: Int) returns Int`
+that requires `sorted?(xs)` before running binary search.
+
+The reference program must call `binarySearch([1, 10, 5], 5)` in `main`. This
+input is intentionally invalid because the list is not sorted. The desired
+benchmark behavior is for Aether to reject the input with a structured contract
+diagnostic instead of returning the misleading search result.
+
+Expected benchmark behavior:
+
+    stdout: ""
+    exit_code: 2
+    stderr matches: (?i)(contract|requires|precondition).*sorted

@@ -1,0 +1,44 @@
+{
+  "task_id": "t07_contract_sorted_binary_search",
+  "candidate": "C:\\Users\\galym\\Desktop\\Aether\\runs\\phase4\\20260509_113046_+0600\\codex-current-session\\aether\\t07_contract_sorted_binary_search\\attempts\\attempt_0\\candidate.aeth",
+  "stage": "exec",
+  "ok": true,
+  "diagnostic": {
+    "code": "E0301",
+    "category": "contract",
+    "severity": "error",
+    "message": "requires clause failed in binarySearch: sorted?(...)",
+    "position": {
+      "line": 0,
+      "column": 0
+    },
+    "suggestion": "check inputs to binarySearch",
+    "confidence": 1.0,
+    "extra": {
+      "args": {}
+    }
+  },
+  "stdout": "",
+  "actual": "",
+  "stderr": "[E0301] error (contract) at line 0, col 0: requires clause failed in binarySearch: sorted?(...)\n  hint: check inputs to binarySearch\n",
+  "exit_code": 2,
+  "elapsed_ms": 5,
+  "expected": "",
+  "match": true,
+  "wedge_mode": true,
+  "failure_messages": [],
+  "checks": {
+    "stdout_ok": true,
+    "exit_code_ok": true,
+    "stderr_pattern_ok": true,
+    "expected_exit_code": 2,
+    "expected_stderr_pattern": "(?i)(contract|requires|precondition).*sorted",
+    "actual_exit_code": 2,
+    "expected_diagnostic_code": "E0301",
+    "expected_diagnostic_category": "contract",
+    "actual_diagnostic_code": "E0301",
+    "actual_diagnostic_category": "contract",
+    "diagnostic_code_ok": true,
+    "diagnostic_category_ok": true
+  }
+}

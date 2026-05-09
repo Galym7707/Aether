@@ -1,0 +1,46 @@
+{
+  "model": "codex-current-session",
+  "language": "aether",
+  "task_id": "t07_contract_sorted_binary_search",
+  "attempts": 1,
+  "retry_count": 0,
+  "final_verdict": true,
+  "final_stage": "exec",
+  "final_exit_code": 2,
+  "final_stdout": "",
+  "final_stderr": "[E0301] error (contract) at line 0, col 0: requires clause failed in binarySearch: sorted?(...)\n  hint: check inputs to binarySearch\n",
+  "diagnostics_returned": [
+    {
+      "code": "E0301",
+      "category": "contract",
+      "severity": "error",
+      "message": "requires clause failed in binarySearch: sorted?(...)",
+      "position": {
+        "line": 0,
+        "column": 0
+      },
+      "suggestion": "check inputs to binarySearch",
+      "confidence": 1.0,
+      "extra": {
+        "args": {}
+      }
+    }
+  ],
+  "failure_messages": [],
+  "token_counts": {
+    "provider_counts": {
+      "input_tokens": "not_available",
+      "output_tokens": "not_available",
+      "total_tokens": "not_available"
+    },
+    "whitespace_estimate": {
+      "input_tokens": 907,
+      "output_tokens": 115,
+      "total_tokens": 1022,
+      "official_metric": false
+    }
+  },
+  "attempt_paths": [
+    "codex-current-session\\aether\\t07_contract_sorted_binary_search\\attempts\\attempt_0"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "model": "codex-current-session",
+  "language": "python",
+  "task_id": "t03_count_vowels",
+  "attempts": 1,
+  "retry_count": 0,
+  "final_verdict": true,
+  "final_stage": "exec",
+  "final_exit_code": 0,
+  "final_stdout": "2\n5\n0\n11\n",
+  "final_stderr": "",
+  "diagnostics_returned": [],
+  "failure_messages": [],
+  "token_counts": {
+    "provider_counts": {
+      "input_tokens": "not_available",
+      "output_tokens": "not_available",
+      "total_tokens": "not_available"
+    },
+    "whitespace_estimate": {
+      "input_tokens": 885,
+      "output_tokens": 39,
+      "total_tokens": 924,
+      "official_metric": false
+    }
+  },
+  "attempt_paths": [
+    "codex-current-session\\python\\t03_count_vowels\\attempts\\attempt_0"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "task_id": "t10_contract_normalized_probability",
+  "candidate": "runs\\phase4\\20260509_113046_+0600\\codex-current-session\\python\\t10_contract_normalized_probability\\attempts\\attempt_0\\candidate.py",
+  "language": "python",
+  "stage": "exec",
+  "ok": true,
+  "diagnostic": null,
+  "stdout": "",
+  "stderr": "contract requires probability weight normalization violation\n",
+  "exit_code": 2,
+  "elapsed_ms": 47,
+  "expected": "",
+  "match": true,
+  "failure_messages": [],
+  "checks": {
+    "stdout_ok": true,
+    "exit_code_ok": true,
+    "stderr_pattern_ok": true,
+    "expected_exit_code": 2,
+    "expected_stderr_pattern": "(?i)(contract|requires|precondition).*(probability|weight|normal)",
+    "expected_diagnostic_code": "not_applicable_to_python_runner",
+    "expected_diagnostic_category": "not_applicable_to_python_runner"
+  }
+}

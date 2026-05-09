@@ -1,0 +1,36 @@
+function average(xs: List<Int>) returns Result<Int, String>
+  requires length(xs) >= 0
+  effects pure
+do
+  if empty?(xs) then
+    return Err("empty")
+  end
+  var total: Int = 0
+  for x in xs do
+    total = total + x
+  end
+  return Ok(total / length(xs))
+end
+
+function describe(r: Result<Int, String>) returns String
+  effects pure
+do
+  match r do
+    case Ok(v) do
+      return join(["ok=", intToString(v)], "")
+    end
+    case Err(msg) do
+      return join(["err=", msg], "")
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  print(describe(average([10, 20, 30])))
+  print(describe(average([-5, 5])))
+  print(describe(average([])))
+  print(describe(average([7])))
+  print(describe(average([1, 2, 3, 4])))
+end

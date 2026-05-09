@@ -1,0 +1,30 @@
+{
+  "task_id": "t04_balanced_brackets",
+  "candidate": "C:\\Users\\galym\\Desktop\\Aether\\runs\\phase4\\20260509_113046_+0600\\codex-current-session\\aether\\t04_balanced_brackets\\attempts\\attempt_0\\candidate.aeth",
+  "stage": "exec",
+  "ok": true,
+  "diagnostic": null,
+  "stdout": "true\ntrue\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\n",
+  "actual": "true\ntrue\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\n",
+  "stderr": "",
+  "exit_code": 0,
+  "elapsed_ms": 0,
+  "expected": "true\ntrue\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\n",
+  "match": true,
+  "wedge_mode": false,
+  "failure_messages": [],
+  "checks": {
+    "stdout_ok": true,
+    "exit_code_ok": true,
+    "stderr_pattern_ok": true,
+    "expected_exit_code": null,
+    "expected_stderr_pattern": null,
+    "actual_exit_code": 0,
+    "expected_diagnostic_code": null,
+    "expected_diagnostic_category": null,
+    "actual_diagnostic_code": null,
+    "actual_diagnostic_category": null,
+    "diagnostic_code_ok": true,
+    "diagnostic_category_ok": true
+  }
+}
