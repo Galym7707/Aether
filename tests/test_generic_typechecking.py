@@ -136,7 +136,8 @@ end
 """
     )
     assert diag["code"] == "E0009", diag
-    assert "append(xs, value)" in diag["hint"], diag
+    assert "append(xs, x)" in diag["hint"], diag
+    assert "updateAt" in diag["hint"], diag
 
 
 def test_generic_identity_inference_and_mismatch():

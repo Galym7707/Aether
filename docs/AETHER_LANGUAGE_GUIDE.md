@@ -31,6 +31,9 @@ observable effect. A function that prints must declare `effects log`.
 | Function | `function f(x: Int) returns Int` | `fn f(x: Int) -> Int` |
 | List type | `List<Int>` | `List[Int]` |
 | Length | `length(xs)` | `xs.len()` |
+| Safe access | `safeAt(xs, i)` | `xs.get(i)` |
+| Safe update | `updateAt(xs, i, value)` | `xs[i] = value` |
+| Safe slice | `safeSlice(xs, start, end)` | `xs[start:end]` |
 | Blocks | `do ... end` | `{ ... }` |
 | Conditions | `if cond then ... end` | `if (...) { ... }` |
 | Loops | `while cond do ... end` | `while (...) { ... }` |
@@ -136,16 +139,21 @@ var total: Int = 0
 total = total + 1
 ```
 
-### List Literals, Indexing, And Append
+### List Literals, Indexing, Append, And Safe Helpers
 
 ```aether
 let xs: List<Int> = [10, 20, 30]
 let second: Int = xs[1]
 let ys: List<Int> = append(xs, 40)
+let maybe: Option<Int> = safeAt(xs, 1)
+let changed: Result<List<Int>, String> = updateAt(xs, 1, 99)
+let part: Result<List<Int>, String> = safeSlice(xs, 0, 2)
 ```
 
 The checker tracks list element types, nested list types, and known literal
-lengths in simple cases. These fail with structured diagnostics:
+lengths in simple cases. It also understands the generic relationships for
+`safeAt`, `updateAt`, `safeSlice`, `inBounds`, and `validSliceBounds`. These
+fail with structured diagnostics:
 
 ```aether
 let xs: List<Int> = [1, "bad"]     // TYPE_LIST_ELEMENT_MISMATCH
@@ -153,10 +161,15 @@ let ys: List<Int> = append(xs, "x") // TYPE_LIST_APPEND_MISMATCH
 let zs = []                         // TYPE_EMPTY_LIST_NEEDS_ANNOTATION
 let bad: Int = xs["0"]              // INDEX_TYPE_INVALID
 let oob: Int = [1, 2, 3][3]         // INDEX_OUT_OF_BOUNDS_STATIC
+let a = safeAt(xs, "0")             // LIST_HELPER_INDEX_TYPE
+let b = updateAt(xs, 0, "bad")      // LIST_HELPER_VALUE_TYPE
+let c = safeSlice(xs, "0", 2)       // LIST_HELPER_BOUND_TYPE
 ```
 
-Direct list item assignment such as `xs[0] = 99` is not supported. Build a new
-list with `append`.
+Direct list item assignment such as `xs[0] = 99` is not supported. Prefer
+`updateAt(xs, index, value)` and handle `Ok(updated)` or `Err(message)`. Python
+slicing syntax such as `xs[start:end]` is not supported; use
+`safeSlice(xs, start, end)`.
 
 ### Helper Predicates
 
@@ -190,12 +203,18 @@ These forms should not be generated:
 - JavaScript lambdas such as `(x) => x + 1` are unsupported. Use helper functions.
 - Method calls such as `xs.len()` are unsupported. Use `length(xs)`.
 - Method-style list updates such as `xs.append(x)` and `xs.push(x)` are
-  unsupported. Use `append(xs, x)`.
+  unsupported. Use `append(xs, x)` for building or `updateAt(xs, i, value)` for
+  replacement.
+- Method-style safe access such as `xs.get(i)` is unsupported. Use
+  `safeAt(xs, i)`.
+- Python slicing syntax such as `xs[start:end]` is unsupported. Use
+  `safeSlice(xs, start, end)`.
 - General method-call style is unsupported. `Shape.Circle(...)` works for union constructors; field access such as `point.x` works for records.
 - Brace blocks are unsupported. Use `do/end` and `if ... then ... end`.
 - Record literal syntax `Point { x = 1, y = 2 }` is not implemented. Use positional constructors such as `Point(1, 2)`.
 - Value-level casts such as `(x as Float)` are not implemented.
 - Direct list item assignment such as `result[i] = value` is unsupported.
+  Use `updateAt(result, i, value)` and handle `Result`.
 - Explicit generic call syntax such as `identity<Int>(5)` is unsupported.
   Call `identity(5)` and let the checker infer the supported type variable.
 - Static index checking catches obvious known-length cases only. Dynamic index
@@ -335,10 +354,13 @@ Aether syntax rules:
 - Use named helper predicates, not lambdas like `(x) => ...`.
 - Every function must include an `effects` clause. Use `effects pure` for pure helpers and `effects log` for functions that print.
 - Use `requires` and `ensures` for preconditions and postconditions.
-- Do not use direct list item assignment like `xs[i] = value`; rebuild lists with `append`.
+- Prefer `safeAt(xs, i)`, `updateAt(xs, i, value)`, and `safeSlice(xs, start, end)` for safe list access/update/slicing.
+- Do not use direct list item assignment like `xs[i] = value`; handle `updateAt` with `Result`.
+- Do not use Python slicing like `xs[start:end]`; handle `safeSlice` with `Result`.
 - For records, use positional construction like `Point(1, 2)`, not `Point { x = 1, y = 2 }`.
 
 Follow the style of `examples/01_safe_divide.aeth`,
 `examples/02_non_empty_average.aeth`, and
-`examples/05_safe_normalize_weights.aeth`.
+`examples/06_safe_at.aeth`, `examples/07_update_at.aeth`, and
+`examples/08_safe_slice.aeth`.
 ```

@@ -295,6 +295,35 @@ def _ae_get(coll, key):
         return _ae_None()
     raise TypeError(f"_ae_get: unsupported collection type {type(coll)}")
 
+def _ae_inBounds(xs, index):
+    return isinstance(index, int) and not isinstance(index, bool) and 0 <= index < len(xs)
+
+def _ae_validSliceBounds(xs, start, end):
+    return (
+        isinstance(start, int)
+        and not isinstance(start, bool)
+        and isinstance(end, int)
+        and not isinstance(end, bool)
+        and 0 <= start <= end <= len(xs)
+    )
+
+def _ae_safeAt(xs, index):
+    if _ae_inBounds(xs, index):
+        return _ae_Some(xs[index])
+    return _ae_None()
+
+def _ae_updateAt(xs, index, value):
+    if not _ae_inBounds(xs, index):
+        return _ae_Err("index out of bounds")
+    out = list(xs)
+    out[index] = value
+    return _ae_Ok(out)
+
+def _ae_safeSlice(xs, start, end):
+    if not _ae_validSliceBounds(xs, start, end):
+        return _ae_Err("slice bounds out of range")
+    return _ae_Ok(list(xs)[start:end])
+
 def _ae_map(xs, f):                    return [f(x) for x in xs]
 def _ae_filter(xs, p):                 return [x for x in xs if p(x)]
 

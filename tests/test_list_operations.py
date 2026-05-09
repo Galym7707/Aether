@@ -57,7 +57,7 @@ end
     )
     assert diags, "item assignment should be rejected"
     assert diags[0].code == "E0006", diags[0].to_dict()
-    assert "append" in (diags[0].suggestion or ""), diags[0].to_dict()
+    assert "updateAt" in (diags[0].suggestion or ""), diags[0].to_dict()
 
 
 if __name__ == "__main__":

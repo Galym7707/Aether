@@ -16,7 +16,11 @@ Syntax constraints:
 - Aether uses contracts/refinements for invalid input.
 - Aether uses `effects pure` for pure functions.
 - Aether uses `effects log` for functions that call `print`.
-- Aether uses `append(xs, x)`, not `xs.append(x)` or `xs.push(x)`.
+- Aether uses `append(xs, x)` to build lists.
+- Aether prefers `safeAt(xs, i)`, `updateAt(xs, i, value)`, and
+  `safeSlice(xs, start, end)` for generated list access/update/slicing.
+- Aether does not support `xs.append(x)`, `xs.push(x)`, `xs.get(i)`,
+  `xs[i] = value`, or Python slicing like `xs[start:end]`.
 - Aether requires a contextual type for empty lists, for example
   `let xs: List<Int> = []`.
 - Aether calls generic functions normally, for example `identity(5)`, not
@@ -51,8 +55,8 @@ input. Use integer middle index. Include a `main` that prints a result.
 Write one complete Aether program. Output only Aether code.
 
 Implement `boundedUpdate(xs: List<Int>, index: Int, value: Int) returns
-List<Int>`. Require an in-bounds index. Ensure output length equals input
-length. Do not mutate `xs`; use a loop and `append` to create `out`.
+Result<List<Int>, String>`. Use `updateAt(xs, index, value)` and return its
+`Result`. Do not mutate `xs` and do not use method calls.
 ```
 
 ## Full Task Prompt: safeDivide

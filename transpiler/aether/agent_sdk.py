@@ -172,6 +172,8 @@ def check_source(
 
     errors, infos = check_ast(ast, capability_strict=capability_strict)
     if errors:
+        for diag in errors + infos:
+            attach_source_context(diag, source)
         return AetherResult(
             stage="check",
             ok=False,

@@ -93,6 +93,8 @@ Most common syntax rules:
 - Use `length(xs)`, not `xs.len()`.
 - Use `do`/`end`, not braces.
 - Use helper predicates instead of lambdas.
+- Prefer `safeAt(xs, i)`, `updateAt(xs, i, value)`, and
+  `safeSlice(xs, start, end)` for generated list access/update/slicing.
 - Every function needs `effects`; pure helpers use `effects pure`.
 
 ## What Works Now
@@ -107,6 +109,9 @@ Most common syntax rules:
 - Static diagnostics for mixed list literals, wrong `append` element types,
   empty lists without contextual type, non-Int indexes, negative indexes, and
   obvious known-length out-of-bounds indexes.
+- Standard safe list helpers: `safeAt`, `updateAt`, `safeSlice`, `inBounds`,
+  and `validSliceBounds`, with generic type checking and `Option`/`Result`
+  return values for invalid dynamic cases.
 - Runtime index diagnostics for dynamic out-of-bounds cases, without Python
   tracebacks for the checked runtime helper path.
 - Static effect checking for direct calls to known functions.
@@ -132,6 +137,9 @@ Most common syntax rules:
   feasible, but some runtime errors still report boundary/helper positions.
 - Record literal syntax such as `Point { x = 1, y = 2 }`.
 - Direct list item assignment such as `xs[i] = value`.
+- Python list slicing syntax such as `xs[start:end]`; use `safeSlice`.
+- Method-style calls such as `xs.get(i)` or `xs.append(x)`; use free
+  functions such as `safeAt(xs, i)` and `append(xs, x)`.
 - A production security model for capabilities. `--capability-strict` is an
   opt-in static check, not a complete sandbox.
 - A package release. `pip install -e .` is for local development.
@@ -152,6 +160,7 @@ python -B tests\test_generic_typechecking.py
 python -B tests\test_static_index_diagnostics.py
 python -B tests\test_contract_diagnostics.py
 python -B tests\test_ai_repair_diagnostics.py
+python -B tests\test_safe_list_helpers.py
 python -m pytest -q
 ```
 
@@ -161,6 +170,8 @@ CLI examples:
 python -B -m transpiler.aether.cli ast examples\01_safe_divide.aeth
 python -B -m transpiler.aether.cli check examples\01_safe_divide.aeth
 python -B -m transpiler.aether.cli run examples\01_safe_divide.aeth
+python -B -m transpiler.aether.cli check examples\06_safe_at.aeth
+python -B -m transpiler.aether.cli run examples\06_safe_at.aeth
 python -B -m transpiler.aether.cli --json check examples\negative\06_effect_violation_demo.aeth
 ```
 

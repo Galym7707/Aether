@@ -1,0 +1,12 @@
+{
+  "expected_stdout": "slice bounds out of range\n",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "python_equivalent": "python_equivalent.py",
+  "python_expected_exit_code": 0,
+  "python_expected_stdout": "[30]\n",
+  "python_expected_stderr": "",
+  "python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition|error)",
+  "tags": ["stdlib", "lists", "result", "ai-generation"],
+  "difficulty": "easy"
+}

@@ -24,8 +24,13 @@ Rules:
 - Use helper predicates, not lambdas.
 - Every function needs `effects`; use `effects pure` for pure helpers.
 - Use `append(xs, x)` to build lists.
+- Use `safeAt(xs, i)` for safe dynamic access; handle `Some(value)` and `None()`.
+- Use `updateAt(xs, i, value)` for safe replacement; handle `Ok(updated)` and `Err(message)`.
+- Use `safeSlice(xs, start, end)` for safe slicing; handle `Ok(part)` and `Err(message)`.
 - Do not use `xs.append(x)` or `xs.push(x)`.
-- Do not write `xs[i] = value`; rebuild a list instead.
+- Do not write `xs[i] = value`.
+- Do not write Python slicing syntax like `xs[start:end]`.
+- Do not write method-style access like `xs.get(i)`.
 - Annotate empty lists: `let xs: List<Int> = []`.
 - Call generic functions normally: `identity(5)`, not `identity<Int>(5)`.
 - Use `Point(1, 2)`, not `Point { x = 1, y = 2 }`.
@@ -33,14 +38,12 @@ Rules:
 Good list update pattern:
 
 ```aether
-var out: List<Int> = []
-var i: Int = 0
-while i < length(xs) do
-  if i == index then
-    out = append(out, value)
-  else
-    out = append(out, xs[i])
+match updateAt(xs, index, value) do
+  case Ok(updated) do
+    return updated
   end
-  i = i + 1
+  case Err(message) do
+    return xs
+  end
 end
 ```

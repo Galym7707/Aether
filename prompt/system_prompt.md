@@ -89,7 +89,7 @@ end
 
 | Domain | Functions |
 |---|---|
-| List | `length`, `empty?`, `head`, `tail`, `append`, `prepend`, `concat`, `get`, `map`, `filter`, `foldLeft`, `reverse`, `range` |
+| List | `length`, `empty?`, `head`, `tail`, `append`, `prepend`, `concat`, `get`, `safeAt`, `updateAt`, `safeSlice`, `inBounds`, `validSliceBounds`, `map`, `filter`, `foldLeft`, `reverse`, `range` |
 | Map | `size`, `get`, `set`, `remove`, `has?`, `keys`, `values` |
 | Set | `size`, `add`, `remove`, `contains?` |
 | String | `length`, `slice`, `split`, `join`, `contains?`, `trim`, `toLower`, `toUpper`, `replace`, `startsWith?`, `endsWith?`, `parseInt`, `parseFloat`, `intToString` |
@@ -97,7 +97,7 @@ end
 | Math | `abs`, `min`, `max`, `floor`, `ceil`, `pow`, `sqrt` |
 | Result/Option | `isOk?`, `isErr?`, `unwrapOr`, `isSome?`, `isNone?`, `unwrapOrElse` |
 
-`get` works for both `List` (returning `Option<T>` by index) and `Map`. `length` works for both `List` and `String`.
+`get` works for both `List` (returning `Option<T>` by index) and `Map`. Prefer `safeAt(xs, i)` for safe generated list access, `updateAt(xs, i, value)` for safe replacement, and `safeSlice(xs, start, end)` for safe slicing. `length` works for both `List` and `String`.
 
 ## Worked example
 
@@ -159,5 +159,8 @@ end
 10. Constructing records with brace syntax — write `Point(1.0, 2.0)`, not `Point { x = 1.0, y = 2.0 }`. The brace form is planned for v0.2 but does not parse in v0.1.
 11. Writing `(x as Float)` as a value cast — value-level `as` is not in v0.1. Use ascription on `let` (e.g. `let y: Float = x`) or call a converting function explicitly.
 12. Writing tight expressions like `x!=3` works (the lexer handles it), but readers benefit from spaces: `x != 3`.
+13. Writing `xs[i] = value` is unsupported. Use `updateAt(xs, i, value)` and handle `Result`.
+14. Writing `xs[start:end]` is unsupported. Use `safeSlice(xs, start, end)` and handle `Result`.
+15. Writing `xs.get(i)` or `xs.append(x)` is unsupported method syntax. Use `safeAt(xs, i)` or `append(xs, x)`.
 
 Output only the Aether source. No fences, no commentary.

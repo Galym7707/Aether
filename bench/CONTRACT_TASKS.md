@@ -4,12 +4,12 @@
 
 These tasks test invalid-input cases where the Python equivalents in this
 repository silently accept bad inputs and print misleading results, while the
-Aether reference solutions reject the same inputs through contracts or
-refinement-typed parameters.
+Aether reference solutions reject the same inputs through contracts,
+refinement-typed parameters, or explicit safe-list helper results.
 
 The benchmark source of truth for these results is the local harness output from
 `python -m bench.harness run-reference`,
-`python -m bench.harness run-python-equivalents`, the five individual
+`python -m bench.harness run-python-equivalents`, the seven individual
 `run-task` commands listed below, and `python scripts\run_all.py`. This checkout
 uses per-task `bench/tasks/<task_id>/grader.json` files. No root-level
 `grader.json` file was present when the repository was inspected.
@@ -23,6 +23,8 @@ uses per-task `bench/tasks/<task_id>/grader.json` files. No root-level
 | 3 | t08_contract_positive_divisor | Zero passed as a divisor requiring a positive value. | Prints `10` after silently substituting denominator `1`, with exit code `0` and empty stderr. | Fails before producing stdout with exit code `2`. | `(?i)(refinement\|contract).*(positive\|divisor\|denominator)` |
 | 4 | t09_contract_bounded_index_update | Out-of-bounds index passed to an update function requiring an in-bounds index. | Prints `[1, 2, 3]` after silently ignoring the update, with exit code `0` and empty stderr. | Fails before producing stdout with exit code `2`. | `(?i)(contract\|requires\|precondition).*(index\|bounds\|inBounds)` |
 | 5 | t10_contract_normalized_probability | Negative probability weight in a list requiring normalized non-negative integer weights. | Prints `bucket=0` after silently clamping the negative weight, with exit code `0` and empty stderr. | Fails before producing stdout with exit code `2`. | `(?i)(contract\|requires\|precondition).*(probability\|weight\|normal)` |
+| 6 | t19_safe_list_update_helper | Invalid list update index using helper-based error handling. | Prints `[10, 20, 99]` after clamping the index, with exit code `0` and empty stderr. | Prints `index out of bounds` through `Err`. | none; successful `Result` error path |
+| 7 | t20_safe_slice_helper | Invalid slice end bound using helper-based error handling. | Prints `[30]` after Python silently clamps the end bound, with exit code `0` and empty stderr. | Prints `slice bounds out of range` through `Err`. | none; successful `Result` error path |
 
 ## 1. t06_contract_non_empty_minimum
 
@@ -150,6 +152,48 @@ Verification result: confirmed by
 The harness returned `ok: true`, `stdout: ""`, `exit_code: 2`, and
 `stderr_pattern_ok: true`.
 
+## 6. t19_safe_list_update_helper
+
+The reference program attempts to update `[10, 20, 30]` at index `9` with
+`updateAt(xs, 9, 99)`.
+
+Bad input: an update index outside the list bounds.
+
+The Python equivalent clamps the invalid index to the final element and prints
+`[10, 20, 99]`, which hides the invalid request.
+
+Aether uses the standard `updateAt` helper and handles the returned
+`Result<List<Int>, String>`. The invalid index follows the `Err` branch and
+prints `index out of bounds` without mutating the original list.
+
+Expected stdout: `index out of bounds\n`.
+
+Verification result: confirmed by
+`python -m bench.harness run-task t19_safe_list_update_helper --candidate bench\tasks\t19_safe_list_update_helper\reference.aeth`.
+The harness returned `ok: true`, `stdout: "index out of bounds\n"`, and
+`exit_code: 0`.
+
+## 7. t20_safe_slice_helper
+
+The reference program attempts to slice `[10, 20, 30]` from index `2` to `9`
+with `safeSlice(xs, 2, 9)`.
+
+Bad input: a slice end bound greater than `length(xs)`.
+
+The Python equivalent evaluates `xs[2:9]` and prints `[30]`, silently clamping
+the invalid end bound.
+
+Aether uses the standard `safeSlice` helper and handles the returned
+`Result<List<Int>, String>`. The invalid bounds follow the `Err` branch and
+print `slice bounds out of range`.
+
+Expected stdout: `slice bounds out of range\n`.
+
+Verification result: confirmed by
+`python -m bench.harness run-task t20_safe_slice_helper --candidate bench\tasks\t20_safe_slice_helper\reference.aeth`.
+The harness returned `ok: true`, `stdout: "slice bounds out of range\n"`, and
+`exit_code: 0`.
+
 ## Harness Changes
 
 `compile_and_run` now returns `stdout`, `stderr`, and `exit_code` for parse,
@@ -182,8 +226,9 @@ hard-coded `python3`, and it includes the Python-equivalent benchmark check.
 
 Command: `python -m bench.harness run-reference`
 
-Result: passed. The command reported `# 8/8 reference solutions pass`. The
-five new tasks were marked `wedge_mode: true` and `ok: true`.
+Result: passed. The latest command in this pass reported
+`# 18/18 reference solutions pass`. The two safe-list helper tasks were marked
+`ok: true`; the contract-wedge tasks remained in wedge mode.
 
 Command:
 `python -m bench.harness run-task t06_contract_non_empty_minimum --candidate bench\tasks\t06_contract_non_empty_minimum\reference.aeth`
@@ -226,6 +271,8 @@ Result: passed for the intended Python behavior. Observed outputs were:
 | t08_contract_positive_divisor | `0` | `10\n` | empty |
 | t09_contract_bounded_index_update | `0` | `[1, 2, 3]\n` | empty |
 | t10_contract_normalized_probability | `0` | `bucket=0\n` | empty |
+| t19_safe_list_update_helper | `0` | `[10, 20, 99]\n` | empty |
+| t20_safe_slice_helper | `0` | `[30]\n` | empty |
 
 Command: `python tests\test_regressions.py`
 
@@ -235,8 +282,9 @@ regression `S-012` was skipped because this platform does not expose
 
 Command: `python scripts\run_all.py`
 
-Result: passed. The command reported `# reference: 10/10`, `# bench: 8/8`,
-`# python eq: 5/5`, `# regression: PASS`, and `# fuzz: PASS`.
+Result: passed. The latest command in this pass reported `# reference: 10/10`,
+`# bench: 18/18`, `# python eq: 15/15`, `# regression: PASS`,
+`# additional: PASS`, and `# fuzz: PASS`.
 
 Command: `python -B scripts\fuzz_parser.py --rounds 200 --mode all`
 
@@ -247,7 +295,8 @@ Result: passed. The command reported `violations: 0` and
 
 ## 1. What Aether Does Better Than Python
 
-Contract enforcement: in these five tasks, Aether rejects invalid inputs before
+Contract enforcement: in the original five detailed contract-wedge tasks,
+Aether rejects invalid inputs before
 printing a misleading result. The observed evidence is that every Aether
 reference had `stdout: ""`, `exit_code: 2`, and a structured diagnostic matching
 the task's stderr pattern. The Python equivalents all exited with code `0`,
@@ -290,9 +339,9 @@ Diagnostics support debugging and grading. The harness observed `E0301` or
 `E0302`, diagnostic categories, exit code `2`, and stderr text that matched the
 configured patterns.
 
-Silent logical errors are reduced for these cases. In all five implemented
-tasks, the Python equivalent printed a result while Aether produced no stdout
-and reported a violation.
+Silent logical errors are reduced for these cases. In the original five
+detailed contract-wedge tasks, the Python equivalent printed a result while
+Aether produced no stdout and reported a violation.
 
 The tasks are a good fit for educational examples of contracts and refinement
 types. Each task isolates one domain assumption and gives a direct Python
@@ -329,10 +378,10 @@ from the current benchmark run.
 
 | Area | Evidence From Tasks | Why Aether Performs Well |
 |------|--------------------|--------------------------|
-| Input validation | All five Aether references returned `exit_code: 2` for invalid inputs. | Contracts and refinements sit at function boundaries. |
+| Input validation | The original five detailed Aether references returned `exit_code: 2` for invalid inputs. | Contracts and refinements sit at function boundaries. |
 | Edge-case detection | Empty list, unsorted list, zero divisor, bad index, and negative weight were all rejected. | The invalid cases are encoded directly as predicates or refinement clauses. |
 | Contract diagnostics | `E0301` and `E0302` were observed with categories `contract` and `refinement`. | The harness receives structured fields and stderr text. |
-| Preventing silent wrong output | Aether produced empty stdout for all five bad inputs while Python printed a value. | Violations stop execution before misleading output is emitted. |
+| Preventing silent wrong output | Aether produced empty stdout for the original five detailed bad inputs while Python printed a value. | Violations stop execution before misleading output is emitted. |
 | Correctness-sensitive functions | Search, arithmetic, indexing, and weighted-choice examples all rely on domain assumptions. | These assumptions can be made explicit and tested. |
 
 Empty minimum: Aether rejects empty lists through `NonEmptyIntList` instead of
@@ -418,7 +467,7 @@ Better testing:
 Better static analysis if available:
 
 - Document which violations can be caught before runtime.
-- Static detection for these five tasks was not confirmed from the current
+- Static detection for the original five detailed tasks was not confirmed from the current
   benchmark run.
 
 ## 7. Final Evaluation
@@ -427,7 +476,7 @@ Better static analysis if available:
 
 Strongly demonstrated.
 
-The five contract-wedge tasks successfully demonstrate Aether's value over the
+The detailed contract-wedge tasks successfully demonstrate Aether's value over the
 specific Python equivalents implemented here: Aether detects invalid inputs with
 structured diagnostics, while the Python equivalents exit normally and print
 misleading values. This is not a claim that Aether is universally better than

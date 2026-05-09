@@ -532,6 +532,18 @@ class _TypeChecker:
             return ValueInfo(INT)
         if name == "get":
             return self._infer_get(expr, env, generic_vars)
+        if name in {"safeAt", "updateAt", "safeSlice", "inBounds", "validSliceBounds"} and name in self.functions:
+            return self._infer_user_call(name, expr, env, generic_vars)
+        if name == "safeAt":
+            return self._infer_safe_at(expr, env, expected, generic_vars)
+        if name == "updateAt":
+            return self._infer_update_at(expr, env, expected, generic_vars)
+        if name == "safeSlice":
+            return self._infer_safe_slice(expr, env, expected, generic_vars)
+        if name == "inBounds":
+            return self._infer_in_bounds(expr, env, generic_vars)
+        if name == "validSliceBounds":
+            return self._infer_valid_slice_bounds(expr, env, generic_vars)
         if name == "set":
             return self._infer_set(expr, env, generic_vars)
         if name == "unwrapOrElse":
@@ -756,6 +768,156 @@ class _TypeChecker:
             return ValueInfo(AType("Option", (coll_ty.args[0],)))
         self._infer_expr(args[1], env, None, generic_vars)
         return ValueInfo(AType("Option", (UNKNOWN,)))
+
+    def _infer_safe_at(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        expected: Optional[AType],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 2:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(AType("Option", (UNKNOWN,)))
+        expected_norm = self._dealias(expected) if expected is not None else UNKNOWN
+        expected_elem = expected_norm.args[0] if expected_norm.name == "Option" and expected_norm.args else UNKNOWN
+        list_expected = None if expected_elem.unknown else AType("List", (expected_elem,))
+        list_info = self._infer_expr(args[0], env, list_expected, generic_vars)
+        elem_ty = self._list_elem_type(list_info.ty)
+        if elem_ty.unknown and not expected_elem.unknown:
+            elem_ty = expected_elem
+        index = self._infer_expr(args[1], env, INT, generic_vars)
+        self._list_helper_diag_if_incompatible(
+            "LIST_HELPER_INDEX_TYPE",
+            INT,
+            index.ty,
+            self._pos(args[1]),
+            "safeAt index",
+            "safeAt expects an Int index",
+        )
+        return ValueInfo(AType("Option", (elem_ty,)))
+
+    def _infer_update_at(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        expected: Optional[AType],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 3:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(AType("Result", (AType("List", (UNKNOWN,)), STRING)))
+        expected_list = self._expected_result_list(expected)
+        first_arg = args[0]
+        if first_arg.get("kind") == "ListLit" and not first_arg.get("elems"):
+            value_hint = self._infer_expr(args[2], env, None, generic_vars).ty
+            if expected_list is None and not value_hint.unknown:
+                expected_list = AType("List", (value_hint,))
+            list_info = self._infer_expr(first_arg, env, expected_list, generic_vars)
+            value_info = self._infer_expr(args[2], env, self._list_elem_type(list_info.ty), generic_vars)
+        else:
+            list_info = self._infer_expr(first_arg, env, expected_list, generic_vars)
+            elem_ty = self._list_elem_type(list_info.ty)
+            value_info = self._infer_expr(
+                args[2],
+                env,
+                None if elem_ty.unknown else elem_ty,
+                generic_vars,
+            )
+        elem_ty = self._list_elem_type(list_info.ty)
+        if elem_ty.unknown and not value_info.ty.unknown:
+            elem_ty = value_info.ty
+        index = self._infer_expr(args[1], env, INT, generic_vars)
+        self._list_helper_diag_if_incompatible(
+            "LIST_HELPER_INDEX_TYPE",
+            INT,
+            index.ty,
+            self._pos(args[1]),
+            "updateAt index",
+            "updateAt expects an Int index",
+        )
+        self._list_helper_diag_if_incompatible(
+            "LIST_HELPER_VALUE_TYPE",
+            elem_ty,
+            value_info.ty,
+            self._pos(args[2]),
+            "updateAt value",
+            "updateAt replacement value must match the list element type",
+        )
+        return ValueInfo(AType("Result", (AType("List", (elem_ty,)), STRING)))
+
+    def _infer_safe_slice(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        expected: Optional[AType],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 3:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(AType("Result", (AType("List", (UNKNOWN,)), STRING)))
+        expected_list = self._expected_result_list(expected)
+        list_info = self._infer_expr(args[0], env, expected_list, generic_vars)
+        elem_ty = self._list_elem_type(list_info.ty)
+        for idx, label in ((1, "start"), (2, "end")):
+            bound = self._infer_expr(args[idx], env, INT, generic_vars)
+            self._list_helper_diag_if_incompatible(
+                "LIST_HELPER_BOUND_TYPE",
+                INT,
+                bound.ty,
+                self._pos(args[idx]),
+                f"safeSlice {label} bound",
+                "safeSlice expects Int start and end bounds",
+            )
+        return ValueInfo(AType("Result", (AType("List", (elem_ty,)), STRING)))
+
+    def _infer_in_bounds(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 2:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(BOOL)
+        self._infer_expr(args[0], env, None, generic_vars)
+        index = self._infer_expr(args[1], env, INT, generic_vars)
+        self._list_helper_diag_if_incompatible(
+            "LIST_HELPER_INDEX_TYPE",
+            INT,
+            index.ty,
+            self._pos(args[1]),
+            "inBounds index",
+            "inBounds expects an Int index",
+        )
+        return ValueInfo(BOOL)
+
+    def _infer_valid_slice_bounds(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 3:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(BOOL)
+        self._infer_expr(args[0], env, None, generic_vars)
+        for idx, label in ((1, "start"), (2, "end")):
+            bound = self._infer_expr(args[idx], env, INT, generic_vars)
+            self._list_helper_diag_if_incompatible(
+                "LIST_HELPER_BOUND_TYPE",
+                INT,
+                bound.ty,
+                self._pos(args[idx]),
+                f"validSliceBounds {label} bound",
+                "validSliceBounds expects Int start and end bounds",
+            )
+        return ValueInfo(BOOL)
 
     def _infer_set(
         self,
@@ -1045,11 +1207,41 @@ class _TypeChecker:
             return None
         return None
 
+    def _expected_result_list(self, expected: Optional[AType]) -> Optional[AType]:
+        expected_norm = self._dealias(expected) if expected is not None else UNKNOWN
+        if expected_norm.name != "Result" or len(expected_norm.args) != 2:
+            return None
+        ok_ty = self._dealias(expected_norm.args[0])
+        if ok_ty.name == "List" and len(ok_ty.args) == 1:
+            return ok_ty
+        return None
+
     # ------------------------------------------------------------------
     # Diagnostics
     # ------------------------------------------------------------------
 
     def _diag_if_incompatible(
+        self,
+        code: str,
+        expected: AType,
+        actual: AType,
+        pos: Position,
+        context: str,
+        hint: str,
+    ) -> None:
+        if self._compatible(expected, actual):
+            return
+        self._type_diag(
+            code,
+            expected,
+            actual,
+            pos,
+            f"type mismatch for {context}: expected {expected}, got {actual}",
+            hint,
+            {"context": context},
+        )
+
+    def _list_helper_diag_if_incompatible(
         self,
         code: str,
         expected: AType,

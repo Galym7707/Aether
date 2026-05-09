@@ -163,7 +163,7 @@ and a result table without claiming unrun benchmark results.
 
 | Command | Result | Important output summary |
 |---|---|---|
-| `python -B scripts\run_all.py` | pass | reference `10/10`, bench `16/16`, python equivalents `13/13`, regression PASS, additional PASS, fuzz PASS |
+| `python -B scripts\run_all.py` | pass | reference `10/10`, bench `18/18`, python equivalents `15/15`, regression PASS, additional PASS, fuzz PASS |
 | `python -B validation\run_validation.py` | pass | active validation references `10/10`, 5 deprecated skipped |
 | `python -B validation\run_python_validation.py` | pass | python validation references `10/10` |
 | `python -B tests\test_regressions.py` | pass | `ALL REGRESSION TESTS PASS`; `S-012` skipped because Windows lacks `SIGALRM` |
@@ -174,6 +174,7 @@ and a result table without claiming unrun benchmark results.
 | `python -B tests\test_static_index_diagnostics.py` | pass | `STATIC INDEX DIAGNOSTIC TESTS PASS` |
 | `python -B tests\test_contract_diagnostics.py` | pass | `CONTRACT DIAGNOSTIC TESTS PASS` |
 | `python -B tests\test_ai_repair_diagnostics.py` | pass | `AI REPAIR DIAGNOSTIC TESTS PASS` |
+| `python -B tests\test_safe_list_helpers.py` | pass | `SAFE LIST HELPER TESTS PASS` |
 | `python -B -m transpiler.aether.cli check examples\01_safe_divide.aeth` | pass | `OK: examples\01_safe_divide.aeth (2 decls)` |
 | `python -B -m transpiler.aether.cli run examples\01_safe_divide.aeth` | pass | printed `5` |
 | `python -B -m transpiler.aether.cli ast examples\01_safe_divide.aeth` | pass | printed AST JSON with 2 declarations |
@@ -185,12 +186,31 @@ and a result table without claiming unrun benchmark results.
 | `aether run examples\01_safe_divide.aeth` | pass | printed `5` |
 | `aether ast examples\01_safe_divide.aeth` | pass | printed AST JSON with 2 declarations |
 | `aether --json check examples\negative\06_effect_violation_demo.aeth` | expected failure | produced JSON diagnostic `E0801`, category `effect`, line `2`, source snippet present |
-| `python -m pytest -q` | pass | `47 passed` |
+| `python -m pytest -q` | pass | `63 passed` |
 | `python -B scripts\fuzz_parser.py --rounds 200 --mode all` | pass | 0 violations, 0 emit violations, 0 roundtrip errors |
 | `git diff --check` | pass | exit 0; only line-ending warnings from Git on Windows |
 | `python3 -B scripts/run_all.py` | not run | `python3` command is not installed on this Windows host |
 | `python3 -B -m transpiler.aether.cli check examples/01_safe_divide.aeth` | not run | `python3` command is not installed on this Windows host |
 | `python3 -B -m transpiler.aether.cli run examples/01_safe_divide.aeth` | not run | `python3` command is not installed on this Windows host |
+
+## Safe List Helpers Pass
+
+Implemented standard safe list helpers in the runtime and typechecker:
+`safeAt(List<T>, Int) -> Option<T>`, `updateAt(List<T>, Int, T) ->
+Result<List<T>, String>`, `safeSlice(List<T>, Int, Int) ->
+Result<List<T>, String>`, `inBounds(List<T>, Int) -> Bool`, and
+`validSliceBounds(List<T>, Int, Int) -> Bool`.
+
+The checker now validates helper argument relationships with stable diagnostic
+codes `LIST_HELPER_INDEX_TYPE`, `LIST_HELPER_VALUE_TYPE`, and
+`LIST_HELPER_BOUND_TYPE`. Prelint now gives direct repair hints for
+`xs[i] = value`, `xs[start:end]`, `xs.get(i)`, and `xs.append(x)`.
+
+Added examples `examples/06_safe_at.aeth`, `examples/07_update_at.aeth`, and
+`examples/08_safe_slice.aeth`, plus negative examples for wrong helper value
+and bound types. Added `tests/test_safe_list_helpers.py` and benchmark tasks
+`bench/tasks/t19_safe_list_update_helper/` and
+`bench/tasks/t20_safe_slice_helper/`.
 
 ## 8. Remaining Limitations
 
@@ -224,7 +244,7 @@ literals are not implemented.
 2. More complete type inference and generic checking for future language
    constructs.
 3. Deterministic runtime hooks for time/random.
-4. Richer standard library, including safe list update/slice helpers.
+4. Richer standard library beyond the current safe list helper subset.
 5. More AI generation benchmarks with saved model outputs.
 6. Package release workflow after the prototype stabilizes.
 7. Documentation site generated from `docs/`, `grammar/`, and `examples/`.

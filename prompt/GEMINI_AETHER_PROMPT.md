@@ -16,8 +16,11 @@ Critical syntax:
 - Use helper predicates instead of lambdas like `(x) => ...`.
 - Use contracts and refinements for invalid input.
 - Every function must have `effects`; use `effects pure` for pure helpers.
-- Use `append(xs, x)` to build lists; do not use `xs.append(x)`,
-  `xs.push(x)`, or `xs[i] = value`.
+- Use `append(xs, x)` to build lists.
+- Prefer `safeAt(xs, i)`, `updateAt(xs, i, value)`, and
+  `safeSlice(xs, start, end)` for generated list access/update/slicing.
+- Do not use `xs.append(x)`, `xs.push(x)`, `xs.get(i)`, `xs[i] = value`,
+  or Python slicing like `xs[start:end]`.
 - Annotate empty lists, for example `let xs: List<Int> = []`.
 - Call generic functions normally, for example `identity(5)`, not
   `identity<Int>(5)`.
@@ -54,10 +57,10 @@ Use integer division for the middle index. Include a helper predicate
 Write one complete Aether program. Output only Aether code.
 
 Task: implement `boundedUpdate(xs: List<Int>, index: Int, value: Int)
-returns List<Int>`. It must require `index >= 0 and index < length(xs)` and
-ensure `length(result) == length(xs)`. Do not use `xs[index] = value`.
-Build a new list with `append`. Include a `main` that updates `[10, 20, 30]`
-at index `1` to `99` and prints the updated value.
+returns Result<List<Int>, String>`. Use the standard `updateAt(xs, index,
+value)` helper. Do not use `xs[index] = value`. Include a `main` that updates
+`[10, 20, 30]` at index `1` to `99`, matches `Ok(updated)`, and prints the
+updated value.
 ```
 
 ## Full Task Prompt: safeDivide

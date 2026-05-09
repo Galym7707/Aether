@@ -17,8 +17,11 @@ Hard rules:
 - named helper predicates, never lambdas like `(x) => ...`.
 - explicit contracts/refinements for invalid inputs.
 - `effects pure` for pure helpers and `effects log` for printing.
-- rebuild lists with `append`; do not write `xs.append(x)`, `xs.push(x)`,
-  or `xs[i] = value`.
+- use `append(xs, x)` to build lists.
+- prefer `safeAt(xs, i)`, `updateAt(xs, i, value)`, and
+  `safeSlice(xs, start, end)` for generated list access/update/slicing.
+- do not write `xs.append(x)`, `xs.push(x)`, `xs.get(i)`, `xs[i] = value`,
+  or Python slicing like `xs[start:end]`.
 - annotate empty lists, for example `let xs: List<Int> = []`.
 - call generic functions normally, for example `identity(5)`, not
   `identity<Int>(5)`.
@@ -51,8 +54,8 @@ Use `let mid: Int = length(sortedValues) / 2`. Include a printing `main`.
 Write one complete Aether program. Output only Aether code.
 
 Implement `boundedUpdate(xs: List<Int>, index: Int, value: Int) returns
-List<Int>`. Require the index to be in bounds and ensure the result length
-matches the input length. Build a new list with a `while` loop and `append`.
+Result<List<Int>, String>`. Use `updateAt(xs, index, value)` and return its
+`Result`. Do not use direct list item assignment or method calls.
 ```
 
 ## Full Task Prompt: safeDivide

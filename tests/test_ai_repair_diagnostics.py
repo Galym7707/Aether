@@ -38,9 +38,9 @@ def test_common_ai_wrong_syntax_has_repair_hints():
         ("function f(xs: List[Int]) returns Int\n  effects pure\ndo\n  return 0\nend\n", "E0003", "List<Int>"),
         ("function f(xs: List<Int>) returns Int\n  effects pure\ndo\n  return xs.len()\nend\n", "E0004", "length(value)"),
         ("function f() returns Int\n  effects pure\ndo\n  let g = (x) => x\n  return 0\nend\n", "E0005", "helper"),
-        ("function f(xs: List<Int>) returns List<Int>\n  effects pure\ndo\n  xs[0] = 1\n  return xs\nend\n", "E0006", "append"),
+        ("function f(xs: List<Int>) returns List<Int>\n  effects pure\ndo\n  xs[0] = 1\n  return xs\nend\n", "E0006", "updateAt"),
         ("function f(x: Int) returns Int { return x }\n", "E0007", "do"),
-        ("function f() returns Unit\n  effects pure\ndo\n  let xs: List<Int> = [1]\n  xs.append(2)\nend\n", "E0009", "append(xs, value)"),
+        ("function f() returns Unit\n  effects pure\ndo\n  let xs: List<Int> = [1]\n  xs.append(2)\nend\n", "E0009", "append(xs, x)"),
         (
             "function identity<T>(x: T) returns T\n  effects pure\ndo\n  return x\nend\nfunction main() returns Unit\n  effects pure\ndo\n  let x: Int = identity<Int>(5)\nend\n",
             "E0008",

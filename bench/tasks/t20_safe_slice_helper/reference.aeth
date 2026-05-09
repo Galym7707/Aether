@@ -1,0 +1,13 @@
+function main() returns Unit
+  effects log
+do
+  let xs: List<Int> = [10, 20, 30]
+  match safeSlice(xs, 2, 9) do
+    case Ok(part) do
+      print(intToString(length(part)))
+    end
+    case Err(message) do
+      print(message)
+    end
+  end
+end

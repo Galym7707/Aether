@@ -1,0 +1,20 @@
+function describeSafeAt(xs: List<Int>, index: Int) returns String
+  effects pure
+do
+  match safeAt(xs, index) do
+    case Some(value) do
+      return intToString(value)
+    end
+    case None() do
+      return "none"
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  let xs: List<Int> = [10, 20, 30]
+  print(describeSafeAt(xs, 1))
+  print(describeSafeAt(xs, 9))
+end

@@ -1,0 +1,7 @@
+// Expected diagnostic: LIST_HELPER_VALUE_TYPE.
+function main() returns Unit
+  effects log
+do
+  let updated: Result<List<Int>, String> = updateAt([1, 2], 0, "bad")
+  print("unreachable")
+end

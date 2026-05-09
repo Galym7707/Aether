@@ -1,0 +1,13 @@
+function main() returns Unit
+  effects log
+do
+  let xs: List<Int> = [10, 20, 30]
+  match updateAt(xs, 9, 99) do
+    case Ok(updated) do
+      print(intToString(updated[0]))
+    end
+    case Err(message) do
+      print(message)
+    end
+  end
+end

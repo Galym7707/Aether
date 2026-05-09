@@ -75,6 +75,7 @@ def main() -> int:
         os.path.join("tests", "test_static_index_diagnostics.py"),
         os.path.join("tests", "test_contract_diagnostics.py"),
         os.path.join("tests", "test_ai_repair_diagnostics.py"),
+        os.path.join("tests", "test_safe_list_helpers.py"),
     ):
         path = os.path.join(ROOT, rel)
         if not os.path.isfile(path):

@@ -1,0 +1,7 @@
+// Expected diagnostic: LIST_HELPER_BOUND_TYPE.
+function main() returns Unit
+  effects log
+do
+  let sliced: Result<List<Int>, String> = safeSlice([1, 2], "0", 1)
+  print("unreachable")
+end

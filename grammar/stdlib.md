@@ -43,6 +43,24 @@ The constructors `Some`, `None`, `Ok`, `Err` are also always in scope.
     function get<T>(xs: List<T>, i: Int) returns Option<T>
       effects pure
 
+    function safeAt<T>(xs: List<T>, index: Int) returns Option<T>
+      effects pure
+
+    function updateAt<T>(xs: List<T>, index: Int, value: T) returns Result<List<T>, String>
+      effects pure
+      ensures isOk?(result) implies length(unwrapOr(result, xs)) == length(xs)
+
+    function safeSlice<T>(xs: List<T>, start: Int, end: Int) returns Result<List<T>, String>
+      effects pure
+
+    function inBounds<T>(xs: List<T>, index: Int) returns Bool
+      effects pure
+      ensures result == (index >= 0 and index < length(xs))
+
+    function validSliceBounds<T>(xs: List<T>, start: Int, end: Int) returns Bool
+      effects pure
+      ensures result == (start >= 0 and start <= end and end <= length(xs))
+
     function map<T, U>(xs: List<T>, f: function(T) returns U) returns List<U>
       effects pure
       ensures length(result) == length(xs)

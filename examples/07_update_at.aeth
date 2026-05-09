@@ -1,0 +1,20 @@
+function describeUpdate(res: Result<List<Int>, String>) returns String
+  effects pure
+do
+  match res do
+    case Ok(updated) do
+      return intToString(updated[1])
+    end
+    case Err(message) do
+      return message
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  let xs: List<Int> = [10, 20, 30]
+  print(describeUpdate(updateAt(xs, 1, 99)))
+  print(describeUpdate(updateAt(xs, 7, 99)))
+end

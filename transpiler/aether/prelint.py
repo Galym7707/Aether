@@ -45,6 +45,12 @@ def lint_common_ai_syntax(source: str, filename: str = "<input>") -> List[Diagno
                 "replace method-style length calls with `length(value)`",
             ),
             (
+                re.search(r"\.\s*get\s*\(", line),
+                "E0011",
+                "Aether does not support method-style list access.",
+                "Aether does not support method calls. Use `safeAt(xs, i)`.",
+            ),
+            (
                 re.search(r"=>", line),
                 "E0005",
                 "Aether does not support JavaScript lambdas.",
@@ -54,13 +60,19 @@ def lint_common_ai_syntax(source: str, filename: str = "<input>") -> List[Diagno
                 re.search(r"\.\s*(append|push)\s*\(", line),
                 "E0009",
                 "Aether does not support method-style list append or push.",
-                "use functional append syntax such as `append(xs, value)`",
+                "Use `append(xs, x)` or `updateAt(xs, index, value)`, depending on intent.",
+            ),
+            (
+                re.search(r"\b[A-Za-z_][A-Za-z_0-9]*\s*\[[^\]\n]*:[^\]\n]*\]", line),
+                "E0010",
+                "Aether does not support Python slicing syntax.",
+                "Aether does not support Python slicing syntax. Use `safeSlice(xs, start, end)`.",
             ),
             (
                 re.search(r"\b[A-Za-z_][A-Za-z_0-9]*\s*\[[^\]]+\]\s*=(?!=)", line),
                 "E0006",
                 "Aether does not support list item assignment.",
-                "build a new list with `append` or a helper such as `updateAt`",
+                "Aether does not support direct list item assignment. Use `updateAt(xs, i, value)` and handle `Result`.",
             ),
             (
                 _explicit_generic_call_match(line),

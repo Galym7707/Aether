@@ -2,7 +2,7 @@
 
 This file documents current list behavior from `grammar/stdlib.md`,
 `transpiler/aether/parser.py`, `transpiler/aether/runtime.py`, and
-`tests/test_list_operations.py`.
+`tests/test_list_operations.py`, and `tests/test_safe_list_helpers.py`.
 
 ## Create A List
 
@@ -42,7 +42,21 @@ let c: Int = xs[3]    // INDEX_OUT_OF_BOUNDS_STATIC
 ```
 
 Dynamic out-of-bounds cases are runtime diagnostics, not Python tracebacks.
-Guard direct indexing with a contract when the input is dynamic:
+For safe dynamic access, prefer `safeAt(xs, index)`:
+
+```aether
+match safeAt(xs, index) do
+  case Some(value) do
+    return intToString(value)
+  end
+  case None() do
+    return "none"
+  end
+end
+```
+
+Guard direct indexing with a contract when the input is dynamic and a missing
+value should be rejected instead of represented as `None()`:
 
 ```aether
 function first(xs: List<Int>) returns Int
@@ -63,7 +77,8 @@ Do not write `xs.len()`.
 
 ## Build A New List
 
-Lists are used in a pure-functional style. Use `append` to return a new list:
+Lists are used in a pure-functional style. Use `append` to return a new list
+when you are intentionally building a list:
 
 ```aether
 var out: List<Int> = []
@@ -85,7 +100,33 @@ xs.append(10)  // E0009, unsupported
 ```
 
 Other helpers documented in `grammar/stdlib.md` include `prepend`, `concat`,
-`head`, `tail`, `get`, `map`, `filter`, `foldLeft`, `reverse`, and `range`.
+`head`, `tail`, `get`, `safeAt`, `updateAt`, `safeSlice`, `inBounds`,
+`validSliceBounds`, `map`, `filter`, `foldLeft`, `reverse`, and `range`.
+
+## Standard Safe List Helpers
+
+Prefer these helpers for generated code:
+
+```aether
+let present: Option<Int> = safeAt([10, 20], 1)
+let missing: Option<Int> = safeAt([10, 20], 9)
+let updated: Result<List<Int>, String> = updateAt([10, 20], 1, 99)
+let sliced: Result<List<Int>, String> = safeSlice([10, 20, 30], 0, 2)
+let okIndex: Bool = inBounds([10, 20], 1)
+let okSlice: Bool = validSliceBounds([10, 20, 30], 0, 2)
+```
+
+Type relationships are checked:
+
+```aether
+safeAt([1, 2], "0")        // LIST_HELPER_INDEX_TYPE
+updateAt([1, 2], 0, "bad") // LIST_HELPER_VALUE_TYPE
+safeSlice([1, 2], "0", 1)  // LIST_HELPER_BOUND_TYPE
+```
+
+`updateAt` returns a new list and does not mutate the original list. Invalid
+indexes return `Err("index out of bounds")`. Invalid slice bounds return
+`Err("slice bounds out of range")`.
 
 ## List Mutation
 
@@ -96,27 +137,22 @@ xs[0] = 99  // unsupported
 ```
 
 The CLI prelint reports this as `E0006` with a suggestion to rebuild the list
-with `append`.
+with `updateAt(xs, i, value)` and handle the returned `Result`.
 
 ## Correct updateAt Pattern
 
 ```aether
-function updateAt(xs: List<Int>, index: Int, value: Int) returns List<Int>
-  requires index >= 0 and index < length(xs)
-  ensures length(result) == length(xs)
+function describeUpdate(res: Result<List<Int>, String>) returns String
   effects pure
 do
-  var out: List<Int> = []
-  var i: Int = 0
-  while i < length(xs) do
-    if i == index then
-      out = append(out, value)
-    else
-      out = append(out, xs[i])
+  match res do
+    case Ok(updated) do
+      return intToString(updated[1])
     end
-    i = i + 1
+    case Err(message) do
+      return message
+    end
   end
-  return out
 end
 ```
 
@@ -142,6 +178,9 @@ end
 ```
 
 See `examples/05_safe_normalize_weights.aeth` for a complete runnable file.
+Manual `append` loops are still appropriate for transformations that build a
+new list element by element. For single-index access, update, or slicing,
+prefer `safeAt`, `updateAt`, and `safeSlice`.
 
 ## Common AI Mistakes
 
@@ -150,7 +189,9 @@ See `examples/05_safe_normalize_weights.aeth` for a complete runnable file.
 | `List[Int]` | `List<Int>` |
 | `xs.len()` | `length(xs)` |
 | `xs.append(x)` | `append(xs, x)` |
-| `xs[i] = value` | rebuild with `append` |
-| unguarded `xs[0]` on maybe-empty input | add `requires length(xs) > 0` |
+| `xs[i] = value` | `updateAt(xs, i, value)` and handle `Result` |
+| `xs[start:end]` | `safeSlice(xs, start, end)` |
+| `xs.get(i)` | `safeAt(xs, i)` |
+| unguarded `xs[0]` on maybe-empty input | `safeAt(xs, 0)` or add `requires length(xs) > 0` |
 | `let xs = []` | `let xs: List<Int> = []` |
 | lambdas in list helpers | write named helper functions |
