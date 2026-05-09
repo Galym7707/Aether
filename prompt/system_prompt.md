@@ -163,6 +163,7 @@ end
 14. Writing `xs[start:end]` is unsupported. Use `safeSlice(xs, start, end)` and handle `Result`.
 15. Writing `xs.get(i)` or `xs.append(x)` is unsupported method syntax. Use `safeAt(xs, i)` or `append(xs, x)`.
 16. Writing `opt.unwrap()`, `result.unwrap()`, or `result.is_ok()` is unsupported method syntax. Use `expectSome`, `expectOk`, `unwrapOr`, `unwrapOrResult`, `isOk`, or exhaustive `match`.
+17. Named callbacks passed to `mapOption`, `andThenOption`, `mapResult`, `mapErr`, or `andThenResult` propagate declared effects to the enclosing function.
 17. A `match` over `Option`, `Result`, or a user union should cover all cases or include `case _`.
 
 Output only the Aether source. No fences, no commentary.

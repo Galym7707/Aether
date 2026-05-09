@@ -265,6 +265,13 @@ The constructors `Some`, `None`, `Ok`, `Err` are also always in scope.
 compatibility. New AI-generated code should prefer the explicit non-`?`
 helpers above and exhaustive `match`.
 
+`mapOption`, `andThenOption`, `mapResult`, `mapErr`, and `andThenResult` are
+pure only when their callback is pure. The current static checker propagates
+declared effects from named callback functions passed to these helpers. If a
+callback declares `effects log`, `effects fs.read`, or another effect not
+covered by the enclosing function, the checker emits
+`HIGHER_ORDER_EFFECT_ESCAPE`.
+
 ## What is *not* in v0.1
 
 - Regex.

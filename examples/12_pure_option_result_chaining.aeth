@@ -1,0 +1,47 @@
+function double(x: Int) returns Int
+  effects pure
+do
+  return x * 2
+end
+
+function keepPositive(x: Int) returns Option<Int>
+  effects pure
+do
+  if x > 0 then
+    return Some(x)
+  end
+  return None()
+end
+
+function describeOption(value: Option<Int>) returns String
+  effects pure
+do
+  match value do
+    case Some(x) do
+      return intToString(x)
+    end
+    case None() do
+      return "none"
+    end
+  end
+end
+
+function describeResult(value: Result<Int, String>) returns String
+  effects pure
+do
+  match value do
+    case Ok(x) do
+      return intToString(x)
+    end
+    case Err(message) do
+      return message
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  print(describeOption(andThenOption(mapOption(Some(4), double), keepPositive)))
+  print(describeResult(mapResult(Ok(5), double)))
+end

@@ -5,7 +5,8 @@
 These tasks test invalid-input cases where the Python equivalents in this
 repository silently accept bad inputs and print misleading results, while the
 Aether reference solutions reject the same inputs through contracts,
-refinement-typed parameters, or explicit safe-list helper results.
+refinement-typed parameters, explicit safe-list helper results, or
+higher-order effect diagnostics for Option/Result callbacks.
 
 The benchmark source of truth for these results is the local harness output from
 `python -m bench.harness run-reference`,
@@ -27,6 +28,9 @@ uses per-task `bench/tasks/<task_id>/grader.json` files. No root-level
 | 7 | t20_safe_slice_helper | Invalid slice end bound using helper-based error handling. | Prints `[30]` after Python silently clamps the end bound, with exit code `0` and empty stderr. | Prints `slice bounds out of range` through `Err`. | none; successful `Result` error path |
 | 8 | t21_option_unwrap_helper | Missing list element represented with `Option`. | Prints `0` after silently defaulting the invalid index. | Prints `missing` and `-1` through `Option` helpers. | none; successful `Option` path |
 | 9 | t22_result_error_handling | Invalid update represented with `Result`. | Prints `99` after silently clamping the invalid index. | Prints `error` and keeps the original list through `Result` helpers. | none; successful `Result` path |
+| 10 | t23_map_option_effect_escape | Logging callback passed through `mapOption` from a pure function. | Prints `audit:1` with no effect declaration. | Fails static check with `HIGHER_ORDER_EFFECT_ESCAPE`. | `HIGHER_ORDER_EFFECT_ESCAPE` |
+| 11 | t24_map_result_effect_escape | Logging callback passed through `mapResult` from a pure function. | Prints `audit:2` with no effect declaration. | Fails static check with `HIGHER_ORDER_EFFECT_ESCAPE`. | `HIGHER_ORDER_EFFECT_ESCAPE` |
+| 12 | t25_map_err_effect_escape | Logging error mapper passed through `mapErr` from a pure function. | Prints `audit:bad` with no effect declaration. | Fails static check with `HIGHER_ORDER_EFFECT_ESCAPE`. | `HIGHER_ORDER_EFFECT_ESCAPE` |
 
 ## 1. t06_contract_non_empty_minimum
 
@@ -234,6 +238,61 @@ Expected stdout: `error\n20\n`.
 Verification result: confirmed by
 `python -m bench.harness run-task t22_result_error_handling --candidate bench\tasks\t22_result_error_handling\reference.aeth`.
 The harness returned `ok: true`, `stdout: "error\n20\n"`, and `exit_code: 0`.
+
+## 10. t23_map_option_effect_escape
+
+The reference program passes `auditInt`, a callback declaring `effects log`, to
+`mapOption` from a `main` function declared `effects pure`.
+
+The Python equivalent runs the callback and prints `audit:1` without any
+effect declaration or static signal.
+
+Aether rejects the reference at check time with
+`HIGHER_ORDER_EFFECT_ESCAPE`, pointing at the `mapOption` call and reporting
+the escaped `log` effect.
+
+Expected exit code: `2`.
+
+Expected diagnostic: `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect`.
+
+Verification result: confirmed by
+`python -m bench.harness run-task t23_map_option_effect_escape --candidate bench\tasks\t23_map_option_effect_escape\reference.aeth`.
+
+## 11. t24_map_result_effect_escape
+
+The reference program passes `auditInt`, a callback declaring `effects log`, to
+`mapResult` from a pure function.
+
+The Python equivalent runs the mapper and prints `audit:2` with no static
+effect tracking.
+
+Aether rejects the reference at check time with
+`HIGHER_ORDER_EFFECT_ESCAPE`.
+
+Expected exit code: `2`.
+
+Expected diagnostic: `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect`.
+
+Verification result: confirmed by
+`python -m bench.harness run-task t24_map_result_effect_escape --candidate bench\tasks\t24_map_result_effect_escape\reference.aeth`.
+
+## 12. t25_map_err_effect_escape
+
+The reference program passes `auditError`, a callback declaring `effects log`,
+to `mapErr` from a pure function.
+
+The Python equivalent runs the error mapper and prints `audit:bad` with no
+static effect tracking.
+
+Aether rejects the reference at check time with
+`HIGHER_ORDER_EFFECT_ESCAPE`.
+
+Expected exit code: `2`.
+
+Expected diagnostic: `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect`.
+
+Verification result: confirmed by
+`python -m bench.harness run-task t25_map_err_effect_escape --candidate bench\tasks\t25_map_err_effect_escape\reference.aeth`.
 
 ## Harness Changes
 

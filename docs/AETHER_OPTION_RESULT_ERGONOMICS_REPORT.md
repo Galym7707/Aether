@@ -100,9 +100,10 @@ Stable diagnostic codes added:
 - `OPTION_HELPER_FUNCTION_TYPE`
 - `RESULT_HELPER_FUNCTION_TYPE`
 
-Known limitation: higher-order helper effects are still treated as pure helper
-calls by the current effect pass; mapper effect composition is not fully
-modeled yet.
+Later pass note: named callbacks passed to `mapOption`, `andThenOption`,
+`mapResult`, `mapErr`, and `andThenResult` are now checked by the effect pass
+for escaping declared effects. Anonymous or dynamic callbacks remain outside
+the current checker.
 
 ## 6. Match Exhaustiveness Diagnostics
 
@@ -197,14 +198,14 @@ Documentation now tells AI models to:
   known.
 - Higher-order helper type checking is pragmatic, not a complete Hindley-Milner
   style inference system.
-- Mapper effect propagation for `mapOption`, `mapResult`, and related helpers
-  is not fully modeled.
+- Mapper effect propagation is implemented for named callbacks passed to the
+  standard Option/Result helpers. Anonymous or dynamic callbacks remain
+  unchecked.
 - Runtime diagnostic source spans are best effort.
 - Static verification remains limited; many contracts/refinements are still
   runtime checks.
 
 ## 13. Recommended Next Task
 
-Implement effect-aware higher-order helper checking, so functions passed to
-`mapOption`, `mapResult`, `andThenOption`, and `andThenResult` contribute their
-effects to the caller instead of being treated as pure helper calls.
+Extend effect-aware checking to future anonymous callback syntax and
+function-valued parameters if the language adds those constructs.

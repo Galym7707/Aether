@@ -28,6 +28,7 @@ Rules:
 - Use `updateAt(xs, i, value)` for safe replacement; handle `Ok(updated)` and `Err(message)`.
 - Use `safeSlice(xs, start, end)` for safe slicing; handle `Ok(part)` and `Err(message)`.
 - Prefer exhaustive `match` for `Option` and `Result`.
+- When passing a named callback to `mapOption`, `andThenOption`, `mapResult`, `mapErr`, or `andThenResult`, declare any callback effects on the enclosing function.
 - Use `unwrapOr(opt, default)` only when a fallback is correct.
 - Use `unwrapOrResult(res, default)` only when a fallback is correct.
 - Use `expectSome(opt, message)` or `expectOk(res, message)` only when failure should be a diagnostic.
@@ -63,5 +64,22 @@ match safeAt(xs, index) do
   case None() do
     return "missing"
   end
+end
+```
+
+Good effect-aware helper pattern:
+
+```aether
+function logValue(x: Int) returns Int
+  effects log
+do
+  print(intToString(x))
+  return x
+end
+
+function main() returns Unit
+  effects log
+do
+  let value: Option<Int> = mapOption(Some(1), logValue)
 end
 ```

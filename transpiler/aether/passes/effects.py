@@ -2,8 +2,9 @@
 
 This pass walks every FunctionDecl and checks direct calls to known local or
 stdlib functions. For each call, the callee's declared effects must be covered
-by the caller's declared effects. The pass is intentionally conservative:
-unknown callees, higher-order function parameters, and dynamic field calls are
+by the caller's declared effects. It also handles the implemented higher-order
+Option/Result helpers when their callback argument resolves to a known function.
+Unknown callees, function parameters, and dynamic field calls are intentionally
 left to runtime behavior or future type analysis.
 """
 
@@ -123,6 +124,15 @@ _STDLIB_EFFECTS: Dict[str, EffectSet] = {
 }
 
 
+_HIGHER_ORDER_CALLBACK_ARG: Dict[str, int] = {
+    "mapOption": 1,
+    "andThenOption": 1,
+    "mapResult": 1,
+    "mapErr": 1,
+    "andThenResult": 1,
+}
+
+
 def _literal_string_arg(expr: Optional[Dict[str, Any]]) -> Optional[str]:
     if expr and expr.get("kind") == "StringLit":
         return expr["value"]
@@ -235,6 +245,11 @@ def _resolve_callee_name(callee: Dict[str, Any]) -> Optional[str]:
     return None
 
 
+def _pos(node: Dict[str, Any]) -> Position:
+    raw = node.get("pos") or {"line": 0, "column": 0}
+    return Position(raw.get("line", 0), raw.get("column", 0))
+
+
 def _expr_children(expr: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
     kind = expr.get("kind")
     if kind == "Call":
@@ -323,7 +338,7 @@ def _function_expressions(fn: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
 
 
 def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
-    """Return E0801 diagnostics for static effect-subset violations."""
+    """Return static effect diagnostics for direct and known callback calls."""
     local_effects = _local_effect_table(ast)
     known_effects = dict(_STDLIB_EFFECTS)
     known_effects.update(local_effects)
@@ -372,6 +387,48 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
                                     _effect_name(effect) for effect in caller_effects
                                 ],
                                 "required_effect": _effect_name(required),
+                            },
+                        )
+                    )
+                callback_index = _HIGHER_ORDER_CALLBACK_ARG.get(callee)
+                if callback_index is None:
+                    continue
+                args = expr.get("args", [])
+                if callback_index >= len(args):
+                    continue
+                callback_name = _resolve_callee_name(args[callback_index])
+                if callback_name is None or callback_name not in known_effects:
+                    continue
+                for escaped in known_effects[callback_name]:
+                    if _effect_allowed(escaped, caller_effects):
+                        continue
+                    escaped_name = _effect_name(escaped)
+                    diags.append(
+                        Diagnostic(
+                            code="HIGHER_ORDER_EFFECT_ESCAPE",
+                            category="effect",
+                            severity="error",
+                            message=(
+                                f"callback {callback_name!r} passed to {callee!r} "
+                                f"requires effect {escaped_name!r}, but enclosing "
+                                f"function {caller!r} declares effects "
+                                f"{_format_effect_set(caller_effects)}"
+                            ),
+                            position=_pos(expr),
+                            suggestion=(
+                                f"add effect {escaped_name!r} to {caller!r}, "
+                                f"pass a pure callback to {callee!r}, or move the "
+                                "effectful work outside the helper"
+                            ),
+                            confidence=1.0,
+                            extra={
+                                "caller": caller,
+                                "helper": callee,
+                                "callback": callback_name,
+                                "escaped_effect": escaped_name,
+                                "caller_effects": [
+                                    _effect_name(effect) for effect in caller_effects
+                                ],
                             },
                         )
                     )

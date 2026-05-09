@@ -163,7 +163,7 @@ and a result table without claiming unrun benchmark results.
 
 | Command | Result | Important output summary |
 |---|---|---|
-| `python -B scripts\run_all.py` | pass | reference `10/10`, bench `20/20`, python equivalents `17/17`, regression PASS, additional PASS, fuzz PASS |
+| `python -B scripts\run_all.py` | pass | reference `10/10`, bench `23/23`, python equivalents `20/20`, regression PASS, additional PASS, fuzz PASS |
 | `python -B validation\run_validation.py` | pass | active validation references `10/10`, 5 deprecated skipped |
 | `python -B validation\run_python_validation.py` | pass | python validation references `10/10` |
 | `python -B tests\test_regressions.py` | pass | `ALL REGRESSION TESTS PASS`; `S-012` skipped because Windows lacks `SIGALRM` |
@@ -177,6 +177,7 @@ and a result table without claiming unrun benchmark results.
 | `python -B tests\test_safe_list_helpers.py` | pass | `SAFE LIST HELPER TESTS PASS` |
 | `python -B tests\test_option_result_helpers.py` | pass | `OPTION RESULT HELPER TESTS PASS` |
 | `python -B tests\test_match_exhaustiveness.py` | pass | `MATCH EXHAUSTIVENESS TESTS PASS` |
+| `python -B tests\test_higher_order_effects.py` | pass | `HIGHER ORDER EFFECT TESTS PASS` |
 | `python -B -m transpiler.aether.cli check examples\01_safe_divide.aeth` | pass | `OK: examples\01_safe_divide.aeth (2 decls)` |
 | `python -B -m transpiler.aether.cli run examples\01_safe_divide.aeth` | pass | printed `5` |
 | `python -B -m transpiler.aether.cli ast examples\01_safe_divide.aeth` | pass | printed AST JSON with 2 declarations |
@@ -188,7 +189,7 @@ and a result table without claiming unrun benchmark results.
 | `aether run examples\01_safe_divide.aeth` | pass | printed `5` |
 | `aether ast examples\01_safe_divide.aeth` | pass | printed AST JSON with 2 declarations |
 | `aether --json check examples\negative\06_effect_violation_demo.aeth` | expected failure | produced JSON diagnostic `E0801`, category `effect`, line `2`, source snippet present |
-| `python -m pytest -q` | pass | `82 passed in 8.84s` |
+| `python -m pytest -q` | pass | `90 passed in 29.09s` |
 | `python -B scripts\fuzz_parser.py --rounds 200 --mode all` | pass | 0 violations, 0 emit violations, 0 roundtrip errors |
 | `git diff --check` | pass | exit 0; only line-ending warnings from Git on Windows |
 | `python3 -B scripts/run_all.py` | not run | `python3` command is not installed on this Windows host |
@@ -236,6 +237,25 @@ negative examples `04` through `08`, tests for helpers and match
 exhaustiveness, and benchmark tasks `t21_option_unwrap_helper` and
 `t22_result_error_handling`.
 
+## Effect-Aware Helper Pass
+
+Implemented static effect propagation for named callbacks passed to
+`mapOption`, `andThenOption`, `mapResult`, `mapErr`, and `andThenResult`.
+If a callback declares an effect not covered by the enclosing function, the
+checker emits `HIGHER_ORDER_EFFECT_ESCAPE` at the helper call with the helper
+name, callback name, escaped effect, source snippet, and repair hint.
+
+Added positive examples `examples/12_pure_option_result_chaining.aeth` and
+`examples/13_effect_aware_helpers.aeth`, negative examples
+`examples/negative/09_effect_escape_map_option.aeth` and
+`examples/negative/10_effect_escape_map_result.aeth`, and
+`tests/test_higher_order_effects.py`.
+
+Added benchmark wedge tasks `t23_map_option_effect_escape`,
+`t24_map_result_effect_escape`, and `t25_map_err_effect_escape`, showing Python
+executing callback side effects while Aether rejects missing effect
+declarations.
+
 ## 8. Remaining Limitations
 
 Aether is still not production-ready.
@@ -250,8 +270,9 @@ fragment; most contracts/refinements remain runtime checks.
 
 Diagnostics are better but not complete. Runtime contract/refinement
 diagnostics include call-site metadata for direct local Aether function calls,
-but higher-order calls and some non-contract runtime failures still lack exact
-caller spans.
+and named Option/Result helper callback effect diagnostics point at the helper
+call. Dynamic higher-order calls and some non-contract runtime failures still
+lack exact caller spans.
 
 The deterministic runtime is incomplete. Time/random are not seedable for
 reproducible execution.

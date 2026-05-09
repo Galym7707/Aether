@@ -1,0 +1,14 @@
+// Expected diagnostic: HIGHER_ORDER_EFFECT_ESCAPE.
+// Repair: add effects log to main, or pass a pure callback.
+function logAndDouble(x: Int) returns Int
+  effects log
+do
+  print(intToString(x))
+  return x * 2
+end
+
+function main() returns Unit
+  effects pure
+do
+  let value: Option<Int> = mapOption(Some(7), logAndDouble)
+end

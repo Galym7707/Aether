@@ -102,7 +102,8 @@ end
 ### Effects
 
 Effects are mandatory. The static effect checker runs by default for direct
-calls to known functions.
+calls to known functions and for named callbacks passed to the standard
+`Option` / `Result` higher-order helpers.
 
 ```aether
 function sayHello() returns Unit
@@ -111,6 +112,40 @@ do
   print("hello")
 end
 ```
+
+When a callback passed to `mapOption`, `andThenOption`, `mapResult`, `mapErr`,
+or `andThenResult` declares an effect, the enclosing function must declare a
+covering effect too:
+
+```aether
+function logAndDouble(x: Int) returns Int
+  effects log
+do
+  print(intToString(x))
+  return x * 2
+end
+
+function ok() returns Unit
+  effects log
+do
+  let value: Option<Int> = mapOption(Some(1), logAndDouble)
+end
+```
+
+This is rejected because `logAndDouble` is effectful but `bad` claims to be
+pure:
+
+```aether
+function bad() returns Unit
+  effects pure
+do
+  let value: Option<Int> = mapOption(Some(1), logAndDouble)
+end
+```
+
+The diagnostic code is `HIGHER_ORDER_EFFECT_ESCAPE`. Fix it by adding the
+escaped effect to the enclosing function, passing a pure callback, or moving
+the effectful work outside the helper.
 
 ### If / Else
 
@@ -225,6 +260,12 @@ let updated: List<Int> = unwrapOrResult(updateAt([10, 20], 1, 99), [10, 20])
 
 The checker reports `MATCH_NON_EXHAUSTIVE` when a known `Option`, `Result`, or
 user-defined union match misses a case and has no `_` wildcard.
+
+Callbacks passed to `mapOption`, `andThenOption`, `mapResult`, `mapErr`, and
+`andThenResult` should be named helper functions. If such a helper declares
+`effects log`, `effects fs.read`, or another effect, the caller using the
+higher-order helper must declare a covering effect. Pure callbacks remain valid
+inside `effects pure` functions.
 
 ## Unsupported Or Uncertain Syntax
 

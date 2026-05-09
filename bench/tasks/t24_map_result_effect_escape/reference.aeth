@@ -1,0 +1,12 @@
+function auditInt(x: Int) returns Int
+  effects log
+do
+  print(join(["audit:", intToString(x)], ""))
+  return x
+end
+
+function main() returns Unit
+  effects pure
+do
+  let value: Result<Int, String> = mapResult(Ok(2), auditInt)
+end

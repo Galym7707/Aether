@@ -114,6 +114,8 @@ Most common syntax rules:
   return values for invalid dynamic cases.
 - Option/Result helpers such as `isSome`, `unwrapOr`, `mapOption`, `isOk`,
   `unwrapOrResult`, `mapResult`, and `expectOk`.
+- Effect-aware checking for named callbacks passed to `mapOption`,
+  `andThenOption`, `mapResult`, `mapErr`, and `andThenResult`.
 - Static match exhaustiveness diagnostics for known `Option`, `Result`, and
   user-defined union scrutinees.
 - Runtime index diagnostics for dynamic out-of-bounds cases, without Python
@@ -147,6 +149,9 @@ Most common syntax rules:
 - Method-style `opt.unwrap()`, `result.unwrap()`, and `result.is_ok()`; use
   `expectSome`, `expectOk`, `unwrapOr`, `unwrapOrResult`, `isOk`, or
   exhaustive `match`.
+- Complete higher-order effect inference for anonymous or dynamically supplied
+  callbacks. Named callbacks passed to the standard Option/Result helpers are
+  checked; unknown callbacks remain a documented prototype limitation.
 - A production security model for capabilities. `--capability-strict` is an
   opt-in static check, not a complete sandbox.
 - A package release. `pip install -e .` is for local development.
@@ -170,6 +175,7 @@ python -B tests\test_ai_repair_diagnostics.py
 python -B tests\test_safe_list_helpers.py
 python -B tests\test_option_result_helpers.py
 python -B tests\test_match_exhaustiveness.py
+python -B tests\test_higher_order_effects.py
 python -m pytest -q
 ```
 

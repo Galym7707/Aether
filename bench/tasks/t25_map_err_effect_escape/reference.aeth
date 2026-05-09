@@ -1,0 +1,12 @@
+function auditError(message: String) returns String
+  effects log
+do
+  print(join(["audit:", message], ""))
+  return message
+end
+
+function main() returns Unit
+  effects pure
+do
+  let value: Result<Int, String> = mapErr(Err("bad"), auditError)
+end

@@ -34,6 +34,14 @@ unargumented caller declaration such as `net.fetch` covers narrower
 argumented callee declarations, and a caller glob can cover concrete matching
 URLs or a narrower trailing-star glob. The reverse direction is rejected.
 
+For the implemented higher-order Option/Result helpers (`mapOption`,
+`andThenOption`, `mapResult`, `mapErr`, and `andThenResult`), named callback
+functions contribute their declared effects to the enclosing function. A pure
+function that calls `mapOption(Some(1), logValue)` is rejected if `logValue`
+declares `effects log`. The diagnostic code is
+`HIGHER_ORDER_EFFECT_ESCAPE`. Unknown function-valued parameters and dynamic
+callbacks remain a prototype limitation.
+
 ## Capability gating
 
 Effects are *type-level*. To actually perform an effect, the function must be invoked from a module that holds the corresponding capability:
@@ -85,7 +93,7 @@ See `stdlib.md` for the full list. A few high-frequency examples:
 ## Why effects are first-class for AI generation
 
 A model proposing a function body must declare which effects it performs. If
-the body ends up directly calling a known function with effects not declared,
-the static effect checker rejects it with a structured error. This makes
-"I think this function is pure" a checkable claim for the implemented direct
-call cases.
+the body directly calls a known function, or passes a named effectful callback
+to a supported Option/Result helper, the static effect checker rejects missing
+effect declarations with a structured error. This makes "I think this function
+is pure" a checkable claim for the implemented direct and named-callback cases.

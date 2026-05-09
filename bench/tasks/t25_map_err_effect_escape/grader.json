@@ -1,0 +1,16 @@
+{
+  "expected_stdout": "",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "expected_exit_code": 2,
+  "expected_diagnostic_code": "HIGHER_ORDER_EFFECT_ESCAPE",
+  "expected_diagnostic_category": "effect",
+  "expected_stderr_pattern": "(?i)(mapErr|higher-order).*log",
+  "python_equivalent": "python_equivalent.py",
+  "python_expected_exit_code": 0,
+  "python_expected_stdout": "audit:bad\n",
+  "python_expected_stderr": "",
+  "python_forbidden_stderr_pattern": "(?i)(effect|contract|precondition|error)",
+  "tags": ["effects", "result", "higher-order", "ai-generation"],
+  "difficulty": "easy"
+}

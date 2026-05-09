@@ -1,0 +1,48 @@
+function logAndDouble(x: Int) returns Int
+  effects log
+do
+  print(intToString(x))
+  return x * 2
+end
+
+function logAndKeep(x: Int) returns Result<Int, String>
+  effects log
+do
+  print(intToString(x))
+  return Ok(x)
+end
+
+function describeOption(value: Option<Int>) returns String
+  effects pure
+do
+  match value do
+    case Some(x) do
+      return intToString(x)
+    end
+    case None() do
+      return "none"
+    end
+  end
+end
+
+function describeResult(value: Result<Int, String>) returns String
+  effects pure
+do
+  match value do
+    case Ok(x) do
+      return intToString(x)
+    end
+    case Err(message) do
+      return message
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  let value: Option<Int> = mapOption(Some(7), logAndDouble)
+  let res: Result<Int, String> = andThenResult(Ok(9), logAndKeep)
+  print(describeOption(value))
+  print(describeResult(res))
+end

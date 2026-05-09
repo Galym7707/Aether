@@ -22,6 +22,7 @@ Syntax constraints:
 - Aether prefers exhaustive `match` for `Option` and `Result`.
 - Aether uses `unwrapOr` / `unwrapOrResult` only when a fallback is correct.
 - Aether uses `expectSome` / `expectOk` only when failure should be a structured diagnostic.
+- Aether requires enclosing functions to declare effects from named callbacks passed to `mapOption`, `andThenOption`, `mapResult`, `mapErr`, or `andThenResult`.
 - Aether does not support `xs.append(x)`, `xs.push(x)`, `xs.get(i)`,
   `xs[i] = value`, or Python slicing like `xs[start:end]`.
 - Aether does not support `opt.unwrap()`, `result.unwrap()`, or
