@@ -23,6 +23,7 @@ def main() -> int:
         "benchmark_tasks": [],
         "python_equivalents": [],
         "regression_tests": None,
+        "additional_tests": [],
     }
 
     refdir = os.path.join(ROOT, "reference")
@@ -66,6 +67,27 @@ def main() -> int:
             "stderr": r.stderr.strip(),
         }
 
+    for rel in (
+        os.path.join("tests", "test_json_diagnostics.py"),
+        os.path.join("tests", "test_prelint_ai_syntax_errors.py"),
+        os.path.join("tests", "test_list_operations.py"),
+        os.path.join("tests", "test_generic_typechecking.py"),
+        os.path.join("tests", "test_static_index_diagnostics.py"),
+        os.path.join("tests", "test_contract_diagnostics.py"),
+        os.path.join("tests", "test_ai_repair_diagnostics.py"),
+    ):
+        path = os.path.join(ROOT, rel)
+        if not os.path.isfile(path):
+            continue
+        cmd = [PYTHON, "-B", path]
+        r = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True)
+        results["additional_tests"].append({
+            "id": rel,
+            "ok": r.returncode == 0,
+            "stdout": r.stdout.strip(),
+            "stderr": r.stderr.strip(),
+        })
+
     fuzz = os.path.join(ROOT, "scripts", "fuzz_parser.py")
     if os.path.isfile(fuzz):
         cmd = [PYTHON, "-B", fuzz, "--rounds", "200", "--mode", "all"]
@@ -84,17 +106,20 @@ def main() -> int:
     n_py_ok = sum(1 for r in results["python_equivalents"] if r.get("ok"))
     n_py = len(results["python_equivalents"])
     reg_ok = bool(results["regression_tests"] and results["regression_tests"]["ok"])
+    add_ok = all(r.get("ok") for r in results["additional_tests"])
     fuzz_ok = bool(results.get("parser_fuzz") and results["parser_fuzz"]["ok"])
     print(f"# reference:    {n_ref_ok}/{n_ref}", file=sys.stderr)
     print(f"# bench:        {n_bench_ok}/{n_bench}", file=sys.stderr)
     print(f"# python eq:    {n_py_ok}/{n_py}", file=sys.stderr)
     print(f"# regression:   {'PASS' if reg_ok else 'FAIL'}", file=sys.stderr)
+    print(f"# additional:   {'PASS' if add_ok else 'FAIL'} ({len(results['additional_tests'])} scripts)", file=sys.stderr)
     print(f"# fuzz:         {'PASS' if fuzz_ok else 'FAIL'} (200 rounds x 3 modes)", file=sys.stderr)
     everything = (
         (n_ref_ok == n_ref)
         and (n_bench_ok == n_bench)
         and (n_py_ok == n_py)
         and reg_ok
+        and add_ok
         and fuzz_ok
     )
     return 0 if everything else 1

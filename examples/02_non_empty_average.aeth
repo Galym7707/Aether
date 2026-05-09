@@ -1,0 +1,25 @@
+type NonEmptyIntList = List<Int> where length(self) > 0
+
+function sumInts(xs: List<Int>) returns Int
+  effects pure
+do
+  var total: Int = 0
+  for x in xs do
+    total = total + x
+  end
+  return total
+end
+
+function average(xs: NonEmptyIntList) returns Int
+  requires length(xs) > 0
+  ensures result == sumInts(xs) / length(xs)
+  effects pure
+do
+  return sumInts(xs) / length(xs)
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(average([2, 4, 6])))
+end

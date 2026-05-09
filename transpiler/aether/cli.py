@@ -2,6 +2,7 @@
 
 Subcommands:
     aether parse  <file>           Lex + parse, print canonical AST as JSON
+    aether ast    <file>           Alias for parse
     aether emit   <file>           Emit Python source for the program
     aether check  <file>           Parse + emit (without running) — exit 0 if OK
     aether run    <file>           Parse, emit, exec; mirrors stdout/stderr
@@ -21,13 +22,15 @@ import sys
 from contextlib import redirect_stdout
 from typing import Any, Dict
 
-from .diagnostics import AetherError, Diagnostic
+from .diagnostics import AetherError, Diagnostic, Position, attach_source_context
 from .lexer import tokenize
 from .parser import parse
 from .emitter import emit
+from .prelint import lint_common_ai_syntax
 from .passes.capability import check_capabilities
 from .passes.effects import check_effects
 from .passes.smt import check_smt_contracts
+from .passes.types import check_types
 from .runtime import build_namespace, set_effect_strict
 
 
@@ -35,9 +38,12 @@ from .runtime import build_namespace, set_effect_strict
 # Helpers
 # ----------------------------------------------------------------------
 
-def _emit_error(diag: Diagnostic, as_json: bool):
+def _emit_error(diag: Diagnostic, as_json: bool, source: str | None = None):
+    if source is not None:
+        attach_source_context(diag, source)
     if as_json:
-        json.dump({"ok": False, "diagnostic": diag.to_dict()}, sys.stderr)
+        d = diag.to_dict()
+        json.dump({"ok": False, "diagnostic": d, "errors": [d]}, sys.stderr)
         sys.stderr.write("\n")
     else:
         sys.stderr.write(
@@ -45,6 +51,13 @@ def _emit_error(diag: Diagnostic, as_json: bool):
             f"at line {diag.position.line}, col {diag.position.column}: "
             f"{diag.message}\n"
         )
+        if diag.source_snippet:
+            sys.stderr.write(f"  source: {diag.source_snippet}\n")
+        if "expected" in diag.extra or "actual" in diag.extra:
+            expected = diag.extra.get("expected", "?")
+            actual = diag.extra.get("actual", "?")
+            sys.stderr.write(f"  expected: {expected}\n")
+            sys.stderr.write(f"  actual:   {actual}\n")
         if diag.suggestion:
             sys.stderr.write(f"  hint: {diag.suggestion}\n")
 
@@ -54,69 +67,93 @@ def _read(path: str) -> str:
         return f.read()
 
 
+def _parse_source(src: str, filename: str):
+    prelint_diags = lint_common_ai_syntax(src, filename)
+    if prelint_diags:
+        raise AetherError(prelint_diags[0])
+    try:
+        return parse(src, filename)
+    except AetherError as e:
+        attach_source_context(e.diag, src)
+        raise
+
+
 # ----------------------------------------------------------------------
 # Subcommands
 # ----------------------------------------------------------------------
 
 def cmd_parse(args) -> int:
     src = _read(args.file)
-    ast = parse(src, args.file)
+    ast = _parse_source(src, args.file)
     print(json.dumps(ast, indent=2, default=str, ensure_ascii=False))
     return 0
 
 
 def cmd_emit(args) -> int:
     src = _read(args.file)
-    ast = parse(src, args.file)
+    ast = _parse_source(src, args.file)
     py = emit(ast)
     print(py)
     return 0
 
 
-def _run_capability_check(ast, as_json) -> int:
+def _run_capability_check(ast, as_json, source: str | None = None) -> int:
     """Returns 0 if all capabilities OK, 2 otherwise (writes diagnostics)."""
     diags = check_capabilities(ast)
     if not diags:
         return 0
     for d in diags:
-        _emit_error(d, as_json)
+        _emit_error(d, as_json, source)
     return 2
 
 
-def _run_effect_check(ast, as_json) -> int:
+def _run_effect_check(ast, as_json, source: str | None = None) -> int:
     """Returns 0 if all effect subsets OK, 2 otherwise."""
     diags = check_effects(ast)
     if not diags:
         return 0
     for d in diags:
-        _emit_error(d, as_json)
+        _emit_error(d, as_json, source)
     return 2
 
 
-def _run_smt_check(ast, as_json) -> int:
+def _run_type_check(ast, as_json, source: str | None = None) -> int:
+    """Returns 0 if conservative type checks pass, 2 otherwise."""
+    diags = check_types(ast)
+    if not diags:
+        return 0
+    for d in diags:
+        _emit_error(d, as_json, source)
+    return 2
+
+
+def _run_smt_check(ast, as_json, source: str | None = None) -> int:
     """Returns 0 unless the SMT pass finds error-severity diagnostics."""
     diags = [d for d in check_smt_contracts(ast) if d.severity == "error"]
     if not diags:
         return 0
     for d in diags:
-        _emit_error(d, as_json)
+        _emit_error(d, as_json, source)
     return 2
 
 
 def cmd_check(args) -> int:
     src = _read(args.file)
-    ast = parse(src, args.file)
-    rc = _run_effect_check(ast, args.json)
+    ast = _parse_source(src, args.file)
+    rc = _run_type_check(ast, args.json, src)
     if rc != 0:
         return rc
-    rc = _run_smt_check(ast, args.json)
+    rc = _run_effect_check(ast, args.json, src)
+    if rc != 0:
+        return rc
+    rc = _run_smt_check(ast, args.json, src)
     if rc != 0:
         return rc
     py = emit(ast)
     # Compile but don't execute.
     compile(py, args.file + ".py", "exec")
     if getattr(args, "capability_strict", False):
-        rc = _run_capability_check(ast, args.json)
+        rc = _run_capability_check(ast, args.json, src)
         if rc != 0:
             return rc
     if args.json:
@@ -131,15 +168,18 @@ def cmd_run(args) -> int:
     if args.effect_strict:
         set_effect_strict(True)
     src = _read(args.file)
-    ast = parse(src, args.file)
-    rc = _run_effect_check(ast, args.json)
+    ast = _parse_source(src, args.file)
+    rc = _run_type_check(ast, args.json, src)
     if rc != 0:
         return rc
-    rc = _run_smt_check(ast, args.json)
+    rc = _run_effect_check(ast, args.json, src)
+    if rc != 0:
+        return rc
+    rc = _run_smt_check(ast, args.json, src)
     if rc != 0:
         return rc
     if getattr(args, "capability_strict", False):
-        rc = _run_capability_check(ast, args.json)
+        rc = _run_capability_check(ast, args.json, src)
         if rc != 0:
             return rc
     py = emit(ast)
@@ -147,7 +187,23 @@ def cmd_run(args) -> int:
     g = build_namespace()
     g["__name__"] = "__main__"
     g["__file__"] = args.file + ".py"
-    exec(code, g)
+    try:
+        exec(code, g)
+    except AetherError as e:
+        _emit_error(e.diag, args.json, src)
+        return 2
+    except Exception as e:  # pragma: no cover - defensive CLI boundary
+        diag = Diagnostic(
+            code="E9003",
+            category="runtime",
+            severity="error",
+            message=f"{type(e).__name__}: {e}",
+            position=Position(0, 0),
+            suggestion="check runtime preconditions or add contracts around this operation",
+            confidence=0.5,
+        )
+        _emit_error(diag, args.json, src)
+        return 2
     return 0
 
 
@@ -165,11 +221,14 @@ def cmd_test(args) -> int:
     src = _read(src_path)
     expected = _read(exp_path) if os.path.isfile(exp_path) else ""
     try:
-        ast = parse(src, src_path)
-        rc = _run_effect_check(ast, args.json)
+        ast = _parse_source(src, src_path)
+        rc = _run_type_check(ast, args.json, src)
         if rc != 0:
             return rc
-        rc = _run_smt_check(ast, args.json)
+        rc = _run_effect_check(ast, args.json, src)
+        if rc != 0:
+            return rc
+        rc = _run_smt_check(ast, args.json, src)
         if rc != 0:
             return rc
         py = emit(ast)
@@ -181,7 +240,7 @@ def cmd_test(args) -> int:
             exec(code, g)
         actual = buf.getvalue()
     except AetherError as e:
-        _emit_error(e.diag, args.json)
+        _emit_error(e.diag, args.json, src)
         return 2
     except Exception as e:  # pragma: no cover
         sys.stderr.write(f"runtime error: {e}\n")
@@ -214,18 +273,26 @@ def main(argv=None) -> int:
 
     sp = sub.add_parser("parse", help="parse a file and print its AST")
     sp.add_argument("file")
+    _add_json_arg(sp)
+
+    sp = sub.add_parser("ast", help="alias for parse; print AST JSON")
+    sp.add_argument("file")
+    _add_json_arg(sp)
 
     sp = sub.add_parser("emit", help="emit Python source for a file")
     sp.add_argument("file")
+    _add_json_arg(sp)
 
     sp = sub.add_parser("check", help="parse + emit (no execution)")
     sp.add_argument("file")
+    _add_json_arg(sp)
     sp.add_argument("--capability-strict", action="store_true",
                     help="enforce that every effect's required capability is "
                          "declared by some module in the program")
 
     sp = sub.add_parser("run", help="parse + emit + execute")
     sp.add_argument("file")
+    _add_json_arg(sp)
     sp.add_argument("--effect-strict", action="store_true",
                     help="enforce that observed effects are subset of declared")
     sp.add_argument("--capability-strict", action="store_true",
@@ -234,10 +301,12 @@ def main(argv=None) -> int:
 
     sp = sub.add_parser("test", help="run a reference program directory")
     sp.add_argument("dir")
+    _add_json_arg(sp)
 
     args = p.parse_args(argv)
     try:
         if args.cmd == "parse":   return cmd_parse(args)
+        if args.cmd == "ast":     return cmd_parse(args)
         if args.cmd == "emit":    return cmd_emit(args)
         if args.cmd == "check":   return cmd_check(args)
         if args.cmd == "run":     return cmd_run(args)
@@ -249,6 +318,15 @@ def main(argv=None) -> int:
         sys.stderr.write(f"file not found: {e}\n")
         return 2
     return 0
+
+
+def _add_json_arg(parser):
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help=argparse.SUPPRESS,
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover

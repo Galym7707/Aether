@@ -1,0 +1,17 @@
+type Probability = Float where self >= 0.0 and self <= 1.0
+
+function riskLabel(p: Probability) returns String
+  effects pure
+do
+  if p > 0.5 then
+    return "high"
+  else
+    return "low"
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  print(riskLabel(1.4))
+end

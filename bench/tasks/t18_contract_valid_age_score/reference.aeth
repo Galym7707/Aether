@@ -1,0 +1,17 @@
+type ValidAge = Int where self >= 0 and self <= 130
+
+function ageBucket(age: ValidAge) returns String
+  effects pure
+do
+  if age >= 18 then
+    return "adult"
+  else
+    return "minor"
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  print(ageBucket(-5))
+end

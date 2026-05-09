@@ -1,0 +1,30 @@
+function inBounds?(xs: List<Int>, index: Int) returns Bool
+  effects pure
+do
+  return index >= 0 and index < length(xs)
+end
+
+function updateAt(xs: List<Int>, index: Int, value: Int) returns List<Int>
+  requires inBounds?(xs, index)
+  ensures length(result) == length(xs)
+  effects pure
+do
+  var out: List<Int> = []
+  var i: Int = 0
+  while i < length(xs) do
+    if i == index then
+      out = append(out, value)
+    else
+      out = append(out, xs[i])
+    end
+    i = i + 1
+  end
+  return out
+end
+
+function main() returns Unit
+  effects log
+do
+  let updated: List<Int> = updateAt([10, 20, 30], 1, 99)
+  print(intToString(updated[1]))
+end

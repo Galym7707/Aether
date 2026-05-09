@@ -153,6 +153,7 @@ class EffectTracker:
 
 
 _TRACKER = EffectTracker(strict=False)
+_CALLSITE_STACK: List[Tuple[int, int]] = []
 
 
 def set_effect_strict(strict: bool):
@@ -173,6 +174,18 @@ def record_effect(*path):
 
 def record_effect_arg(arg, *path):
     _TRACKER.record((tuple(path), arg))
+
+
+def _aether_call(fn, line: int, column: int, *args):
+    _CALLSITE_STACK.append((line, column))
+    try:
+        return fn(*args)
+    finally:
+        _CALLSITE_STACK.pop()
+
+
+def _current_callsite():
+    return _CALLSITE_STACK[-1] if _CALLSITE_STACK else None
 
 
 # ----------------------------------------------------------------------
@@ -214,6 +227,64 @@ def _ae_tail(xs):
 def _ae_append(xs, x):                 return list(xs) + [x]
 def _ae_prepend(x, xs):                return [x] + list(xs)
 def _ae_concat(xs, ys):                return list(xs) + list(ys)
+
+def _aether_index(coll, index, line: int = 0, column: int = 0):
+    from .diagnostics import AetherError, Diagnostic, Position
+    if not isinstance(index, int) or isinstance(index, bool):
+        raise AetherError(Diagnostic(
+            code="INDEX_TYPE_INVALID",
+            category="runtime",
+            severity="error",
+            message=f"index has type {type(index).__name__}; expected Int",
+            position=Position(line, column),
+            suggestion="use an Int index expression",
+            confidence=1.0,
+            extra={"expected": "Int", "actual": type(index).__name__},
+        ))
+    if index < 0:
+        raise AetherError(Diagnostic(
+            code="INDEX_NEGATIVE_UNSUPPORTED",
+            category="runtime",
+            severity="error",
+            message=f"Aether does not support negative indexing; got index {index}.",
+            position=Position(line, column),
+            suggestion="check `index >= 0` before indexing",
+            confidence=1.0,
+            extra={
+                "expected": "index >= 0",
+                "actual": str(index),
+                "actual_index": index,
+            },
+        ))
+    if isinstance(coll, (list, tuple, str)):
+        if index >= len(coll):
+            valid_range = "empty" if len(coll) == 0 else f"0..{len(coll) - 1}"
+            raise AetherError(Diagnostic(
+                code="INDEX_OUT_OF_BOUNDS_RUNTIME",
+                category="runtime",
+                severity="error",
+                message=f"index {index} is out of bounds for length {len(coll)}",
+                position=Position(line, column),
+                suggestion="ensure the index is less than length(value)",
+                confidence=1.0,
+                extra={
+                    "expected": valid_range,
+                    "actual": str(index),
+                    "valid_range": valid_range,
+                    "actual_index": index,
+                },
+            ))
+        return coll[index]
+    raise AetherError(Diagnostic(
+        code="INDEX_TARGET_INVALID",
+        category="runtime",
+        severity="error",
+        message=f"cannot index value of type {type(coll).__name__}",
+        position=Position(line, column),
+        suggestion="index only lists, strings, or tuple-backed union values",
+        confidence=1.0,
+        extra={"actual": type(coll).__name__},
+    ))
 
 def _ae_get(coll, key):
     if isinstance(coll, dict):
@@ -383,22 +454,51 @@ def _ae_unwrapOrElse(o, default):      return o[1] if o[0] == "Some" else defaul
 # Contract assertion helper
 # ----------------------------------------------------------------------
 
-def _ae_assert_contract(cond: bool, kind: str, expr: str, fn: str, args=None):
+def _ae_assert_contract(
+    cond: bool,
+    kind: str,
+    expr: str,
+    fn: str,
+    args=None,
+    line: int = 0,
+    column: int = 0,
+):
     """Raise a structured contract error if `cond` is False."""
     if cond:
         return
     from .diagnostics import AetherError, Diagnostic, Position
+    callsite = _current_callsite()
+    extra = {
+        "function": fn,
+        "contract_kind": kind,
+        "contract": expr,
+        "contract_line": line,
+        "contract_column": column,
+        "args": args or {},
+        "actual_value": args or {},
+    }
+    if callsite is not None:
+        extra["callsite_line"] = callsite[0]
+        extra["callsite_column"] = callsite[1]
     raise AetherError(Diagnostic(
         code="E0301", category="contract", severity="error",
         message=f"{kind} clause failed in {fn}: {expr}",
-        position=Position(0, 0),
-        extra={"args": args or {}},
+        position=Position(line, column),
+        extra=extra,
         confidence=1.0,
-        suggestion=f"check inputs to {fn}",
+        suggestion=f"check the {kind} contract and inputs to {fn}",
     ))
 
 
-def _ae_check_refinement(value, predicate_fn, type_name: str, binding_name: str):
+def _ae_check_refinement(
+    value,
+    predicate_fn,
+    type_name: str,
+    binding_name: str,
+    fn: str = "?",
+    line: int = 0,
+    column: int = 0,
+):
     """Boundary-crossing check for a refinement type.
 
     Called at function entry for any parameter whose declared type is a
@@ -409,27 +509,53 @@ def _ae_check_refinement(value, predicate_fn, type_name: str, binding_name: str)
         ok = bool(predicate_fn(value))
     except Exception as e:
         from .diagnostics import AetherError, Diagnostic, Position
+        callsite = _current_callsite()
+        extra = {
+            "function": fn,
+            "argument": binding_name,
+            "actual_value": repr(value)[:80],
+            "type_name": type_name,
+            "contract_line": line,
+            "contract_column": column,
+        }
+        if callsite is not None:
+            extra["callsite_line"] = callsite[0]
+            extra["callsite_column"] = callsite[1]
         raise AetherError(Diagnostic(
             code="E0303", category="refinement", severity="error",
             message=(f"refinement predicate for {type_name} raised "
                      f"{type(e).__name__} on value bound to {binding_name!r}"),
-            position=Position(0, 0),
+            position=Position(line, column),
             suggestion=("ensure refinement predicates are total over their base type "
                         "(handle every possible input)"),
             confidence=1.0,
+            extra=extra,
         )) from e
     if ok:
         return
     from .diagnostics import AetherError, Diagnostic, Position
+    callsite = _current_callsite()
+    extra = {
+        "function": fn,
+        "argument": binding_name,
+        "actual_value": repr(value)[:80],
+        "type_name": type_name,
+        "value_repr": repr(value)[:80],
+        "contract_line": line,
+        "contract_column": column,
+    }
+    if callsite is not None:
+        extra["callsite_line"] = callsite[0]
+        extra["callsite_column"] = callsite[1]
     raise AetherError(Diagnostic(
         code="E0302", category="refinement", severity="error",
         message=(f"value bound to {binding_name!r} fails refinement "
-                 f"{type_name}"),
-        position=Position(0, 0),
+                 f"{type_name} in {fn}"),
+        position=Position(line, column),
         suggestion=(f"caller must ensure {binding_name} satisfies "
                     f"{type_name}'s refinement clause"),
         confidence=1.0,
-        extra={"value_repr": repr(value)[:80]},
+        extra=extra,
     ))
 
 
@@ -444,7 +570,7 @@ def build_namespace() -> Dict[str, Any]:
             "_make_union", "_TRACKER",
             "push_effect_frame", "pop_effect_frame",
             "record_effect", "set_effect_strict",
-            "record_effect_arg",
+            "record_effect_arg", "_aether_index", "_aether_call",
         }:
             g[name] = val
     return g

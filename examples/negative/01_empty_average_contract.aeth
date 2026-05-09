@@ -1,0 +1,19 @@
+// Expected: `aether run` fails with E0302 refinement diagnostic.
+type NonEmptyIntList = List<Int> where length(self) > 0
+
+function average(xs: NonEmptyIntList) returns Int
+  requires length(xs) > 0
+  effects pure
+do
+  var total: Int = 0
+  for x in xs do
+    total = total + x
+  end
+  return total / length(xs)
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(average([])))
+end

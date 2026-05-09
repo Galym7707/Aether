@@ -61,9 +61,10 @@ A module declares the capabilities it needs:
       exports processInvoice
     end
 
-The runtime grants only declared capabilities. A module that doesn't request `net` cannot make network calls even if its dependencies declare a `net.fetch` effect: those dependencies must be loaded under a module that *does* hold `net`, and the effect propagates as a tracked permission.
-
-In v0.1 the capability check is a runtime assertion at module load time and at the first effect invocation. Static analysis is parked.
+The current implementation exposes capability checking as an opt-in static CLI
+pass through `--capability-strict`. Programs without a `module` declaration have
+no declared capabilities under that pass. Runtime capability grants are still
+not a complete production security boundary.
 
 ## Default effect annotations on standard library functions
 
@@ -83,4 +84,8 @@ See `stdlib.md` for the full list. A few high-frequency examples:
 
 ## Why effects are first-class for AI generation
 
-A model proposing a function body must declare which effects it performs. If the body ends up calling something with effects not declared, the type checker rejects it with a structured error pointing to the call site. This makes "I think this function is pure" a checkable claim, which is the foundation for safe composition of generated functions.
+A model proposing a function body must declare which effects it performs. If
+the body ends up directly calling a known function with effects not declared,
+the static effect checker rejects it with a structured error. This makes
+"I think this function is pure" a checkable claim for the implemented direct
+call cases.

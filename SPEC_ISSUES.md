@@ -4,10 +4,11 @@ This file tracks implementation gaps against the Aether design/spec. Items in
 the v0.3 scope are now either resolved below or explicitly left outside v0.3 as
 v0.4+ work.
 
-Last audited against the repository implementation on 2026-05-08 during Phase
-3.6. Evidence referenced here is local repository evidence: source files,
-regression tests, and the commands recorded in `STATUS.md` and
-`V03_CLOSEOUT.md`.
+Last audited against the repository implementation on 2026-05-09 during the
+AI-onboarding, diagnostics, and language-completion passes. Evidence
+referenced here is local repository evidence: source files, regression tests,
+examples, and the commands recorded in `docs/AETHER_FIX_PLAN_RESULTS.md` and
+`docs/AETHER_LANGUAGE_COMPLETION_REPORT.md`.
 
 ## Open - v0.4+
 
@@ -23,11 +24,6 @@ not accept `Point { x = 1.0, y = 2.0 }`; it parses `{...}` only as a map
 literal, and the diagnostic can suggest the wrong fix. Current workaround: use
 positional construction such as `Point(1.0, 2.0)`. v0.4+ should either
 implement a `RecordLit` AST kind or remove the form from the spec.
-
-### S-007 - Generic functions are accepted but not type-checked
-`function map<T, U>(...)` parses, and generic names flow through emission
-because they appear only in type positions. v0.4+ should add a type-check pass
-that verifies generic parameters are used consistently.
 
 ### S-009 - `time.now` and `random` are not seedable for deterministic mode
 The runtime still calls Python wall-clock / random behavior directly where
@@ -45,12 +41,12 @@ the parser only accepts `as` inside pattern aliases and import aliases. v0.4+
 should either implement an `As` expression node and runtime check or remove the
 example from the spec.
 
-### S-014 - Contract diagnostic positions are zero
-`requires` / `ensures` / refinement failures still commonly report line 0,
-column 0 instead of the call site or failing return. The function name,
-contract kind, and clause text are present, which is enough for the current
-agent loop, but human jump-to-source remains weak. v0.4+ should thread source
-positions through runtime contract assertions.
+### S-014 - Runtime contract diagnostic positions are approximate
+The 2026-05-09 diagnostics pass threads useful clause or function-boundary
+positions through emitted `requires`, `ensures`, and refinement checks, so
+common CLI/SDK contract diagnostics no longer report line 0, column 0. This is
+still not exact caller-site positioning. v0.4+ should thread call-site spans
+through the AST, emitter, and runtime.
 
 ### S-015 - `result` is reserved as a keyword everywhere, not contextually
 The lexer reserves `result` so `ensures` clauses can refer to the return value.
@@ -62,6 +58,14 @@ Predicate/effectful identifiers can collide with user identifiers after
 mangling. This is latent in the current corpus. v0.4+ should either use a
 non-identifier separator or reject user identifiers that collide after
 mangling.
+
+### S-024 - General static type checking remains incomplete
+The 2026-05-09 language-completion pass adds structural type diagnostics for
+the supported subset: list element types, nested lists, `append`,
+selected `Map`/`Option`/`Result` helper flows, user generic function calls,
+primitive binding/return/argument mismatches, and obvious index bounds. It is
+still not a complete verifier and does not replace runtime
+contract/refinement checks.
 
 ## Resolved
 
@@ -86,6 +90,14 @@ declarations and implements subset checks for broad effects, concrete strings,
 and trailing-star globs. Runtime strict mode in
 `transpiler/aether/runtime.py` accepts the same argumented effect shape.
 Regression coverage: `tests/test_regressions.py::test_S004_*`.
+
+### S-007 - Generic/list type diagnostics for supported subset (resolved 2026-05-09)
+`transpiler/aether/passes/types.py` validates supported `List<T>` element
+flows, nested lists, `append`, selected `Map<K,V>`/`Option<T>`/`Result<T,E>`
+helpers, and user generic function calls such as `identity<T>(x: T) returns T`.
+Explicit generic call syntax such as `identity<Int>(5)` remains unsupported
+and is rejected by prelint. Regression coverage:
+`tests/test_generic_typechecking.py`.
 
 ### S-008 - Parser fuzzer added (resolved 2026-05-03)
 `scripts/fuzz_parser.py` runs random, mutate, and token-perturbation modes and
@@ -126,7 +138,7 @@ default. Regression coverage:
 and provides `strip_positions` / `ast_round_trips` helpers. The regression
 suite reparses every `reference/`, `bench/tasks/`, and `validation/tasks/`
 program and compares position-stripped ASTs. Current checked corpus size in
-the regression output: 33 programs.
+the latest regression output: 41 programs.
 
 ### S-021 - Scoped SMT contract pass exists for arithmetic clauses (resolved 2026-05-08)
 `transpiler/aether/passes/smt.py` uses `z3-solver` when installed to classify
@@ -146,3 +158,10 @@ parse/check/run and benchmark grading without CLI parsing:
 `run_python_equivalent_file`. `bench/harness.py` now delegates core execution
 and grading behavior to this SDK while preserving its CLI wrappers. Regression
 coverage: `tests/test_regressions.py::test_agent_sdk_parse_check_run_and_grade`.
+
+### S-023 - Direct list index diagnostics exist for checked paths (resolved 2026-05-09)
+The type pass reports `INDEX_TYPE_INVALID`, `INDEX_NEGATIVE_UNSUPPORTED`, and
+`INDEX_OUT_OF_BOUNDS_STATIC` for obvious known-length cases. The emitter lowers
+direct indexes through a runtime helper that reports structured
+`INDEX_OUT_OF_BOUNDS_RUNTIME` diagnostics for dynamic failures. Regression
+coverage: `tests/test_static_index_diagnostics.py`.

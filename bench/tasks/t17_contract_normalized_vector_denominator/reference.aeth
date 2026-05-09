@@ -1,0 +1,12 @@
+function firstNormalized(value: Int, total: Int) returns Int
+  requires total != 0
+  effects pure
+do
+  return value / total
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(firstNormalized(10, 0)))
+end

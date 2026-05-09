@@ -1,0 +1,13 @@
+type NonZeroInt = Int where self != 0
+
+function divide(numerator: Int, denominator: NonZeroInt) returns Int
+  effects pure
+do
+  return numerator / denominator
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(divide(10, 0)))
+end

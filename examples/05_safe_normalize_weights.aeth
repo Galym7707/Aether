@@ -1,0 +1,47 @@
+function sumWeights(weights: List<Int>) returns Int
+  effects pure
+do
+  var total: Int = 0
+  for weight in weights do
+    total = total + weight
+  end
+  return total
+end
+
+function allWeightsNonNegative?(weights: List<Int>) returns Bool
+  effects pure
+do
+  for weight in weights do
+    if weight < 0 then
+      return false
+    end
+  end
+  return true
+end
+
+function safeNormalizeWeights(weights: List<Int>) returns List<Int>
+  requires length(weights) > 0
+  requires allWeightsNonNegative?(weights)
+  requires sumWeights(weights) > 0
+  ensures length(result) == length(weights)
+  effects pure
+do
+  let total: Int = sumWeights(weights)
+  var out: List<Int> = []
+  var i: Int = 0
+  while i < length(weights) do
+    let normalized: Int = (weights[i] * 100) / total
+    out = append(out, normalized)
+    i = i + 1
+  end
+  return out
+end
+
+function main() returns Unit
+  effects log
+do
+  let weights: List<Int> = safeNormalizeWeights([1, 1, 2])
+  print(intToString(weights[0]))
+  print(intToString(weights[1]))
+  print(intToString(weights[2]))
+end

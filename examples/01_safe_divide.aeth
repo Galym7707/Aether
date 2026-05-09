@@ -1,0 +1,13 @@
+function safeDivide(a: Int, b: Int) returns Int
+  requires b != 0
+  ensures result * b == a
+  effects pure
+do
+  return a / b
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(safeDivide(10, 2)))
+end

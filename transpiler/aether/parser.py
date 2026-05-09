@@ -77,6 +77,14 @@ class Parser:
             message=msg, position=pos, suggestion=suggestion, confidence=0.8,
         ))
 
+    def with_pos(self, node: Dict[str, Any], pos: Position) -> Dict[str, Any]:
+        node.setdefault("pos", pos.to_dict())
+        return node
+
+    def expr_pos(self, expr: Dict[str, Any]) -> Position:
+        raw = expr.get("pos") or {"line": 0, "column": 0}
+        return Position(raw.get("line", 0), raw.get("column", 0))
+
     # --- program --------------------------------------------------------
 
     def parse_program(self) -> Dict[str, Any]:
@@ -515,7 +523,10 @@ class Parser:
                 return left
             self.advance()
             right = sub()
-            left = {"kind": "BinOp", "op": matched, "left": left, "right": right}
+            left = self.with_pos(
+                {"kind": "BinOp", "op": matched, "left": left, "right": right},
+                self.expr_pos(left),
+            )
 
     def _parse_or(self) -> Dict[str, Any]:
         return self._binop_loop(self._parse_and, ("or",))
@@ -529,14 +540,17 @@ class Parser:
         if self.at_kw("implies"):
             self.advance()
             right = self._parse_implies()
-            return {"kind": "BinOp", "op": "implies", "left": left, "right": right}
+            return self.with_pos(
+                {"kind": "BinOp", "op": "implies", "left": left, "right": right},
+                self.expr_pos(left),
+            )
         return left
 
     def _parse_not(self) -> Dict[str, Any]:
         if self.at_kw("not"):
-            self.advance()
+            kw = self.advance()
             v = self._parse_not()
-            return {"kind": "UnaryOp", "op": "not", "value": v}
+            return self.with_pos({"kind": "UnaryOp", "op": "not", "value": v}, kw.pos)
         return self._parse_eq()
 
     def _parse_eq(self) -> Dict[str, Any]:
@@ -553,15 +567,16 @@ class Parser:
 
     def _parse_unary(self) -> Dict[str, Any]:
         if self.at_sym("-"):
-            self.advance()
+            sym = self.advance()
             v = self._parse_postfix()
-            return {"kind": "UnaryOp", "op": "neg", "value": v}
+            return self.with_pos({"kind": "UnaryOp", "op": "neg", "value": v}, sym.pos)
         return self._parse_postfix()
 
     def _parse_postfix(self) -> Dict[str, Any]:
         e = self._parse_primary()
         while True:
             if self.at_sym("("):
+                call_pos = self.expr_pos(e)
                 self.advance()
                 args: List[Dict[str, Any]] = []
                 if not self.at_sym(")"):
@@ -570,16 +585,20 @@ class Parser:
                         self.advance()
                         args.append(self.parse_expr())
                 self.expect_sym(")")
-                e = {"kind": "Call", "func": e, "args": args}
+                e = self.with_pos({"kind": "Call", "func": e, "args": args}, call_pos)
             elif self.at_sym("."):
+                field_pos = self.expr_pos(e)
                 self.advance()
                 fname = self.expect_ident().value
-                e = {"kind": "Field", "value": e, "name": fname}
+                e = self.with_pos({"kind": "Field", "value": e, "name": fname}, field_pos)
             elif self.at_sym("["):
-                self.advance()
+                bracket = self.advance()
                 idx = self.parse_expr()
                 self.expect_sym("]")
-                e = {"kind": "Index", "value": e, "index": idx}
+                e = self.with_pos(
+                    {"kind": "Index", "value": e, "index": idx},
+                    bracket.pos,
+                )
             else:
                 return e
 
@@ -588,29 +607,29 @@ class Parser:
         # literals
         if t.kind == "int":
             self.advance()
-            return {"kind": "IntLit", "value": t.value}
+            return self.with_pos({"kind": "IntLit", "value": t.value}, t.pos)
         if t.kind == "float":
             self.advance()
-            return {"kind": "FloatLit", "value": t.value}
+            return self.with_pos({"kind": "FloatLit", "value": t.value}, t.pos)
         if t.kind == "string":
             self.advance()
-            return {"kind": "StringLit", "value": t.value}
+            return self.with_pos({"kind": "StringLit", "value": t.value}, t.pos)
         if t.kind == "kw" and t.value in ("true", "false"):
             self.advance()
-            return {"kind": "BoolLit", "value": t.value == "true"}
+            return self.with_pos({"kind": "BoolLit", "value": t.value == "true"}, t.pos)
         if t.kind == "kw" and t.value == "null":
             self.advance()
-            return {"kind": "NullLit"}
+            return self.with_pos({"kind": "NullLit"}, t.pos)
         # special function-like keywords
         if t.kind == "kw" and t.value == "old":
-            self.advance()
+            kw = self.advance()
             self.expect_sym("(")
             v = self.parse_expr()
             self.expect_sym(")")
-            return {"kind": "Old", "value": v}
+            return self.with_pos({"kind": "Old", "value": v}, kw.pos)
         if t.kind == "kw" and t.value in ("self", "result"):
             self.advance()
-            return {"kind": "Ident", "name": t.value}
+            return self.with_pos({"kind": "Ident", "name": t.value}, t.pos)
         # parenthesised
         if t.kind == "sym" and t.value == "(":
             self.advance()
@@ -625,7 +644,7 @@ class Parser:
             return self._parse_match_expr()
         # list literal
         if t.kind == "sym" and t.value == "[":
-            self.advance()
+            start = self.advance()
             elems: List[Dict[str, Any]] = []
             if not self.at_sym("]"):
                 elems.append(self.parse_expr())
@@ -633,10 +652,10 @@ class Parser:
                     self.advance()
                     elems.append(self.parse_expr())
             self.expect_sym("]")
-            return {"kind": "ListLit", "elems": elems}
+            return self.with_pos({"kind": "ListLit", "elems": elems}, start.pos)
         # map literal
         if t.kind == "sym" and t.value == "{":
-            self.advance()
+            start = self.advance()
             entries: List[Dict[str, Any]] = []
             if not self.at_sym("}"):
                 k = self.parse_expr()
@@ -650,15 +669,15 @@ class Parser:
                     v = self.parse_expr()
                     entries.append({"key": k, "value": v})
             self.expect_sym("}")
-            return {"kind": "MapLit", "entries": entries}
+            return self.with_pos({"kind": "MapLit", "entries": entries}, start.pos)
         # identifier
         if t.kind == "ident":
             self.advance()
-            return {"kind": "Ident", "name": t.value}
+            return self.with_pos({"kind": "Ident", "name": t.value}, t.pos)
         raise self.err(f"expected expression, got {self._show(t)}", t.pos)
 
     def _parse_if_expr(self) -> Dict[str, Any]:
-        self.expect_kw("if")
+        kw = self.expect_kw("if")
         cond = self.parse_expr()
         self.expect_kw("then")
         then_e = self.parse_expr()
@@ -671,11 +690,14 @@ class Parser:
         self.expect_kw("else")
         else_e = self.parse_expr()
         self.expect_kw("end")
-        return {"kind": "IfExpr", "cond": cond, "then": then_e,
-                "elifs": elifs, "else": else_e}
+        return self.with_pos(
+            {"kind": "IfExpr", "cond": cond, "then": then_e,
+             "elifs": elifs, "else": else_e},
+            kw.pos,
+        )
 
     def _parse_match_expr(self) -> Dict[str, Any]:
-        self.expect_kw("match")
+        kw = self.expect_kw("match")
         scr = self.parse_expr()
         self.expect_kw("do")
         arms: List[Dict[str, Any]] = []
@@ -687,4 +709,4 @@ class Parser:
             self.expect_kw("end")
             arms.append({"pattern": pat, "value": value})
         self.expect_kw("end")
-        return {"kind": "MatchExpr", "scrutinee": scr, "arms": arms}
+        return self.with_pos({"kind": "MatchExpr", "scrutinee": scr, "arms": arms}, kw.pos)

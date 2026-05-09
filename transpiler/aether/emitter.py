@@ -22,7 +22,9 @@ class EmitContext:
         self.lines: List[str] = []
         self.union_cases: Dict[str, str] = {}
         self.record_kinds: Set[str] = set()
+        self.function_names: Set[str] = set()
         self.fn_name_stack: List[str] = []
+        self.param_names_stack: List[List[str]] = []
         self.tmp_counter = 0
         self.old_exprs_stack: List[List[Tuple[str, str]]] = []
         # Stack of (clause_ast, pretty_text) for the active function so each
@@ -70,6 +72,8 @@ def emit(ast: Dict[str, Any]) -> str:
         if d["kind"] == "UnionDecl":
             for c in d["cases"]:
                 ctx.union_cases[c["name"]] = d["name"]
+        elif d["kind"] == "FunctionDecl":
+            ctx.function_names.add(d["name"])
         elif d["kind"] == "RecordDecl":
             ctx.record_kinds.add(d["name"])
         elif d["kind"] == "TypeDecl" and d.get("refinement") is not None:
@@ -169,7 +173,11 @@ def emit_union_constructors(ctx: EmitContext, d: Dict[str, Any]):
 def emit_function(ctx: EmitContext, d: Dict[str, Any]):
     name = d["name"]
     params = [mangle(p["name"]) for p in d["params"]]
+    fn_pos = d.get("pos") or {"line": 0, "column": 0}
+    fn_line = int(fn_pos.get("line", 0))
+    fn_col = int(fn_pos.get("column", 0))
     ctx.fn_name_stack.append(name)
+    ctx.param_names_stack.append([p["name"] for p in d["params"]])
     ctx.old_exprs_stack.append([])
     ctx.ensures_stack.append(d["ensures"])
     ctx.emit()
@@ -202,24 +210,29 @@ def emit_function(ctx: EmitContext, d: Dict[str, Any]):
                 ctx.emit(
                     f"_ae_check_refinement({pname_m}, "
                     f"(lambda _ae_self: bool({pred_src})), "
-                    f"{refn_name!r}, {p['name']!r})"
+                    f"{refn_name!r}, {p['name']!r}, {name!r}, {fn_line}, {fn_col})"
                 )
         for clause in d["requires"]:
             cond_src = emit_expr(ctx, clause)
+            clause_pos = clause.get("pos") or {"line": fn_line, "column": fn_col}
+            clause_line = int(clause_pos.get("line", fn_line))
+            clause_col = int(clause_pos.get("column", fn_col))
             ctx.emit(f"_ae_assert_contract(bool({cond_src}), 'requires', "
-                     f"{repr(_pretty(clause))}, {name!r})")
+                     f"{repr(_pretty(clause))}, {name!r}, "
+                     f"args={_args_snapshot(ctx)}, "
+                     f"line={clause_line}, column={clause_col})")
         ctx.emit("try:")
         with ctx.block():
             if not d["body"]:
                 ctx.emit("_ae_result = None")
-                emit_ensures_checks(ctx)
+                emit_ensures_checks(ctx, d.get("pos"))
                 ctx.emit("return _ae_result")
             else:
                 emit_block(ctx, d["body"])
                 # Implicit fall-through: function body ended without return.
                 # Treat as `return None` for Unit-returning functions.
                 ctx.emit("_ae_result = None")
-                emit_ensures_checks(ctx)
+                emit_ensures_checks(ctx, d.get("pos"))
                 ctx.emit("return _ae_result")
         ctx.emit("finally:")
         with ctx.block():
@@ -233,20 +246,36 @@ def emit_function(ctx: EmitContext, d: Dict[str, Any]):
             ctx.lines[old_marker_idx:old_marker_idx] = old_lines
 
     ctx.fn_name_stack.pop()
+    ctx.param_names_stack.pop()
     ctx.old_exprs_stack.pop()
     ctx.ensures_stack.pop()
 
 
-def emit_ensures_checks(ctx: EmitContext):
+def emit_ensures_checks(ctx: EmitContext, pos: Optional[Dict[str, Any]] = None):
     """Emit one _ae_assert_contract call per active ensures clause.
     Called immediately before each `return _ae_result`."""
     if not ctx.ensures_stack or not ctx.ensures_stack[-1]:
         return
     fn_name = ctx.fn_name_stack[-1] if ctx.fn_name_stack else "?"
     for clause in ctx.ensures_stack[-1]:
+        raw_pos = clause.get("pos") or pos or {"line": 0, "column": 0}
+        line = int(raw_pos.get("line", 0))
+        col = int(raw_pos.get("column", 0))
         cond_src = emit_expr(ctx, clause)
         ctx.emit(f"_ae_assert_contract(bool({cond_src}), 'ensures', "
-                 f"{repr(_pretty(clause))}, {fn_name!r})")
+                 f"{repr(_pretty(clause))}, {fn_name!r}, "
+                 f"args={_args_snapshot(ctx, include_result=True)}, "
+                 f"line={line}, column={col})")
+
+
+def _args_snapshot(ctx: EmitContext, include_result: bool = False) -> str:
+    items = []
+    if ctx.param_names_stack:
+        for name in ctx.param_names_stack[-1]:
+            items.append(f"{name!r}: repr({mangle(name)})[:120]")
+    if include_result:
+        items.append("'result': repr(_ae_result)[:120]")
+    return "{" + ", ".join(items) + "}"
 
 
 # ----------------------------------------------------------------------
@@ -328,7 +357,7 @@ def emit_return(ctx: EmitContext, s: Dict[str, Any]):
         ctx.emit("_ae_result = None")
     else:
         ctx.emit(f"_ae_result = {emit_expr(ctx, s['value'])}")
-    emit_ensures_checks(ctx)
+    emit_ensures_checks(ctx, s.get("pos"))
     ctx.emit("return _ae_result")
 
 
@@ -439,6 +468,13 @@ def emit_expr(ctx: EmitContext, e: Dict[str, Any]) -> str:
     if k == "Call":
         func_src = emit_callee(ctx, e["func"])
         args = ", ".join(emit_expr(ctx, a) for a in e["args"])
+        if _is_local_function_call(ctx, e["func"]):
+            raw_pos = e.get("pos") or {"line": 0, "column": 0}
+            line = int(raw_pos.get("line", 0))
+            col = int(raw_pos.get("column", 0))
+            if args:
+                return f"_aether_call({func_src}, {line}, {col}, {args})"
+            return f"_aether_call({func_src}, {line}, {col})"
         return f"{func_src}({args})"
     if k == "Field":
         v = emit_expr(ctx, e["value"])
@@ -446,7 +482,10 @@ def emit_expr(ctx: EmitContext, e: Dict[str, Any]) -> str:
     if k == "Index":
         v = emit_expr(ctx, e["value"])
         i = emit_expr(ctx, e["index"])
-        return f"{v}[{i}]"
+        raw_pos = e.get("pos") or {"line": 0, "column": 0}
+        line = int(raw_pos.get("line", 0))
+        col = int(raw_pos.get("column", 0))
+        return f"_aether_index({v}, {i}, {line}, {col})"
     if k == "ListLit":
         elems = ", ".join(emit_expr(ctx, x) for x in e["elems"])
         return f"[{elems}]"
@@ -488,6 +527,10 @@ def emit_callee(ctx: EmitContext, callee: Dict[str, Any]) -> str:
     if callee["kind"] == "Ident" and callee["name"] in ctx.union_cases:
         return mangle(callee["name"])
     return emit_expr(ctx, callee)
+
+
+def _is_local_function_call(ctx: EmitContext, callee: Dict[str, Any]) -> bool:
+    return callee.get("kind") == "Ident" and callee.get("name") in ctx.function_names
 
 
 def emit_match_expr(ctx: EmitContext, e: Dict[str, Any]) -> str:

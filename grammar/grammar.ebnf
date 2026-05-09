@@ -127,9 +127,9 @@ stmt             = let_stmt
 let_stmt         = "let" IDENT [ ":" type_expr ] "=" expr ;
 var_stmt         = "var" IDENT [ ":" type_expr ] "=" expr ;
 
-(* assignment is restricted to lvalue := IDENT or IDENT.field; no compound-assign *)
+(* assignment is restricted to lvalue := IDENT in the current parser; no compound-assign *)
 assign_stmt      = lvalue "=" expr ;
-lvalue           = IDENT { "." IDENT } ;
+lvalue           = IDENT ;
 
 if_stmt          = "if" expr "then" block
                    { "elif" expr "then" block }
@@ -188,22 +188,21 @@ primary          = literal
                  | "(" expr ")"
                  | if_expr
                  | match_expr
-                 | record_literal
                  | list_literal
                  | map_literal
-                 | set_literal
                  | "old" "(" expr ")" ;
 
 if_expr          = "if" expr "then" expr { "elif" expr "then" expr } "else" expr "end" ;
 match_expr       = "match" expr "do" { match_arm_expr } "end" ;
 match_arm_expr   = "case" pattern "do" expr "end" ;
 
-record_literal   = IDENT "{" [ field_init { "," field_init } ] "}" ;
-field_init       = IDENT "=" expr ;
-
 list_literal     = "[" [ expr { "," expr } ] "]" ;
 map_literal      = "{" [ expr ":" expr { "," expr ":" expr } ] "}" ;
-set_literal      = "Set" "{" [ expr { "," expr } ] "}" ;
+
+(* Planned but not implemented in the current parser:
+   record_literal = IDENT "{" [ field_init { "," field_init } ] "}" ;
+   set_literal    = "Set" "{" [ expr { "," expr } ] "}" ;
+   Use positional record constructors such as Point(1, 2). *)
 
 literal          = INT | FLOAT | STRING | "true" | "false" | "null" ;
 
@@ -218,6 +217,9 @@ literal          = INT | FLOAT | STRING | "true" | "false" | "null" ;
   STRING    : "  ( escaped UTF-8 )  "
   COMMENT   : "//" until end of line, or "/*" ... "*/"
   WHITESPACE: spaces, tabs, newlines (insignificant)
+   - explicit generic call syntax such as identity<Int>(5) is not part of the
+     current grammar. Call identity(5) and rely on the implemented type pass to
+     infer supported direct-call generic relationships.
 *)
 
 (* Notes on LL(1)-ness:
@@ -234,11 +236,8 @@ literal          = INT | FLOAT | STRING | "true" | "false" | "null" ;
      next token is "=". This is a single-token lookahead past the lvalue,
      conventional for hand-written parsers.
 
-   - record_literal vs IDENT: resolved by lookahead for "{". The lexer does
-     not produce "{" inside a function call argument unless inside a record
-     literal context, so the parser disambiguates by checking whether the
-     current expression context is allowed (record literals are only allowed
-     where a primary is expected, not in conditions of `if`/`while`).
+   - record literals and set literals are design notes only in the current
+     repository; the parser does not implement them.
 
    - if/match expression form vs statement form: identical syntax up to the
      position. The parser knows whether it's parsing a statement or an

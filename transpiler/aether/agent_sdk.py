@@ -18,12 +18,14 @@ import sys
 import time
 from typing import Any, Dict, List, Mapping, Optional, Tuple
 
-from .diagnostics import AetherError, Diagnostic
+from .diagnostics import AetherError, Diagnostic, attach_source_context
 from .emitter import emit
 from .parser import parse
+from .prelint import lint_common_ai_syntax
 from .passes.capability import check_capabilities
 from .passes.effects import check_effects
 from .passes.smt import check_smt_contracts
+from .passes.types import check_types
 from .runtime import build_namespace, set_effect_strict
 
 
@@ -100,9 +102,22 @@ def format_diagnostic_stderr(diag: Diagnostic | Mapping[str, Any]) -> str:
 def parse_source(source: str, filename: str = "<input>") -> AetherResult:
     """Parse Aether source and return a structured result with the AST."""
     t0 = time.time()
+    prelint_diags = lint_common_ai_syntax(source, filename)
+    if prelint_diags:
+        diag = prelint_diags[0]
+        return AetherResult(
+            stage="parse",
+            ok=False,
+            stderr=format_diagnostic_stderr(diag),
+            exit_code=2,
+            elapsed_ms=_elapsed_ms(t0),
+            diagnostic=_diag_to_dict(diag),
+            diagnostics=[_diag_to_dict(d) for d in prelint_diags],
+        )
     try:
         ast = parse(source, filename)
     except AetherError as e:
+        attach_source_context(e.diag, source)
         return AetherResult(
             stage="parse",
             ok=False,
@@ -129,6 +144,7 @@ def check_ast(
     errors: List[Diagnostic] = []
     infos: List[Diagnostic] = []
 
+    errors.extend(check_types(ast))
     errors.extend(check_effects(ast))
     for diag in check_smt_contracts(ast):
         if diag.severity == "error":
@@ -287,6 +303,7 @@ def run_source(
                 diagnostics=checked.diagnostics,
             )
         except AetherError as e:
+            attach_source_context(e.diag, source)
             stdout = stdout_buf.getvalue()
             stderr = stderr_buf.getvalue() + format_diagnostic_stderr(e.diag)
             return AetherResult(

@@ -1,0 +1,18 @@
+function inBounds?(xs: List<Int>, index: Int) returns Bool
+  effects pure
+do
+  return index >= 0 and index < length(xs)
+end
+
+function safeAt(xs: List<Int>, index: Int) returns Int
+  requires inBounds?(xs, index)
+  effects pure
+do
+  return xs[index]
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(safeAt([10, 20, 30], 5)))
+end

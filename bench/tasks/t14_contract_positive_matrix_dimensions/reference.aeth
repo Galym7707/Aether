@@ -1,0 +1,13 @@
+type PositiveInt = Int where self > 0
+
+function matrixCells(rows: PositiveInt, cols: PositiveInt) returns Int
+  effects pure
+do
+  return rows * cols
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(matrixCells(0, 5)))
+end

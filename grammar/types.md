@@ -1,6 +1,12 @@
 # Aether Type System (v0.1)
 
-Aether is gradually typed at function bodies, statically typed at function/module boundaries. v0.1 ships a working type *checker* — not a solver. Refinement predicates are checked at runtime. Everything else is checked statically.
+Aether is gradually typed at function bodies and explicit at function/module
+boundaries. The current repository has a structural type diagnostic pass for
+the implemented subset: it tracks `List<T>` element types, nested lists,
+selected `Map<K,V>` / `Option<T>` / `Result<T,E>` helper flows, `append`, user
+generic function argument/return relationships, primitive mismatches, and
+obvious index bounds. It is still not a complete verifier. Refinement
+predicates are checked at runtime when values cross function boundaries.
 
 ## Primitive types
 
@@ -47,7 +53,9 @@ A planned brace-init form is **not in v0.1** (see SPEC_ISSUES S-006):
       case Triangle(base: Float, height: Float)
     end
 
-Constructors are accessed as `Shape.Circle(2.0)`. Pattern matching is exhaustive — the type checker emits an error if any `case` is missing.
+Constructors are accessed as `Shape.Circle(2.0)`. Exhaustiveness checking is
+not a complete static pass in the current implementation; non-exhaustive
+matches can still surface at runtime.
 
 ## Refinement types
 
@@ -70,46 +78,65 @@ predicates remain runtime checks.
     Connection<Postgres>
     HttpClient<JsonApi>
 
-The parameter is a phantom tag — operations are typed against it at the standard library level. v0.1 enforces capability tags via the type checker; runtime checks are stub.
+The parameter is a phantom tag in the design. Current implementation work
+focuses on function `effects` plus the opt-in `--capability-strict` pass
+rather than full capability-typed handles.
 
 ## Type ascription
 
     let x: Int = parseInt!("42")    // ascription on `let` — works in v0.1
     let y = (3.14 as Float)         // ❌ NOT IN v0.1 — value-level `as` is parked (see SPEC_ISSUES S-013)
 
-`as` performs a *checked* conversion when the target is a refinement type, an *infallible* coercion otherwise (e.g. `Int as Float`). There is no implicit numeric coercion.
+Value-level `as` conversion is design text, not current implementation. There
+is no implicit numeric coercion in the current examples.
 
 ## Type tests
 
     if x is Email then ... end
 
-`is` returns `Bool` and, in the `then` branch, narrows the static type of `x` to `Email`.
+`is` parses and emits as a runtime type-style test for the implemented cases.
+Branch-local static narrowing is not implemented.
 
 ## Generic functions
 
-    function map<T, U>(xs: List<T>, f: function(T) returns U) returns List<U>
-      effects pure
-      ensures result.length == xs.length
+function map<T, U>(xs: List<T>, f: function(T) returns U) returns List<U>
+  effects pure
+  ensures length(result) == length(xs)
     do
       ...
     end
 
-Type parameters are written in angle brackets after the function name. They may appear in parameters, return type, contracts, and effect rows.
+Type parameters are written in angle brackets after the function name. They may
+appear in parameters, return type, contracts, and effect rows. Calls use normal
+function-call syntax, for example `identity(5)`. Explicit generic calls such as
+`identity<Int>(5)` are not implemented and are rejected by prelint.
+
+The current checker validates supported generic relationships in direct user
+function calls, for example rejecting `choose(1, "bad")` for
+`function choose<T>(a: T, b: T) returns T`. It does not implement full type
+inference for every future language construct.
 
 ## Subtyping
 
-There is no subtyping. Refinement types are *not* subtypes of their base — they are convertible via `as` (checked) or implicitly when passed where the base is expected (the refinement predicate is asserted at the boundary).
+There is no implemented general subtyping system. Refinement-typed parameters
+are checked at function boundaries; value-level `as` conversion is not
+implemented.
 
 ## Inference
+
+Non-empty list literals infer a single element type. Empty list literals need
+a contextual type or annotation:
+
+    let xs: List<Int> = []      // works
+    let ys = []                 // TYPE_EMPTY_LIST_NEEDS_ANNOTATION
 
 Inside a function body, every `let` binding is inferred from its initializer. Function parameters and return types are never inferred — they are always written.
 
 ## Equality and hashability
 
-    Int Float Bool String Bytes Unit                          — hashable, comparable
-    record / union of hashable fields                          — hashable
-    List<T> / Map<K,V> / Set<T> with hashable elements/keys    — hashable
-    function types                                             — neither hashable nor comparable
+This section is design intent, not fully enforced by the current compiler.
+Runtime values are Python-backed, so Python equality/hashability behavior can
+leak through for collections.
 
 ## Disallowed in v0.1
 
