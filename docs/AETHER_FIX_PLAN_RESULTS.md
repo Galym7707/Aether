@@ -163,7 +163,7 @@ and a result table without claiming unrun benchmark results.
 
 | Command | Result | Important output summary |
 |---|---|---|
-| `python -B scripts\run_all.py` | pass | reference `10/10`, bench `18/18`, python equivalents `15/15`, regression PASS, additional PASS, fuzz PASS |
+| `python -B scripts\run_all.py` | pass | reference `10/10`, bench `20/20`, python equivalents `17/17`, regression PASS, additional PASS, fuzz PASS |
 | `python -B validation\run_validation.py` | pass | active validation references `10/10`, 5 deprecated skipped |
 | `python -B validation\run_python_validation.py` | pass | python validation references `10/10` |
 | `python -B tests\test_regressions.py` | pass | `ALL REGRESSION TESTS PASS`; `S-012` skipped because Windows lacks `SIGALRM` |
@@ -175,6 +175,8 @@ and a result table without claiming unrun benchmark results.
 | `python -B tests\test_contract_diagnostics.py` | pass | `CONTRACT DIAGNOSTIC TESTS PASS` |
 | `python -B tests\test_ai_repair_diagnostics.py` | pass | `AI REPAIR DIAGNOSTIC TESTS PASS` |
 | `python -B tests\test_safe_list_helpers.py` | pass | `SAFE LIST HELPER TESTS PASS` |
+| `python -B tests\test_option_result_helpers.py` | pass | `OPTION RESULT HELPER TESTS PASS` |
+| `python -B tests\test_match_exhaustiveness.py` | pass | `MATCH EXHAUSTIVENESS TESTS PASS` |
 | `python -B -m transpiler.aether.cli check examples\01_safe_divide.aeth` | pass | `OK: examples\01_safe_divide.aeth (2 decls)` |
 | `python -B -m transpiler.aether.cli run examples\01_safe_divide.aeth` | pass | printed `5` |
 | `python -B -m transpiler.aether.cli ast examples\01_safe_divide.aeth` | pass | printed AST JSON with 2 declarations |
@@ -186,7 +188,7 @@ and a result table without claiming unrun benchmark results.
 | `aether run examples\01_safe_divide.aeth` | pass | printed `5` |
 | `aether ast examples\01_safe_divide.aeth` | pass | printed AST JSON with 2 declarations |
 | `aether --json check examples\negative\06_effect_violation_demo.aeth` | expected failure | produced JSON diagnostic `E0801`, category `effect`, line `2`, source snippet present |
-| `python -m pytest -q` | pass | `63 passed` |
+| `python -m pytest -q` | pass | `82 passed in 8.84s` |
 | `python -B scripts\fuzz_parser.py --rounds 200 --mode all` | pass | 0 violations, 0 emit violations, 0 roundtrip errors |
 | `git diff --check` | pass | exit 0; only line-ending warnings from Git on Windows |
 | `python3 -B scripts/run_all.py` | not run | `python3` command is not installed on this Windows host |
@@ -211,6 +213,28 @@ Added examples `examples/06_safe_at.aeth`, `examples/07_update_at.aeth`, and
 and bound types. Added `tests/test_safe_list_helpers.py` and benchmark tasks
 `bench/tasks/t19_safe_list_update_helper/` and
 `bench/tasks/t20_safe_slice_helper/`.
+
+## Option / Result Ergonomics Pass
+
+Implemented explicit `Option` helpers (`isSome`, `isNone`, `unwrapOr`,
+`mapOption`, `andThenOption`, `expectSome`) and `Result` helpers (`isOk`,
+`isErr`, `unwrapOrResult`, `mapResult`, `mapErr`, `andThenResult`, `expectOk`)
+using the existing tuple-backed `Some`/`None` and `Ok`/`Err` representation.
+
+The typechecker now validates helper flows with stable diagnostics such as
+`OPTION_HELPER_TYPE_MISMATCH`, `RESULT_HELPER_TYPE_MISMATCH`,
+`OPTION_HELPER_FUNCTION_TYPE`, and `RESULT_HELPER_FUNCTION_TYPE`.
+
+Static match exhaustiveness checking now covers known `Option<T>`,
+`Result<T,E>`, and user-defined union scrutinees. Missing cases produce
+`MATCH_NON_EXHAUSTIVE` with `extra.missing_cases`; runtime fallback uses
+`MATCH_NON_EXHAUSTIVE_RUNTIME` instead of a raw Python `RuntimeError`.
+
+Added examples `examples/09_option_helpers.aeth`,
+`examples/10_result_helpers.aeth`, and `examples/11_exhaustive_match.aeth`,
+negative examples `04` through `08`, tests for helpers and match
+exhaustiveness, and benchmark tasks `t21_option_unwrap_helper` and
+`t22_result_error_handling`.
 
 ## 8. Remaining Limitations
 

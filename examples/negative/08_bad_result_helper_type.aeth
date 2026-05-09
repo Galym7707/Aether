@@ -1,0 +1,7 @@
+// Expected diagnostic: RESULT_HELPER_TYPE_MISMATCH.
+function main() returns Unit
+  effects log
+do
+  let value: Int = unwrapOrResult(Ok(1), "bad")
+  print(intToString(value))
+end

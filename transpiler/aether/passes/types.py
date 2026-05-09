@@ -60,6 +60,7 @@ class _TypeChecker:
         self.refinements: Dict[str, AType] = {}
         self.functions: Dict[str, Dict[str, Any]] = {}
         self.records: Dict[str, Dict[str, AType]] = {}
+        self.unions: Dict[str, List[str]] = {}
         self.union_cases: Dict[str, AType] = {}
         self.global_env: Dict[str, ValueInfo] = {}
         self._collect_symbols()
@@ -101,6 +102,7 @@ class _TypeChecker:
                 }
             elif kind == "UnionDecl":
                 union_ty = AType(decl["name"])
+                self.unions[decl["name"]] = [case["name"] for case in decl.get("cases", [])]
                 for case in decl.get("cases", []):
                     self.union_cases[case["name"]] = union_ty
                     self.functions[case["name"]] = {
@@ -247,7 +249,8 @@ class _TypeChecker:
             for nested in stmt.get("body", []):
                 self._check_stmt(nested, nested_env, expected_return, generic_vars)
         elif kind == "Match":
-            self._infer_expr(stmt.get("scrutinee"), env, None, generic_vars)
+            scrutinee = self._infer_expr(stmt.get("scrutinee"), env, None, generic_vars)
+            self._check_match_exhaustiveness(stmt, scrutinee.ty)
             for arm in stmt.get("arms", []):
                 for nested in arm.get("body", []):
                     self._check_stmt(nested, dict(env), expected_return, generic_vars)
@@ -337,7 +340,8 @@ class _TypeChecker:
             )
             return ValueInfo(UNKNOWN)
         if kind == "MatchExpr":
-            self._infer_expr(expr.get("scrutinee"), env, None, generic_vars)
+            scrutinee = self._infer_expr(expr.get("scrutinee"), env, None, generic_vars)
+            self._check_match_exhaustiveness(expr, scrutinee.ty)
             arm_types: List[AType] = []
             for arm in expr.get("arms", []):
                 arm_types.append(self._infer_expr(arm.get("value"), dict(env), expected, generic_vars).ty)
@@ -546,8 +550,30 @@ class _TypeChecker:
             return self._infer_valid_slice_bounds(expr, env, generic_vars)
         if name == "set":
             return self._infer_set(expr, env, generic_vars)
+        if name in {"isSome", "isSome?", "isNone", "isNone?"}:
+            return self._infer_option_predicate(expr, env, generic_vars)
+        if name in {"isOk", "isOk?", "isErr", "isErr?"}:
+            return self._infer_result_predicate(expr, env, generic_vars)
+        if name == "unwrapOr":
+            return self._infer_unwrap_or(expr, env, expected, generic_vars)
         if name == "unwrapOrElse":
             return self._infer_unwrap_or_else(expr, env, expected, generic_vars)
+        if name == "unwrapOrResult":
+            return self._infer_unwrap_or_result(expr, env, expected, generic_vars)
+        if name == "mapOption":
+            return self._infer_map_option(expr, env, expected, generic_vars)
+        if name == "andThenOption":
+            return self._infer_and_then_option(expr, env, expected, generic_vars)
+        if name == "expectSome":
+            return self._infer_expect_some(expr, env, expected, generic_vars)
+        if name == "mapResult":
+            return self._infer_map_result(expr, env, expected, generic_vars)
+        if name == "mapErr":
+            return self._infer_map_err(expr, env, expected, generic_vars)
+        if name == "andThenResult":
+            return self._infer_and_then_result(expr, env, expected, generic_vars)
+        if name == "expectOk":
+            return self._infer_expect_ok(expr, env, expected, generic_vars)
         if name in {"Some", "None", "Ok", "Err"}:
             return self._infer_builtin_constructor(name, args, env, expected, generic_vars)
         if name in {"intToString"}:
@@ -562,7 +588,7 @@ class _TypeChecker:
         if name == "print":
             self._infer_args(args, env, [UNKNOWN], generic_vars)
             return ValueInfo(UNIT)
-        if name in {"empty?", "contains?", "startsWith?", "endsWith?", "isOk?", "isErr?", "isSome?", "isNone?", "has?"}:
+        if name in {"empty?", "contains?", "startsWith?", "endsWith?", "has?"}:
             self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
             return ValueInfo(BOOL)
         if name in {"abs", "min", "max", "floor", "ceil"}:
@@ -981,6 +1007,338 @@ class _TypeChecker:
         )
         return ValueInfo(value_ty if not value_ty.unknown else default.ty, default.list_len, default.const_int)
 
+    def _infer_option_predicate(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 1:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(BOOL)
+        opt = self._infer_expr(args[0], env, None, generic_vars)
+        opt_ty = self._dealias(opt.ty)
+        if not opt_ty.unknown and opt_ty.name != "Option":
+            self._type_diag(
+                "OPTION_HELPER_TYPE_MISMATCH",
+                AType("Option", (UNKNOWN,)),
+                opt.ty,
+                self._pos(args[0]),
+                f"Option helper expects Option<T>, got {opt.ty}",
+                "pass an Option value such as Some(x) or None()",
+                {"context": self._callee_name(expr.get("func") or {}) or "Option helper"},
+            )
+        return ValueInfo(BOOL)
+
+    def _infer_result_predicate(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 1:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(BOOL)
+        result = self._infer_expr(args[0], env, None, generic_vars)
+        result_ty = self._dealias(result.ty)
+        if not result_ty.unknown and result_ty.name != "Result":
+            self._type_diag(
+                "RESULT_HELPER_TYPE_MISMATCH",
+                AType("Result", (UNKNOWN, UNKNOWN)),
+                result.ty,
+                self._pos(args[0]),
+                f"Result helper expects Result<T, E>, got {result.ty}",
+                "pass a Result value such as Ok(x) or Err(e)",
+                {"context": self._callee_name(expr.get("func") or {}) or "Result helper"},
+            )
+        return ValueInfo(BOOL)
+
+    def _infer_unwrap_or(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        expected: Optional[AType],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 2:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(expected or UNKNOWN)
+        expected_opt = AType("Option", (expected,)) if expected is not None and not expected.unknown else None
+        value = self._infer_expr(args[0], env, expected_opt, generic_vars)
+        value_ty = self._dealias(value.ty)
+        if value_ty.name == "Result" and len(value_ty.args) == 2:
+            ok_ty = value_ty.args[0]
+            default = self._infer_expr(args[1], env, ok_ty if not ok_ty.unknown else expected, generic_vars)
+            if ok_ty.unknown:
+                ok_ty = default.ty
+            self._helper_diag_if_incompatible(
+                "RESULT_HELPER_TYPE_MISMATCH",
+                ok_ty,
+                default.ty,
+                self._pos(args[1]),
+                "unwrapOr default",
+                "default value must match the Result Ok type",
+            )
+            return ValueInfo(ok_ty if not ok_ty.unknown else default.ty, default.list_len, default.const_int)
+        payload_ty = value_ty.args[0] if value_ty.name == "Option" and value_ty.args else (expected or UNKNOWN)
+        default = self._infer_expr(args[1], env, payload_ty if not payload_ty.unknown else expected, generic_vars)
+        if payload_ty.unknown:
+            payload_ty = default.ty
+        self._helper_diag_if_incompatible(
+            "OPTION_HELPER_TYPE_MISMATCH",
+            payload_ty,
+            default.ty,
+            self._pos(args[1]),
+            "unwrapOr default",
+            "default value must match the Option payload type",
+        )
+        return ValueInfo(payload_ty if not payload_ty.unknown else default.ty, default.list_len, default.const_int)
+
+    def _infer_unwrap_or_result(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        expected: Optional[AType],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 2:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(expected or UNKNOWN)
+        expected_result = AType("Result", (expected, UNKNOWN)) if expected is not None and not expected.unknown else None
+        result = self._infer_expr(args[0], env, expected_result, generic_vars)
+        result_ty = self._dealias(result.ty)
+        ok_ty = result_ty.args[0] if result_ty.name == "Result" and len(result_ty.args) == 2 else (expected or UNKNOWN)
+        default = self._infer_expr(args[1], env, ok_ty if not ok_ty.unknown else expected, generic_vars)
+        if ok_ty.unknown:
+            ok_ty = default.ty
+        self._helper_diag_if_incompatible(
+            "RESULT_HELPER_TYPE_MISMATCH",
+            ok_ty,
+            default.ty,
+            self._pos(args[1]),
+            "unwrapOrResult default",
+            "default value must match the Result Ok type",
+        )
+        return ValueInfo(ok_ty if not ok_ty.unknown else default.ty, default.list_len, default.const_int)
+
+    def _infer_expect_some(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        expected: Optional[AType],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 2:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(expected or UNKNOWN)
+        expected_opt = AType("Option", (expected,)) if expected is not None and not expected.unknown else None
+        opt = self._infer_expr(args[0], env, expected_opt, generic_vars)
+        self._infer_expr(args[1], env, STRING, generic_vars)
+        opt_ty = self._dealias(opt.ty)
+        payload_ty = opt_ty.args[0] if opt_ty.name == "Option" and opt_ty.args else (expected or UNKNOWN)
+        return ValueInfo(payload_ty)
+
+    def _infer_expect_ok(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        expected: Optional[AType],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 2:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(expected or UNKNOWN)
+        expected_result = AType("Result", (expected, UNKNOWN)) if expected is not None and not expected.unknown else None
+        result = self._infer_expr(args[0], env, expected_result, generic_vars)
+        self._infer_expr(args[1], env, STRING, generic_vars)
+        result_ty = self._dealias(result.ty)
+        ok_ty = result_ty.args[0] if result_ty.name == "Result" and len(result_ty.args) == 2 else (expected or UNKNOWN)
+        return ValueInfo(ok_ty)
+
+    def _infer_map_option(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        expected: Optional[AType],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 2:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(AType("Option", (UNKNOWN,)))
+        expected_norm = self._dealias(expected) if expected is not None else UNKNOWN
+        expected_payload = expected_norm.args[0] if expected_norm.name == "Option" and expected_norm.args else UNKNOWN
+        opt = self._infer_expr(args[0], env, None, generic_vars)
+        opt_ty = self._dealias(opt.ty)
+        payload_ty = opt_ty.args[0] if opt_ty.name == "Option" and opt_ty.args else UNKNOWN
+        fn_ty = self._function_type_from_expr(args[1], env, generic_vars)
+        params, ret = self._function_parts(fn_ty)
+        if params:
+            if payload_ty.unknown:
+                payload_ty = params[0]
+            self._helper_diag_if_incompatible(
+                "OPTION_HELPER_FUNCTION_TYPE",
+                payload_ty,
+                params[0],
+                self._pos(args[1]),
+                "mapOption mapper argument",
+                "mapper must accept the Option payload type",
+            )
+        out_ty = ret if ret is not None else expected_payload
+        return ValueInfo(AType("Option", (out_ty if out_ty is not None else UNKNOWN,)))
+
+    def _infer_and_then_option(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        expected: Optional[AType],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 2:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(AType("Option", (UNKNOWN,)))
+        opt = self._infer_expr(args[0], env, None, generic_vars)
+        opt_ty = self._dealias(opt.ty)
+        payload_ty = opt_ty.args[0] if opt_ty.name == "Option" and opt_ty.args else UNKNOWN
+        fn_ty = self._function_type_from_expr(args[1], env, generic_vars)
+        params, ret = self._function_parts(fn_ty)
+        if params:
+            if payload_ty.unknown:
+                payload_ty = params[0]
+            self._helper_diag_if_incompatible(
+                "OPTION_HELPER_FUNCTION_TYPE",
+                payload_ty,
+                params[0],
+                self._pos(args[1]),
+                "andThenOption mapper argument",
+                "mapper must accept the Option payload type",
+            )
+        ret_norm = self._dealias(ret) if ret is not None else UNKNOWN
+        if not ret_norm.unknown and ret_norm.name != "Option":
+            self._type_diag(
+                "OPTION_HELPER_FUNCTION_TYPE",
+                AType("Option", (UNKNOWN,)),
+                ret_norm,
+                self._pos(args[1]),
+                f"andThenOption mapper must return Option<U>, got {ret_norm}",
+                "return Some(value) or None() from the mapper",
+                {"context": "andThenOption mapper return"},
+            )
+        out_ty = ret_norm.args[0] if ret_norm.name == "Option" and ret_norm.args else UNKNOWN
+        return ValueInfo(AType("Option", (out_ty,)))
+
+    def _infer_map_result(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        expected: Optional[AType],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 2:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(AType("Result", (UNKNOWN, UNKNOWN)))
+        result = self._infer_expr(args[0], env, None, generic_vars)
+        ok_ty, err_ty = self._result_type_args(result.ty)
+        fn_ty = self._function_type_from_expr(args[1], env, generic_vars)
+        params, ret = self._function_parts(fn_ty)
+        if params:
+            if ok_ty.unknown:
+                ok_ty = params[0]
+            self._helper_diag_if_incompatible(
+                "RESULT_HELPER_FUNCTION_TYPE",
+                ok_ty,
+                params[0],
+                self._pos(args[1]),
+                "mapResult mapper argument",
+                "mapper must accept the Result Ok type",
+            )
+        return ValueInfo(AType("Result", (ret if ret is not None else UNKNOWN, err_ty)))
+
+    def _infer_map_err(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        expected: Optional[AType],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 2:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(AType("Result", (UNKNOWN, UNKNOWN)))
+        result = self._infer_expr(args[0], env, None, generic_vars)
+        ok_ty, err_ty = self._result_type_args(result.ty)
+        fn_ty = self._function_type_from_expr(args[1], env, generic_vars)
+        params, ret = self._function_parts(fn_ty)
+        if params:
+            if err_ty.unknown:
+                err_ty = params[0]
+            self._helper_diag_if_incompatible(
+                "RESULT_HELPER_FUNCTION_TYPE",
+                err_ty,
+                params[0],
+                self._pos(args[1]),
+                "mapErr mapper argument",
+                "mapper must accept the Result Err type",
+            )
+        return ValueInfo(AType("Result", (ok_ty, ret if ret is not None else UNKNOWN)))
+
+    def _infer_and_then_result(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        expected: Optional[AType],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 2:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(AType("Result", (UNKNOWN, UNKNOWN)))
+        result = self._infer_expr(args[0], env, None, generic_vars)
+        ok_ty, err_ty = self._result_type_args(result.ty)
+        fn_ty = self._function_type_from_expr(args[1], env, generic_vars)
+        params, ret = self._function_parts(fn_ty)
+        if params:
+            if ok_ty.unknown:
+                ok_ty = params[0]
+            self._helper_diag_if_incompatible(
+                "RESULT_HELPER_FUNCTION_TYPE",
+                ok_ty,
+                params[0],
+                self._pos(args[1]),
+                "andThenResult mapper argument",
+                "mapper must accept the Result Ok type",
+            )
+        ret_norm = self._dealias(ret) if ret is not None else UNKNOWN
+        if not ret_norm.unknown and ret_norm.name != "Result":
+            self._type_diag(
+                "RESULT_HELPER_FUNCTION_TYPE",
+                AType("Result", (UNKNOWN, err_ty)),
+                ret_norm,
+                self._pos(args[1]),
+                f"andThenResult mapper must return Result<U, E>, got {ret_norm}",
+                "return Ok(value) or Err(error) from the mapper",
+                {"context": "andThenResult mapper return"},
+            )
+        if ret_norm.name == "Result" and len(ret_norm.args) == 2:
+            self._helper_diag_if_incompatible(
+                "RESULT_HELPER_FUNCTION_TYPE",
+                err_ty,
+                ret_norm.args[1],
+                self._pos(args[1]),
+                "andThenResult error type",
+                "mapper Err type must match the input Result Err type",
+            )
+            return ValueInfo(ret_norm)
+        return ValueInfo(AType("Result", (UNKNOWN, err_ty)))
+
     def _infer_builtin_constructor(
         self,
         name: str,
@@ -1216,6 +1574,98 @@ class _TypeChecker:
             return ok_ty
         return None
 
+    def _result_type_args(self, ty: AType) -> Tuple[AType, AType]:
+        ty_norm = self._dealias(ty)
+        if ty_norm.name == "Result" and len(ty_norm.args) == 2:
+            return ty_norm.args[0], ty_norm.args[1]
+        return UNKNOWN, UNKNOWN
+
+    def _function_type_from_expr(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> AType:
+        if expr.get("kind") == "Ident":
+            name = expr.get("name")
+            if name in self.functions:
+                fn = self.functions[name]
+                fn_generics = set(fn.get("generics", []))
+                params = tuple(
+                    self._type_from_ast(param.get("type"), fn_generics)
+                    for param in fn.get("params", [])
+                )
+                ret = self._type_from_ast(fn.get("return_type"), fn_generics)
+                return AType("function", params + (ret,))
+        return self._infer_expr(expr, env, None, generic_vars).ty
+
+    def _function_parts(self, ty: AType) -> Tuple[Tuple[AType, ...], Optional[AType]]:
+        ty_norm = self._dealias(ty)
+        if ty_norm.name == "function" and ty_norm.args:
+            return ty_norm.args[:-1], ty_norm.args[-1]
+        return (), None
+
+    def _check_match_exhaustiveness(self, node: Dict[str, Any], scrutinee_ty: AType) -> None:
+        required = self._required_match_cases(scrutinee_ty)
+        if not required:
+            return
+        covered = self._covered_match_cases(node.get("arms", []))
+        if covered is None:
+            return
+        missing = [case for case in required if case not in covered]
+        if not missing:
+            return
+        hint = "Add cases for: " + ", ".join(missing) + " or use `_`."
+        self.diags.append(Diagnostic(
+            code="MATCH_NON_EXHAUSTIVE",
+            category="type",
+            severity="error",
+            message="match is not exhaustive; missing cases: " + ", ".join(missing),
+            position=self._pos(node),
+            suggestion=hint,
+            confidence=0.95,
+            extra={
+                "missing_cases": missing,
+                "expected": ", ".join(required),
+                "actual": ", ".join(sorted(covered)),
+            },
+        ))
+
+    def _required_match_cases(self, ty: AType) -> List[str]:
+        ty_norm = self._dealias(ty)
+        if ty_norm.name == "Option":
+            return ["Some", "None"]
+        if ty_norm.name == "Result":
+            return ["Ok", "Err"]
+        return list(self.unions.get(ty_norm.name, []))
+
+    def _covered_match_cases(self, arms: Sequence[Dict[str, Any]]) -> Optional[set[str]]:
+        covered: set[str] = set()
+        for arm in arms:
+            pat = arm.get("pattern") or {}
+            if self._pattern_is_catch_all(pat):
+                return None
+            case = self._constructor_case_name(pat)
+            if case is not None:
+                covered.add(case)
+        return covered
+
+    def _pattern_is_catch_all(self, pat: Dict[str, Any]) -> bool:
+        kind = pat.get("kind")
+        if kind in {"WildcardPat", "BindPat"}:
+            return True
+        if kind == "AsPat":
+            return self._pattern_is_catch_all(pat.get("pattern") or {})
+        return False
+
+    def _constructor_case_name(self, pat: Dict[str, Any]) -> Optional[str]:
+        if pat.get("kind") == "ConstructorPat":
+            path = pat.get("path") or []
+            return path[-1] if path else None
+        if pat.get("kind") == "AsPat":
+            return self._constructor_case_name(pat.get("pattern") or {})
+        return None
+
     # ------------------------------------------------------------------
     # Diagnostics
     # ------------------------------------------------------------------
@@ -1242,6 +1692,27 @@ class _TypeChecker:
         )
 
     def _list_helper_diag_if_incompatible(
+        self,
+        code: str,
+        expected: AType,
+        actual: AType,
+        pos: Position,
+        context: str,
+        hint: str,
+    ) -> None:
+        if self._compatible(expected, actual):
+            return
+        self._type_diag(
+            code,
+            expected,
+            actual,
+            pos,
+            f"type mismatch for {context}: expected {expected}, got {actual}",
+            hint,
+            {"context": context},
+        )
+
+    def _helper_diag_if_incompatible(
         self,
         code: str,
         expected: AType,

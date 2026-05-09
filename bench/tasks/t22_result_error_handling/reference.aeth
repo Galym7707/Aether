@@ -1,0 +1,11 @@
+function main() returns Unit
+  effects log
+do
+  let xs: List<Int> = [10, 20, 30]
+  let updatedResult: Result<List<Int>, String> = updateAt(xs, 9, 99)
+  if isErr(updatedResult) then
+    print("error")
+  end
+  let updated: List<Int> = unwrapOrResult(updatedResult, xs)
+  print(intToString(updated[1]))
+end

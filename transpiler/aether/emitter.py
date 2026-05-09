@@ -349,7 +349,10 @@ def emit_match_stmt(ctx: EmitContext, s: Dict[str, Any]):
             emit_block(ctx, arm["body"])
     ctx.emit("else:")
     with ctx.block():
-        ctx.emit(f"raise RuntimeError('non-exhaustive match on ' + repr({scrut_var}))")
+        raw_pos = s.get("pos") or {"line": 0, "column": 0}
+        line = int(raw_pos.get("line", 0))
+        col = int(raw_pos.get("column", 0))
+        ctx.emit(f"_aether_match_failed({scrut_var}, {line}, {col})")
 
 
 def emit_return(ctx: EmitContext, s: Dict[str, Any]):
@@ -468,6 +471,12 @@ def emit_expr(ctx: EmitContext, e: Dict[str, Any]) -> str:
     if k == "Call":
         func_src = emit_callee(ctx, e["func"])
         args = ", ".join(emit_expr(ctx, a) for a in e["args"])
+        callee_name = e["func"].get("name") if e["func"].get("kind") == "Ident" else None
+        if callee_name in {"expectSome", "expectOk"} and callee_name not in ctx.function_names:
+            raw_pos = e.get("pos") or {"line": 0, "column": 0}
+            line = int(raw_pos.get("line", 0))
+            col = int(raw_pos.get("column", 0))
+            return f"{func_src}({args}, {line}, {col})"
         if _is_local_function_call(ctx, e["func"]):
             raw_pos = e.get("pos") or {"line": 0, "column": 0}
             line = int(raw_pos.get("line", 0))
@@ -554,7 +563,10 @@ def emit_match_expr(ctx: EmitContext, e: Dict[str, Any]) -> str:
                 ctx.emit(f"return {emit_expr(ctx, arm['value'])}")
         ctx.emit("else:")
         with ctx.block():
-            ctx.emit("raise RuntimeError('non-exhaustive match expr')")
+            raw_pos = e.get("pos") or {"line": 0, "column": 0}
+            line = int(raw_pos.get("line", 0))
+            col = int(raw_pos.get("column", 0))
+            ctx.emit(f"_aether_match_failed(_ae_scrut, {line}, {col})")
     helper_block = ctx.lines
     ctx.lines = saved
     ctx.indent_level = saved_indent

@@ -19,8 +19,13 @@ Critical syntax:
 - Use `append(xs, x)` to build lists.
 - Prefer `safeAt(xs, i)`, `updateAt(xs, i, value)`, and
   `safeSlice(xs, start, end)` for generated list access/update/slicing.
+- Prefer exhaustive `match` for `Option` and `Result`.
+- Use `unwrapOr` / `unwrapOrResult` only when a fallback is correct.
+- Use `expectSome` / `expectOk` only when failure should be a structured diagnostic.
 - Do not use `xs.append(x)`, `xs.push(x)`, `xs.get(i)`, `xs[i] = value`,
   or Python slicing like `xs[start:end]`.
+- Do not use method style like `opt.unwrap()`, `result.unwrap()`, or
+  `result.is_ok()`.
 - Annotate empty lists, for example `let xs: List<Int> = []`.
 - Call generic functions normally, for example `identity(5)`, not
   `identity<Int>(5)`.

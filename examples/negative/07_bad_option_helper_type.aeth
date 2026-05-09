@@ -1,0 +1,7 @@
+// Expected diagnostic: OPTION_HELPER_TYPE_MISMATCH.
+function main() returns Unit
+  effects log
+do
+  let value: Int = unwrapOr(Some(1), "bad")
+  print(intToString(value))
+end

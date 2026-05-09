@@ -1,0 +1,9 @@
+function main() returns Unit
+  effects log
+do
+  let value: Option<Int> = safeAt([10, 20], 9)
+  if isNone(value) then
+    print("missing")
+  end
+  print(intToString(unwrapOr(value, -1)))
+end

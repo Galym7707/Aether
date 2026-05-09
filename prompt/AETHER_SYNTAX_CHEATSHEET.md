@@ -27,10 +27,15 @@ Rules:
 - Use `safeAt(xs, i)` for safe dynamic access; handle `Some(value)` and `None()`.
 - Use `updateAt(xs, i, value)` for safe replacement; handle `Ok(updated)` and `Err(message)`.
 - Use `safeSlice(xs, start, end)` for safe slicing; handle `Ok(part)` and `Err(message)`.
+- Prefer exhaustive `match` for `Option` and `Result`.
+- Use `unwrapOr(opt, default)` only when a fallback is correct.
+- Use `unwrapOrResult(res, default)` only when a fallback is correct.
+- Use `expectSome(opt, message)` or `expectOk(res, message)` only when failure should be a diagnostic.
 - Do not use `xs.append(x)` or `xs.push(x)`.
 - Do not write `xs[i] = value`.
 - Do not write Python slicing syntax like `xs[start:end]`.
 - Do not write method-style access like `xs.get(i)`.
+- Do not write `opt.unwrap()`, `result.unwrap()`, or `result.is_ok()`.
 - Annotate empty lists: `let xs: List<Int> = []`.
 - Call generic functions normally: `identity(5)`, not `identity<Int>(5)`.
 - Use `Point(1, 2)`, not `Point { x = 1, y = 2 }`.
@@ -44,6 +49,19 @@ match updateAt(xs, index, value) do
   end
   case Err(message) do
     return xs
+  end
+end
+```
+
+Good Option pattern:
+
+```aether
+match safeAt(xs, index) do
+  case Some(value) do
+    return intToString(value)
+  end
+  case None() do
+    return "missing"
   end
 end
 ```

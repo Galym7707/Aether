@@ -27,6 +27,11 @@ def test_common_ai_syntax_errors_have_specific_codes():
     assert _first_code("xs.append(1)") == "E0009"
     assert _first_code("xs[1:3]") == "E0010"
     assert _first_code("xs.get(1)") == "E0011"
+    assert _first_code("opt.unwrap()") == "E0012"
+    assert _first_code("result.unwrap()") == "E0013"
+    assert _first_code("result.is_ok()") == "E0014"
+    assert _first_code("option.is_some()") == "E0015"
+    assert _first_code("match opt { case Some(v) { v } }") == "E0016"
 
 
 def test_prelint_does_not_flag_supported_index_equality_or_map_literal():
@@ -64,8 +69,33 @@ def test_list_repair_hints_point_to_standard_helpers():
     assert "updateAt" in (append_call.suggestion or ""), append_call.to_dict()
 
 
+def test_option_result_repair_hints_point_to_standard_helpers():
+    opt_unwrap = lint_common_ai_syntax("opt.unwrap()")[0]
+    assert opt_unwrap.code == "E0012", opt_unwrap.to_dict()
+    assert "expectSome" in (opt_unwrap.suggestion or ""), opt_unwrap.to_dict()
+    assert "unwrapOr" in (opt_unwrap.suggestion or ""), opt_unwrap.to_dict()
+
+    result_unwrap = lint_common_ai_syntax("result.unwrap()")[0]
+    assert result_unwrap.code == "E0013", result_unwrap.to_dict()
+    assert "expectOk" in (result_unwrap.suggestion or ""), result_unwrap.to_dict()
+    assert "unwrapOrResult" in (result_unwrap.suggestion or ""), result_unwrap.to_dict()
+
+    result_is_ok = lint_common_ai_syntax("result.is_ok()")[0]
+    assert result_is_ok.code == "E0014", result_is_ok.to_dict()
+    assert "isOk(result)" in (result_is_ok.suggestion or ""), result_is_ok.to_dict()
+
+    option_is_some = lint_common_ai_syntax("option.is_some()")[0]
+    assert option_is_some.code == "E0015", option_is_some.to_dict()
+    assert "isSome(option)" in (option_is_some.suggestion or ""), option_is_some.to_dict()
+
+    match_braces = lint_common_ai_syntax("match opt { case Some(v) { v } }")[0]
+    assert match_braces.code == "E0016", match_braces.to_dict()
+    assert "match expr do" in (match_braces.suggestion or ""), match_braces.to_dict()
+
+
 if __name__ == "__main__":
     test_common_ai_syntax_errors_have_specific_codes()
     test_prelint_does_not_flag_supported_index_equality_or_map_literal()
     test_list_repair_hints_point_to_standard_helpers()
+    test_option_result_repair_hints_point_to_standard_helpers()
     print("PRELINT TESTS PASS")

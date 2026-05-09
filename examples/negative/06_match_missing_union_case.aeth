@@ -1,0 +1,19 @@
+// Expected diagnostic: MATCH_NON_EXHAUSTIVE missing Blue.
+union Color do
+  case Red
+  case Green
+  case Blue
+end
+
+function describe(color: Color) returns String
+  effects pure
+do
+  match color do
+    case Red() do
+      return "red"
+    end
+    case Green() do
+      return "green"
+    end
+  end
+end

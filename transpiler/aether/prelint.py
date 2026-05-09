@@ -51,6 +51,30 @@ def lint_common_ai_syntax(source: str, filename: str = "<input>") -> List[Diagno
                 "Aether does not support method calls. Use `safeAt(xs, i)`.",
             ),
             (
+                re.search(r"\b(opt|option|maybe|o)\s*\.\s*unwrap\s*\(", line),
+                "E0012",
+                "Aether does not support Option unwrap method calls.",
+                "Aether does not support method calls. Use `expectSome(opt, message)`, `unwrapOr(opt, default)`, or `match`.",
+            ),
+            (
+                re.search(r"\b(result|res|r)\s*\.\s*unwrap\s*\(", line),
+                "E0013",
+                "Aether does not support Result unwrap method calls.",
+                "Use `expectOk(result, message)`, `unwrapOrResult(result, default)`, or `match`.",
+            ),
+            (
+                re.search(r"\.\s*is_ok\s*\(", line),
+                "E0014",
+                "Aether does not support Result method calls.",
+                "Use `isOk(result)`.",
+            ),
+            (
+                re.search(r"\.\s*is_some\s*\(", line),
+                "E0015",
+                "Aether does not support Option method calls.",
+                "Use `isSome(option)`.",
+            ),
+            (
                 re.search(r"=>", line),
                 "E0005",
                 "Aether does not support JavaScript lambdas.",
@@ -79,6 +103,12 @@ def lint_common_ai_syntax(source: str, filename: str = "<input>") -> List[Diagno
                 "E0008",
                 "Aether does not support explicit generic call syntax.",
                 "call the function normally, for example `identity(5)`, and let Aether infer the type",
+            ),
+            (
+                _match_brace_block_match(line),
+                "E0016",
+                "Aether uses `match expr do ... end`, not braces.",
+                "Aether uses `match expr do ... end`, not braces.",
             ),
             (
                 _brace_block_match(line),
@@ -146,6 +176,10 @@ def _mask_strings(line: str) -> str:
 
 def _brace_block_match(line: str) -> Optional[re.Match[str]]:
     return re.search(r"\b(function|if|elif|else|while|for|match)\b.*\{", line)
+
+
+def _match_brace_block_match(line: str) -> Optional[re.Match[str]]:
+    return re.search(r"\bmatch\b[^{]*\{", line)
 
 
 def _explicit_generic_call_match(line: str) -> Optional[re.Match[str]]:

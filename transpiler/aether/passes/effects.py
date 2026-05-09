@@ -104,10 +104,22 @@ _STDLIB_EFFECTS: Dict[str, EffectSet] = {
     # Result / Option helpers.
     "isOk?": _PURE,
     "isErr?": _PURE,
+    "isOk": _PURE,
+    "isErr": _PURE,
     "unwrapOr": _PURE,
+    "unwrapOrResult": _PURE,
     "isSome?": _PURE,
     "isNone?": _PURE,
+    "isSome": _PURE,
+    "isNone": _PURE,
     "unwrapOrElse": _PURE,
+    "mapOption": _PURE,
+    "andThenOption": _PURE,
+    "expectSome": _PURE,
+    "mapResult": _PURE,
+    "mapErr": _PURE,
+    "andThenResult": _PURE,
+    "expectOk": _PURE,
 }
 
 

@@ -1,0 +1,32 @@
+union Direction do
+  case North
+  case South
+  case East
+  case West
+end
+
+function dx(direction: Direction) returns Int
+  effects pure
+do
+  match direction do
+    case North() do
+      return 0
+    end
+    case South() do
+      return 0
+    end
+    case East() do
+      return 1
+    end
+    case West() do
+      return -1
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(dx(Direction.East())))
+  print(intToString(dx(Direction.West())))
+end

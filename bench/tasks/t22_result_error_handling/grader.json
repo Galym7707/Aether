@@ -1,0 +1,12 @@
+{
+  "expected_stdout": "error\n20\n",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "python_equivalent": "python_equivalent.py",
+  "python_expected_exit_code": 0,
+  "python_expected_stdout": "99\n",
+  "python_expected_stderr": "",
+  "python_forbidden_stderr_pattern": "(?i)(contract|requires|refinement|precondition|error)",
+  "tags": ["stdlib", "result", "lists", "ai-generation"],
+  "difficulty": "easy"
+}

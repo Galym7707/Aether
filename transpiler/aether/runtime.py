@@ -472,11 +472,81 @@ def _ae_sqrt(x):
 
 def _ae_isOk_q(r):                     return r[0] == "Ok"
 def _ae_isErr_q(r):                    return r[0] == "Err"
-def _ae_unwrapOr(r, default):          return r[1] if r[0] == "Ok" else default
+def _ae_isOk(r):                       return _ae_isOk_q(r)
+def _ae_isErr(r):                      return _ae_isErr_q(r)
 
 def _ae_isSome_q(o):                   return o[0] == "Some"
 def _ae_isNone_q(o):                   return o[0] == "None"
+def _ae_isSome(o):                     return _ae_isSome_q(o)
+def _ae_isNone(o):                     return _ae_isNone_q(o)
+
+def _ae_unwrapOr(value, default):
+    return value[1] if value[0] in {"Some", "Ok"} else default
+
+def _ae_unwrapOrResult(r, default):
+    return r[1] if r[0] == "Ok" else default
+
 def _ae_unwrapOrElse(o, default):      return o[1] if o[0] == "Some" else default
+
+def _ae_mapOption(o, f):
+    return _ae_Some(f(o[1])) if o[0] == "Some" else _ae_None()
+
+def _ae_andThenOption(o, f):
+    return f(o[1]) if o[0] == "Some" else _ae_None()
+
+def _ae_mapResult(r, f):
+    return _ae_Ok(f(r[1])) if r[0] == "Ok" else r
+
+def _ae_mapErr(r, f):
+    return _ae_Err(f(r[1])) if r[0] == "Err" else r
+
+def _ae_andThenResult(r, f):
+    return f(r[1]) if r[0] == "Ok" else r
+
+def _ae_expectSome(o, message: str, line: int = 0, column: int = 0):
+    if o[0] == "Some":
+        return o[1]
+    from .diagnostics import AetherError, Diagnostic, Position
+    raise AetherError(Diagnostic(
+        code="EXPECT_SOME_FAILED",
+        category="runtime",
+        severity="error",
+        message=message,
+        position=Position(line, column),
+        suggestion="handle None() with match or use unwrapOr for a fallback value",
+        confidence=1.0,
+        extra={"actual_case": o[0], "expected": "Some", "actual": o[0]},
+    ))
+
+def _ae_expectOk(r, message: str, line: int = 0, column: int = 0):
+    if r[0] == "Ok":
+        return r[1]
+    from .diagnostics import AetherError, Diagnostic, Position
+    raise AetherError(Diagnostic(
+        code="EXPECT_OK_FAILED",
+        category="runtime",
+        severity="error",
+        message=message,
+        position=Position(line, column),
+        suggestion="handle Err(...) with match or use unwrapOrResult for a fallback value",
+        confidence=1.0,
+        extra={"actual_case": r[0], "expected": "Ok", "actual": r[0], "error": r[1] if len(r) > 1 else None},
+    ))
+
+
+def _aether_match_failed(value, line: int = 0, column: int = 0):
+    from .diagnostics import AetherError, Diagnostic, Position
+    actual_case = value[0] if isinstance(value, tuple) and value else type(value).__name__
+    raise AetherError(Diagnostic(
+        code="MATCH_NON_EXHAUSTIVE_RUNTIME",
+        category="runtime",
+        severity="error",
+        message=f"non-exhaustive match reached runtime for case {actual_case}",
+        position=Position(line, column),
+        suggestion="add the missing match case or a `_` wildcard arm",
+        confidence=1.0,
+        extra={"actual_case": actual_case},
+    ))
 
 
 # ----------------------------------------------------------------------
@@ -600,6 +670,7 @@ def build_namespace() -> Dict[str, Any]:
             "push_effect_frame", "pop_effect_frame",
             "record_effect", "set_effect_strict",
             "record_effect_arg", "_aether_index", "_aether_call",
+            "_aether_match_failed",
         }:
             g[name] = val
     return g

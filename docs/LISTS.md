@@ -156,6 +156,14 @@ do
 end
 ```
 
+When a fallback is correct, use `unwrapOr` with `safeAt`:
+
+```aether
+let value: Int = unwrapOr(safeAt(xs, index), -1)
+```
+
+When absence should be explicit, prefer an exhaustive `match` over `Option`.
+
 ## Correct normalizeWeights Pattern
 
 ```aether

@@ -53,9 +53,11 @@ A planned brace-init form is **not in v0.1** (see SPEC_ISSUES S-006):
       case Triangle(base: Float, height: Float)
     end
 
-Constructors are accessed as `Shape.Circle(2.0)`. Exhaustiveness checking is
-not a complete static pass in the current implementation; non-exhaustive
-matches can still surface at runtime.
+Constructors are accessed as `Shape.Circle(2.0)`. The current implementation
+checks match exhaustiveness for statically known `Option<T>`, `Result<T,E>`,
+and user-defined union scrutinee types. If the scrutinee type is unknown, the
+checker does not guess; a runtime fallback raises `MATCH_NON_EXHAUSTIVE_RUNTIME`
+if no arm matches.
 
 ## Refinement types
 

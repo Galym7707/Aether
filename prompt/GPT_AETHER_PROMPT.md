@@ -19,8 +19,13 @@ Syntax constraints:
 - Aether uses `append(xs, x)` to build lists.
 - Aether prefers `safeAt(xs, i)`, `updateAt(xs, i, value)`, and
   `safeSlice(xs, start, end)` for generated list access/update/slicing.
+- Aether prefers exhaustive `match` for `Option` and `Result`.
+- Aether uses `unwrapOr` / `unwrapOrResult` only when a fallback is correct.
+- Aether uses `expectSome` / `expectOk` only when failure should be a structured diagnostic.
 - Aether does not support `xs.append(x)`, `xs.push(x)`, `xs.get(i)`,
   `xs[i] = value`, or Python slicing like `xs[start:end]`.
+- Aether does not support `opt.unwrap()`, `result.unwrap()`, or
+  `result.is_ok()`.
 - Aether requires a contextual type for empty lists, for example
   `let xs: List<Int> = []`.
 - Aether calls generic functions normally, for example `identity(5)`, not

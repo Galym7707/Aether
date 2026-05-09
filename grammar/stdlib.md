@@ -223,19 +223,47 @@ The constructors `Some`, `None`, `Ok`, `Err` are also always in scope.
 
 ## Result / Option helpers
 
+    function isOk<T, E>(r: Result<T, E>) returns Bool
+      effects pure
     function isOk?<T, E>(r: Result<T, E>) returns Bool
+      effects pure
+    function isErr<T, E>(r: Result<T, E>) returns Bool
       effects pure
     function isErr?<T, E>(r: Result<T, E>) returns Bool
       effects pure
-    function unwrapOr<T, E>(r: Result<T, E>, default: T) returns T
+    function unwrapOrResult<T, E>(r: Result<T, E>, default: T) returns T
+      effects pure
+    function mapResult<T, U, E>(r: Result<T, E>, f: function(T) returns U) returns Result<U, E>
+      effects pure
+    function mapErr<T, E, F>(r: Result<T, E>, f: function(E) returns F) returns Result<T, F>
+      effects pure
+    function andThenResult<T, U, E>(r: Result<T, E>, f: function(T) returns Result<U, E>) returns Result<U, E>
+      effects pure
+    function expectOk<T, E>(r: Result<T, E>, message: String) returns T
       effects pure
 
+    function isSome<T>(o: Option<T>) returns Bool
+      effects pure
     function isSome?<T>(o: Option<T>) returns Bool
+      effects pure
+    function isNone<T>(o: Option<T>) returns Bool
       effects pure
     function isNone?<T>(o: Option<T>) returns Bool
       effects pure
+    function unwrapOr<T>(o: Option<T>, default: T) returns T
+      effects pure
     function unwrapOrElse<T>(o: Option<T>, default: T) returns T
       effects pure
+    function mapOption<T, U>(o: Option<T>, f: function(T) returns U) returns Option<U>
+      effects pure
+    function andThenOption<T, U>(o: Option<T>, f: function(T) returns Option<U>) returns Option<U>
+      effects pure
+    function expectSome<T>(o: Option<T>, message: String) returns T
+      effects pure
+
+`isOk?`, `isErr?`, `isSome?`, `isNone?`, and `unwrapOrElse` are retained for
+compatibility. New AI-generated code should prefer the explicit non-`?`
+helpers above and exhaustive `match`.
 
 ## What is *not* in v0.1
 

@@ -1,0 +1,31 @@
+function double(x: Int) returns Int
+  effects pure
+do
+  return x * 2
+end
+
+function describeResult(res: Result<Int, String>) returns String
+  effects pure
+do
+  match res do
+    case Ok(value) do
+      return intToString(value)
+    end
+    case Err(message) do
+      return message
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  let updatedResult: Result<List<Int>, String> = updateAt([10, 20, 30], 1, 99)
+  if isOk(updatedResult) then
+    print("ok")
+  end
+  let updated: List<Int> = unwrapOrResult(updatedResult, [0, 0, 0])
+  print(intToString(updated[1]))
+  print(describeResult(mapResult(Ok(2), double)))
+  print(describeResult(Err("bad update")))
+end

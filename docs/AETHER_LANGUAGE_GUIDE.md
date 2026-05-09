@@ -34,6 +34,9 @@ observable effect. A function that prints must declare `effects log`.
 | Safe access | `safeAt(xs, i)` | `xs.get(i)` |
 | Safe update | `updateAt(xs, i, value)` | `xs[i] = value` |
 | Safe slice | `safeSlice(xs, start, end)` | `xs[start:end]` |
+| Option fallback | `unwrapOr(opt, default)` | `opt.unwrap()` |
+| Result fallback | `unwrapOrResult(res, default)` | `res.unwrap()` |
+| Result predicate | `isOk(res)` | `res.is_ok()` |
 | Blocks | `do ... end` | `{ ... }` |
 | Conditions | `if cond then ... end` | `if (...) { ... }` |
 | Loops | `while cond do ... end` | `while (...) { ... }` |
@@ -193,6 +196,36 @@ do
 end
 ```
 
+### Option, Result, And Exhaustive Match
+
+`Option<T>` values use `Some(value)` and `None()`. `Result<T,E>` values use
+`Ok(value)` and `Err(error)`. Prefer exhaustive `match` when the program needs
+to handle both cases explicitly:
+
+```aether
+match safeAt(xs, index) do
+  case Some(value) do
+    return intToString(value)
+  end
+  case None() do
+    return "missing"
+  end
+end
+```
+
+Use `unwrapOr(opt, default)` or `unwrapOrResult(res, default)` when a fallback
+value is correct. Use `expectSome(opt, message)` or `expectOk(res, message)`
+only when absence/error is a bug and should become a structured runtime
+diagnostic.
+
+```aether
+let value: Int = unwrapOr(safeAt([10, 20], 9), -1)
+let updated: List<Int> = unwrapOrResult(updateAt([10, 20], 1, 99), [10, 20])
+```
+
+The checker reports `MATCH_NON_EXHAUSTIVE` when a known `Option`, `Result`, or
+user-defined union match misses a case and has no `_` wildcard.
+
 ## Unsupported Or Uncertain Syntax
 
 These forms should not be generated:
@@ -207,6 +240,11 @@ These forms should not be generated:
   replacement.
 - Method-style safe access such as `xs.get(i)` is unsupported. Use
   `safeAt(xs, i)`.
+- Method-style unwraps such as `opt.unwrap()` and `result.unwrap()` are
+  unsupported. Use `expectSome`, `expectOk`, `unwrapOr`, `unwrapOrResult`, or
+  exhaustive `match`.
+- Method-style predicates such as `result.is_ok()` and `option.is_some()` are
+  unsupported. Use `isOk(result)` and `isSome(option)`.
 - Python slicing syntax such as `xs[start:end]` is unsupported. Use
   `safeSlice(xs, start, end)`.
 - General method-call style is unsupported. `Shape.Circle(...)` works for union constructors; field access such as `point.x` works for records.
@@ -355,8 +393,12 @@ Aether syntax rules:
 - Every function must include an `effects` clause. Use `effects pure` for pure helpers and `effects log` for functions that print.
 - Use `requires` and `ensures` for preconditions and postconditions.
 - Prefer `safeAt(xs, i)`, `updateAt(xs, i, value)`, and `safeSlice(xs, start, end)` for safe list access/update/slicing.
+- Prefer exhaustive `match` for `Option` and `Result`.
+- Use `unwrapOr` / `unwrapOrResult` only when a fallback is semantically correct.
+- Use `expectSome` / `expectOk` only when absence/error should be a structured runtime diagnostic.
 - Do not use direct list item assignment like `xs[i] = value`; handle `updateAt` with `Result`.
 - Do not use Python slicing like `xs[start:end]`; handle `safeSlice` with `Result`.
+- Do not use method style like `opt.unwrap()`, `result.unwrap()`, or `result.is_ok()`.
 - For records, use positional construction like `Point(1, 2)`, not `Point { x = 1, y = 2 }`.
 
 Follow the style of `examples/01_safe_divide.aeth`,

@@ -112,6 +112,10 @@ Most common syntax rules:
 - Standard safe list helpers: `safeAt`, `updateAt`, `safeSlice`, `inBounds`,
   and `validSliceBounds`, with generic type checking and `Option`/`Result`
   return values for invalid dynamic cases.
+- Option/Result helpers such as `isSome`, `unwrapOr`, `mapOption`, `isOk`,
+  `unwrapOrResult`, `mapResult`, and `expectOk`.
+- Static match exhaustiveness diagnostics for known `Option`, `Result`, and
+  user-defined union scrutinees.
 - Runtime index diagnostics for dynamic out-of-bounds cases, without Python
   tracebacks for the checked runtime helper path.
 - Static effect checking for direct calls to known functions.
@@ -140,6 +144,9 @@ Most common syntax rules:
 - Python list slicing syntax such as `xs[start:end]`; use `safeSlice`.
 - Method-style calls such as `xs.get(i)` or `xs.append(x)`; use free
   functions such as `safeAt(xs, i)` and `append(xs, x)`.
+- Method-style `opt.unwrap()`, `result.unwrap()`, and `result.is_ok()`; use
+  `expectSome`, `expectOk`, `unwrapOr`, `unwrapOrResult`, `isOk`, or
+  exhaustive `match`.
 - A production security model for capabilities. `--capability-strict` is an
   opt-in static check, not a complete sandbox.
 - A package release. `pip install -e .` is for local development.
@@ -161,6 +168,8 @@ python -B tests\test_static_index_diagnostics.py
 python -B tests\test_contract_diagnostics.py
 python -B tests\test_ai_repair_diagnostics.py
 python -B tests\test_safe_list_helpers.py
+python -B tests\test_option_result_helpers.py
+python -B tests\test_match_exhaustiveness.py
 python -m pytest -q
 ```
 
@@ -172,6 +181,8 @@ python -B -m transpiler.aether.cli check examples\01_safe_divide.aeth
 python -B -m transpiler.aether.cli run examples\01_safe_divide.aeth
 python -B -m transpiler.aether.cli check examples\06_safe_at.aeth
 python -B -m transpiler.aether.cli run examples\06_safe_at.aeth
+python -B -m transpiler.aether.cli check examples\09_option_helpers.aeth
+python -B -m transpiler.aether.cli run examples\09_option_helpers.aeth
 python -B -m transpiler.aether.cli --json check examples\negative\06_effect_violation_demo.aeth
 ```
 

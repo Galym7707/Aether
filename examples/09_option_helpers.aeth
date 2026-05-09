@@ -1,0 +1,30 @@
+function double(x: Int) returns Int
+  effects pure
+do
+  return x * 2
+end
+
+function describeOption(opt: Option<Int>) returns String
+  effects pure
+do
+  match opt do
+    case Some(value) do
+      return intToString(value)
+    end
+    case None() do
+      return "none"
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  let found: Option<Int> = safeAt([10, 20, 30], 1)
+  if isSome(found) then
+    print("some")
+  end
+  print(intToString(unwrapOr(found, -1)))
+  print(intToString(unwrapOr(safeAt([10, 20, 30], 9), -1)))
+  print(describeOption(mapOption(safeAt([10, 20, 30], 0), double)))
+end

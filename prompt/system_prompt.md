@@ -95,7 +95,7 @@ end
 | String | `length`, `slice`, `split`, `join`, `contains?`, `trim`, `toLower`, `toUpper`, `replace`, `startsWith?`, `endsWith?`, `parseInt`, `parseFloat`, `intToString` |
 | IO | `print`, `readLine`, `readFile`, `writeFile` |
 | Math | `abs`, `min`, `max`, `floor`, `ceil`, `pow`, `sqrt` |
-| Result/Option | `isOk?`, `isErr?`, `unwrapOr`, `isSome?`, `isNone?`, `unwrapOrElse` |
+| Result/Option | `isOk`, `isErr`, `unwrapOrResult`, `mapResult`, `mapErr`, `andThenResult`, `expectOk`, `isSome`, `isNone`, `unwrapOr`, `mapOption`, `andThenOption`, `expectSome` |
 
 `get` works for both `List` (returning `Option<T>` by index) and `Map`. Prefer `safeAt(xs, i)` for safe generated list access, `updateAt(xs, i, value)` for safe replacement, and `safeSlice(xs, start, end)` for safe slicing. `length` works for both `List` and `String`.
 
@@ -162,5 +162,7 @@ end
 13. Writing `xs[i] = value` is unsupported. Use `updateAt(xs, i, value)` and handle `Result`.
 14. Writing `xs[start:end]` is unsupported. Use `safeSlice(xs, start, end)` and handle `Result`.
 15. Writing `xs.get(i)` or `xs.append(x)` is unsupported method syntax. Use `safeAt(xs, i)` or `append(xs, x)`.
+16. Writing `opt.unwrap()`, `result.unwrap()`, or `result.is_ok()` is unsupported method syntax. Use `expectSome`, `expectOk`, `unwrapOr`, `unwrapOrResult`, `isOk`, or exhaustive `match`.
+17. A `match` over `Option`, `Result`, or a user union should cover all cases or include `case _`.
 
 Output only the Aether source. No fences, no commentary.

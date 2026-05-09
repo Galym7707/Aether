@@ -1,0 +1,10 @@
+// Expected diagnostic: MATCH_NON_EXHAUSTIVE missing Err.
+function main() returns Unit
+  effects log
+do
+  match Ok(1) do
+    case Ok(value) do
+      print(intToString(value))
+    end
+  end
+end

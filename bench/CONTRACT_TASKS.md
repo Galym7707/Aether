@@ -25,6 +25,8 @@ uses per-task `bench/tasks/<task_id>/grader.json` files. No root-level
 | 5 | t10_contract_normalized_probability | Negative probability weight in a list requiring normalized non-negative integer weights. | Prints `bucket=0` after silently clamping the negative weight, with exit code `0` and empty stderr. | Fails before producing stdout with exit code `2`. | `(?i)(contract\|requires\|precondition).*(probability\|weight\|normal)` |
 | 6 | t19_safe_list_update_helper | Invalid list update index using helper-based error handling. | Prints `[10, 20, 99]` after clamping the index, with exit code `0` and empty stderr. | Prints `index out of bounds` through `Err`. | none; successful `Result` error path |
 | 7 | t20_safe_slice_helper | Invalid slice end bound using helper-based error handling. | Prints `[30]` after Python silently clamps the end bound, with exit code `0` and empty stderr. | Prints `slice bounds out of range` through `Err`. | none; successful `Result` error path |
+| 8 | t21_option_unwrap_helper | Missing list element represented with `Option`. | Prints `0` after silently defaulting the invalid index. | Prints `missing` and `-1` through `Option` helpers. | none; successful `Option` path |
+| 9 | t22_result_error_handling | Invalid update represented with `Result`. | Prints `99` after silently clamping the invalid index. | Prints `error` and keeps the original list through `Result` helpers. | none; successful `Result` path |
 
 ## 1. t06_contract_non_empty_minimum
 
@@ -194,6 +196,45 @@ Verification result: confirmed by
 The harness returned `ok: true`, `stdout: "slice bounds out of range\n"`, and
 `exit_code: 0`.
 
+## 8. t21_option_unwrap_helper
+
+The reference program safely reads index `9` from `[10, 20]` using `safeAt`,
+checks absence with `isNone`, and then uses `unwrapOr(value, -1)`.
+
+Bad input: a missing list element.
+
+The Python equivalent catches `IndexError` and silently returns `0`. It exits
+normally with empty stderr, so the missing value is not explicit in the output.
+
+Aether prints `missing` and then the deliberate fallback `-1`.
+
+Expected stdout: `missing\n-1\n`.
+
+Verification result: confirmed by
+`python -m bench.harness run-task t21_option_unwrap_helper --candidate bench\tasks\t21_option_unwrap_helper\reference.aeth`.
+The harness returned `ok: true`, `stdout: "missing\n-1\n"`, and
+`exit_code: 0`.
+
+## 9. t22_result_error_handling
+
+The reference program attempts to update `[10, 20, 30]` at index `9` with
+`updateAt`, checks the error with `isErr`, and keeps the original list with
+`unwrapOrResult`.
+
+Bad input: an invalid update index.
+
+The Python equivalent clamps the index and updates the final element, printing
+`99` without any error signal.
+
+Aether prints `error` and then `20`, showing that the invalid update did not
+change element `1`.
+
+Expected stdout: `error\n20\n`.
+
+Verification result: confirmed by
+`python -m bench.harness run-task t22_result_error_handling --candidate bench\tasks\t22_result_error_handling\reference.aeth`.
+The harness returned `ok: true`, `stdout: "error\n20\n"`, and `exit_code: 0`.
+
 ## Harness Changes
 
 `compile_and_run` now returns `stdout`, `stderr`, and `exit_code` for parse,
@@ -227,8 +268,8 @@ hard-coded `python3`, and it includes the Python-equivalent benchmark check.
 Command: `python -m bench.harness run-reference`
 
 Result: passed. The latest command in this pass reported
-`# 18/18 reference solutions pass`. The two safe-list helper tasks were marked
-`ok: true`; the contract-wedge tasks remained in wedge mode.
+`# 20/20 reference solutions pass`. The safe-list and Option/Result helper
+tasks were marked `ok: true`; the contract-wedge tasks remained in wedge mode.
 
 Command:
 `python -m bench.harness run-task t06_contract_non_empty_minimum --candidate bench\tasks\t06_contract_non_empty_minimum\reference.aeth`
@@ -273,6 +314,8 @@ Result: passed for the intended Python behavior. Observed outputs were:
 | t10_contract_normalized_probability | `0` | `bucket=0\n` | empty |
 | t19_safe_list_update_helper | `0` | `[10, 20, 99]\n` | empty |
 | t20_safe_slice_helper | `0` | `[30]\n` | empty |
+| t21_option_unwrap_helper | `0` | `0\n` | empty |
+| t22_result_error_handling | `0` | `99\n` | empty |
 
 Command: `python tests\test_regressions.py`
 
@@ -283,7 +326,7 @@ regression `S-012` was skipped because this platform does not expose
 Command: `python scripts\run_all.py`
 
 Result: passed. The latest command in this pass reported `# reference: 10/10`,
-`# bench: 18/18`, `# python eq: 15/15`, `# regression: PASS`,
+`# bench: 20/20`, `# python eq: 17/17`, `# regression: PASS`,
 `# additional: PASS`, and `# fuzz: PASS`.
 
 Command: `python -B scripts\fuzz_parser.py --rounds 200 --mode all`
