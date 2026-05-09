@@ -14,6 +14,7 @@ import re
 import shutil
 import subprocess
 import sys
+import argparse
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -966,15 +967,46 @@ def run_one(run_dir: Path, language: str, task_id: str) -> dict[str, Any]:
     return final
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Run the codex-current-session production benchmark artifacts "
+            "using the protocol and task set recorded in EXPERIMENT.md."
+        )
+    )
+    parser.add_argument(
+        "--phase-dir",
+        default="phase2",
+        help="subdirectory under runs/ for output artifacts (default: phase2)",
+    )
+    parser.add_argument(
+        "--phase-label",
+        default=None,
+        help="human-readable label used in README.md",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
     timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S_%z")
-    run_dir = ROOT / "runs" / "phase2" / timestamp
+    run_dir = ROOT / "runs" / args.phase_dir / timestamp
     run_dir.mkdir(parents=True, exist_ok=False)
     if (ROOT / "EXPERIMENT.md").exists():
         shutil.copy2(ROOT / "EXPERIMENT.md", run_dir / "EXPERIMENT_SNAPSHOT.md")
 
+    phase_label = args.phase_label
+    if phase_label is None:
+        phase_label = (
+            "Phase 2.1 Production Run"
+            if args.phase_dir == "phase2"
+            else f"{args.phase_dir} Production Run"
+        )
+
     manifest = {
         "timestamp": timestamp,
+        "phase_dir": args.phase_dir,
+        "phase_label": phase_label,
         "model": MODEL,
         "git_head": git_head(),
         "protocol": "EXPERIMENT.md",
@@ -997,10 +1029,10 @@ def main() -> int:
     }
     write_json(run_dir / "SUMMARY.json", summary)
     (run_dir / "README.md").write_text(
-        "# Phase 2.1 Production Run\n\n"
+        f"# {phase_label}\n\n"
         "This directory contains prompt, candidate, grade, diagnostic, retry, "
         "and token-count artifacts for the codex-current-session run.\n\n"
-        "No interpretation is included here; see later Phase 2 steps for "
+        "No interpretation is included here; see later phase steps for "
         "analysis.\n",
         encoding="utf-8",
     )
