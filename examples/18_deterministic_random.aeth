@@ -1,0 +1,8 @@
+function main() returns Unit
+  effects random, log
+do
+  print("deterministic random sequence")
+  print(intToString(random()))
+  print(intToString(random()))
+  print(intToString(random()))
+end

@@ -10,7 +10,8 @@ Subcommands:
                                    `program.aeth` and `expected_stdout.txt`
 
 Global flag: --json — emit machine-readable error output. The CLI prints a
-single JSON object on stderr and exits non-zero on failure.
+single JSON object on stderr and exits non-zero on failure. `run` also supports
+`--deterministic`, `--seed`, and `--fixed-time` for reproducible runtime hooks.
 """
 
 from __future__ import annotations
@@ -31,7 +32,7 @@ from .passes.capability import check_capabilities
 from .passes.effects import check_effects
 from .passes.smt import check_smt_contracts
 from .passes.types import check_types
-from .runtime import build_namespace, set_effect_strict
+from .runtime import build_namespace, configure_deterministic_runtime, set_effect_strict
 
 
 # ----------------------------------------------------------------------
@@ -167,6 +168,24 @@ def cmd_check(args) -> int:
 def cmd_run(args) -> int:
     if args.effect_strict:
         set_effect_strict(True)
+    try:
+        configure_deterministic_runtime(
+            deterministic=args.deterministic,
+            seed=args.seed,
+            fixed_time=args.fixed_time,
+        )
+    except ValueError as e:
+        diag = Diagnostic(
+            code="DETERMINISTIC_TIME_INVALID",
+            category="runtime",
+            severity="error",
+            message=f"invalid --fixed-time value: {e}",
+            position=Position(0, 0),
+            suggestion="use an ISO timestamp such as 2026-05-10T00:00:00",
+            confidence=1.0,
+        )
+        _emit_error(diag, args.json)
+        return 2
     src = _read(args.file)
     ast = _parse_source(src, args.file)
     rc = _run_type_check(ast, args.json, src)
@@ -213,6 +232,7 @@ def cmd_test(args) -> int:
     Exits 0 on match, 1 on mismatch, 2 on compile/runtime error.
     """
     pdir = args.dir
+    configure_deterministic_runtime(deterministic=False, seed=0, fixed_time=None)
     src_path = os.path.join(pdir, "program.aeth")
     exp_path = os.path.join(pdir, "expected_stdout.txt")
     if not os.path.isfile(src_path):
@@ -295,6 +315,13 @@ def main(argv=None) -> int:
     _add_json_arg(sp)
     sp.add_argument("--effect-strict", action="store_true",
                     help="enforce that observed effects are subset of declared")
+    sp.add_argument("--deterministic", action="store_true",
+                    help="use deterministic runtime hooks for random() and fixed time")
+    sp.add_argument("--seed", type=int, default=0,
+                    help="seed for deterministic random(); default: 0")
+    sp.add_argument("--fixed-time",
+                    help="ISO timestamp returned by time.now()/now(), "
+                         "for example 2026-05-10T00:00:00")
     sp.add_argument("--capability-strict", action="store_true",
                     help="enforce that every effect's required capability is "
                          "declared by some module in the program")

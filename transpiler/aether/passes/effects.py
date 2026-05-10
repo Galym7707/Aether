@@ -93,6 +93,7 @@ _STDLIB_EFFECTS: Dict[str, EffectSet] = {
     "writeFile": (_spec(("fs", "write")),),
     # Time / Hash / Math.
     "now": (_spec(("time", "now")),),
+    "random": (_spec(("random",)),),
     "sha256": _PURE,
     "sha1": _PURE,
     "md5": _PURE,

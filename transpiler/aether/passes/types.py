@@ -610,6 +610,12 @@ class _TypeChecker:
         if name in {"sqrt", "pow"}:
             self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
             return ValueInfo(FLOAT)
+        if name == "now":
+            self._infer_args(args, env, [], generic_vars)
+            return ValueInfo(AType("Instant"))
+        if name == "random":
+            self._infer_args(args, env, [], generic_vars)
+            return ValueInfo(INT)
         if name in {"slice"}:
             self._infer_args(args, env, [STRING, INT, INT], generic_vars)
             return ValueInfo(STRING)

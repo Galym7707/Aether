@@ -25,10 +25,6 @@ literal, and the diagnostic can suggest the wrong fix. Current workaround: use
 positional construction such as `Point(1.0, 2.0)`. v0.4+ should either
 implement a `RecordLit` AST kind or remove the form from the spec.
 
-### S-009 - `time.now` and `random` are not seedable for deterministic mode
-The runtime still calls Python wall-clock / random behavior directly where
-available. v0.4+ should add deterministic-mode hooks for reproducible runs.
-
 ### S-010 - CLI compile-cache friction with mounted filesystems
 `__pycache__` files on mounted Windows filesystems can create stale-bytecode
 friction. Current workaround: run with `python -B` or
@@ -98,6 +94,13 @@ helpers, and user generic function calls such as `identity<T>(x: T) returns T`.
 Explicit generic call syntax such as `identity<Int>(5)` remains unsupported
 and is rejected by prelint. Regression coverage:
 `tests/test_generic_typechecking.py`.
+
+### S-009 - Deterministic time/random mode implemented for supported hooks (resolved 2026-05-10)
+`aether run --deterministic` configures `random()` to use a seeded
+pseudo-random generator. `--seed` defaults to `0`. `time.now()` and `now()` use
+a fixed instant in deterministic mode, with `--fixed-time` accepting ISO
+timestamps such as `2026-05-10T00:00:00`. Regression coverage:
+`tests/test_deterministic_runtime.py`.
 
 ### S-008 - Parser fuzzer added (resolved 2026-05-03)
 `scripts/fuzz_parser.py` runs random, mutate, and token-perturbation modes and

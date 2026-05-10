@@ -13,7 +13,9 @@ just calls them directly.
 """
 
 from __future__ import annotations
+from datetime import datetime, timezone
 from fnmatch import fnmatchcase
+import random as _py_random
 from typing import Any, Callable, Dict, List, Tuple, Optional
 
 
@@ -155,6 +157,37 @@ class EffectTracker:
 
 _TRACKER = EffectTracker(strict=False)
 _CALLSITE_STACK: List[Tuple[int, int]] = []
+_DETERMINISTIC = False
+_RNG = _py_random.Random(0)
+_FIXED_EPOCH_MILLIS: Optional[int] = None
+
+
+def configure_deterministic_runtime(
+    *,
+    deterministic: bool = False,
+    seed: int = 0,
+    fixed_time: Optional[str] = None,
+):
+    """Configure deterministic stdlib hooks for one CLI/SDK execution."""
+    global _DETERMINISTIC, _RNG, _FIXED_EPOCH_MILLIS
+    _DETERMINISTIC = bool(deterministic)
+    _RNG = _py_random.Random(seed)
+    if fixed_time is not None:
+        _FIXED_EPOCH_MILLIS = _parse_fixed_time(fixed_time)
+    elif _DETERMINISTIC:
+        _FIXED_EPOCH_MILLIS = 0
+    else:
+        _FIXED_EPOCH_MILLIS = None
+
+
+def _parse_fixed_time(value: str) -> int:
+    text = value.strip()
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    dt = datetime.fromisoformat(text)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return int(dt.timestamp() * 1000)
 
 
 def set_effect_strict(strict: bool):
@@ -435,8 +468,16 @@ def _ae_writeFile(path, contents):
 
 def _ae_now():
     record_effect("time", "now")
+    if _FIXED_EPOCH_MILLIS is not None:
+        return {"_kind": "Instant", "epochMillis": _FIXED_EPOCH_MILLIS}
     import time
     return {"_kind": "Instant", "epochMillis": int(time.time() * 1000)}
+
+def _ae_random():
+    record_effect("random")
+    if _DETERMINISTIC:
+        return _RNG.randrange(0, 2147483648)
+    return _py_random.randrange(0, 2147483648)
 
 def _ae_sha256(b):
     import hashlib
@@ -674,4 +715,5 @@ def build_namespace() -> Dict[str, Any]:
             "_aether_match_failed",
         }:
             g[name] = val
+    g["_ae_time"] = {"now": _ae_now}
     return g

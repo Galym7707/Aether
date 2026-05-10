@@ -188,6 +188,9 @@ The constructors `Some`, `None`, `Ok`, `Err` are also always in scope.
     function now() returns Instant
       effects time.now
 
+    // Namespace-style form accepted by the current runtime:
+    // time.now()
+
     function plus(t: Instant, d: Duration) returns Instant
       effects pure
 
@@ -220,6 +223,9 @@ The constructors `Some`, `None`, `Ok`, `Err` are also always in scope.
     function sqrt(x: Float) returns Float
       effects pure
       requires x >= 0.0
+
+    function random() returns Int
+      effects random
 
 ## Result / Option helpers
 

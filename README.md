@@ -121,6 +121,8 @@ Most common syntax rules:
   defaulting to pure.
 - Precise argumented effect rows for supported `net.fetch("...")` effects
   across direct calls, function types, and named Option/Result callbacks.
+- Deterministic runtime mode for `random()` and `time.now()` through
+  `aether run --deterministic`, `--seed`, and `--fixed-time`.
 - Static match exhaustiveness diagnostics for known `Option`, `Result`, and
   user-defined union scrutinees.
 - Runtime index diagnostics for dynamic out-of-bounds cases, without Python
@@ -142,7 +144,6 @@ Most common syntax rules:
 - Explicit generic call syntax such as `identity<Int>(5)`. Generic functions
   are called normally, for example `identity(5)`, and the checker infers
   supported type variables from arguments.
-- Deterministic runtime hooks for time/random.
 - Precise call-site source spans for every runtime diagnostic. Contract,
   refinement, and index diagnostics now include useful source lines where
   feasible, but some runtime errors still report boundary/helper positions.
@@ -162,6 +163,24 @@ Most common syntax rules:
 - A production security model for capabilities. `--capability-strict` is an
   opt-in static check, not a complete sandbox.
 - A package release. `pip install -e .` is for local development.
+
+## Deterministic Runtime
+
+`aether run` supports reproducible runtime hooks:
+
+```powershell
+aether run --deterministic --seed=123 examples\18_deterministic_random.aeth
+aether run --deterministic --fixed-time=2026-05-10T00:00:00 examples\19_deterministic_time.aeth
+```
+
+`--deterministic` makes `random()` use a seeded pseudo-random generator. The
+default seed is `0`; pass `--seed=<int>` to choose another sequence.
+
+`time.now()` and `now()` return an `Instant` record-like value with
+`epochMillis`. In deterministic mode without `--fixed-time`, the time is frozen
+to Unix epoch `0`. With `--fixed-time`, the CLI parses an ISO timestamp and
+returns that fixed instant. Without deterministic flags, `time.now()` keeps the
+normal wall-clock behavior.
 
 ## Development Commands
 
@@ -185,6 +204,7 @@ python -B tests\test_match_exhaustiveness.py
 python -B tests\test_higher_order_effects.py
 python -B tests\test_function_type_effects.py
 python -B tests\test_effect_row_precision.py
+python -B tests\test_deterministic_runtime.py
 python -m pytest -q
 ```
 
@@ -198,6 +218,8 @@ python -B -m transpiler.aether.cli check examples\06_safe_at.aeth
 python -B -m transpiler.aether.cli run examples\06_safe_at.aeth
 python -B -m transpiler.aether.cli check examples\09_option_helpers.aeth
 python -B -m transpiler.aether.cli run examples\09_option_helpers.aeth
+python -B -m transpiler.aether.cli run --deterministic --seed=123 examples\18_deterministic_random.aeth
+python -B -m transpiler.aether.cli run --deterministic --fixed-time=2026-05-10T00:00:00 examples\19_deterministic_time.aeth
 python -B -m transpiler.aether.cli --json check examples\negative\06_effect_violation_demo.aeth
 ```
 
@@ -208,6 +230,7 @@ pip install -e .
 aether ast examples\01_safe_divide.aeth
 aether check examples\01_safe_divide.aeth
 aether run examples\01_safe_divide.aeth
+aether run --deterministic --seed=123 examples\18_deterministic_random.aeth
 ```
 
 Fuzz smoke test:

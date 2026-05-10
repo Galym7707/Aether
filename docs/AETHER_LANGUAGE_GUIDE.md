@@ -179,6 +179,33 @@ Direct calls use the same rule. A function with
 `effects net.fetch("https://billing.example.com/*")`; the diagnostic code is
 `EFFECT_NOT_COVERED`.
 
+### Deterministic Runtime Hooks
+
+Use `random()` for pseudo-random integers and `time.now()` or `now()` for the
+current instant. Both are effectful:
+
+```aether
+function main() returns Unit
+  effects random, time.now, log
+do
+  print(intToString(random()))
+  print(intToString(time.now().epochMillis))
+end
+```
+
+Run with deterministic flags when you need reproducible output:
+
+```powershell
+aether run --deterministic --seed=123 examples\18_deterministic_random.aeth
+aether run --deterministic --fixed-time=2026-05-10T00:00:00 examples\19_deterministic_time.aeth
+```
+
+`--seed` controls the deterministic `random()` sequence. If omitted, the seed is
+`0`. `--fixed-time` supplies the timestamp returned by `time.now()` and `now()`;
+without it, deterministic mode freezes time at Unix epoch `0`. Without
+deterministic flags, `time.now()` uses wall-clock time and `random()` uses the
+normal non-deterministic Python random source.
+
 ### If / Else
 
 ```aether
@@ -467,6 +494,7 @@ Aether syntax rules:
 - Every function must include an `effects` clause. Use `effects pure` for pure helpers and `effects log` for functions that print.
 - For network-like effects, use precise rows such as `effects net.fetch("https://api.example.com/*")`; this does not cover other domains.
 - Annotate effectful function-typed parameters, for example `function(Int) returns String effects net.fetch("https://api.example.com/*")`.
+- For reproducible randomness or time in examples, run with `aether run --deterministic --seed=123` and optional `--fixed-time=2026-05-10T00:00:00`.
 - Use `requires` and `ensures` for preconditions and postconditions.
 - Prefer `safeAt(xs, i)`, `updateAt(xs, i, value)`, and `safeSlice(xs, start, end)` for safe list access/update/slicing.
 - Prefer exhaustive `match` for `Option` and `Result`.

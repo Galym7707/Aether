@@ -33,6 +33,8 @@ Rules:
 - Omitted function type effects default to pure.
 - For network effects, use precise rows: `net.fetch` covers all fetches, `net.fetch("*")` covers all argumented fetches, and `net.fetch("https://api.example.com/*")` covers only that URL prefix.
 - `net.fetch("https://api.example.com/*")` does not cover `net.fetch("https://billing.example.com/*")`.
+- `random()` requires `effects random`; `time.now()` and `now()` require `effects time.now`.
+- Use `aether run --deterministic --seed=123` and optional `--fixed-time=2026-05-10T00:00:00` for reproducible examples.
 - Use `unwrapOr(opt, default)` only when a fallback is correct.
 - Use `unwrapOrResult(res, default)` only when a fallback is correct.
 - Use `expectSome(opt, message)` or `expectOk(res, message)` only when failure should be a diagnostic.

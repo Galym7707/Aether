@@ -163,7 +163,7 @@ and a result table without claiming unrun benchmark results.
 
 | Command | Result | Important output summary |
 |---|---|---|
-| `python -B scripts\run_all.py` | pass | reference `10/10`, bench `23/23`, python equivalents `20/20`, regression PASS, additional PASS, fuzz PASS |
+| `python -B scripts\run_all.py` | pass | reference `10/10`, bench `25/25`, python equivalents `22/22`, regression PASS, additional PASS, fuzz PASS |
 | `python -B validation\run_validation.py` | pass | active validation references `10/10`, 5 deprecated skipped |
 | `python -B validation\run_python_validation.py` | pass | python validation references `10/10` |
 | `python -B tests\test_regressions.py` | pass | `ALL REGRESSION TESTS PASS`; `S-012` skipped because Windows lacks `SIGALRM` |
@@ -190,7 +190,7 @@ and a result table without claiming unrun benchmark results.
 | `aether run examples\01_safe_divide.aeth` | pass | printed `5` |
 | `aether ast examples\01_safe_divide.aeth` | pass | printed AST JSON with 2 declarations |
 | `aether --json check examples\negative\06_effect_violation_demo.aeth` | expected failure | produced JSON diagnostic `EFFECT_NOT_COVERED`, category `effect`, source snippet present |
-| `python -m pytest -q` | pass | `98 passed in 8.37s` |
+| `pytest -q` | pass | `115 passed in 6.14s` |
 | `python -B scripts\fuzz_parser.py --rounds 200 --mode all` | pass | 0 violations, 0 emit violations, 0 roundtrip errors |
 | `git diff --check` | pass | exit 0; only line-ending warnings from Git on Windows |
 | `python3 -B scripts/run_all.py` | not run | `python3` command is not installed on this Windows host |
@@ -300,6 +300,18 @@ tasks `t26_effect_row_direct_mismatch` and
 `t27_effect_row_callback_mismatch`, and
 `docs/AETHER_EFFECT_ROW_PRECISION_REPORT.md`.
 
+## Deterministic Runtime Pass
+
+Implemented deterministic runtime hooks for `random()`, `time.now()`, and
+`now()`. The CLI now supports `aether run --deterministic`, `--seed`, and
+`--fixed-time`. `random()` uses a seeded pseudo-random generator; `time.now()`
+and `now()` return a fixed `Instant` in deterministic mode.
+
+Added `examples/18_deterministic_random.aeth`,
+`examples/19_deterministic_time.aeth`, and
+`tests/test_deterministic_runtime.py`. Updated README, language guide,
+feature matrix, stdlib/effect docs, and example index.
+
 ## 8. Remaining Limitations
 
 Aether is still not production-ready.
@@ -318,8 +330,9 @@ and named Option/Result helper callback effect diagnostics point at the helper
 call. Dynamic higher-order calls and some non-contract runtime failures still
 lack exact caller spans.
 
-The deterministic runtime is incomplete. Time/random are not seedable for
-reproducible execution.
+The deterministic runtime is implemented for the supported `random()`,
+`time.now()`, and `now()` hooks. It is a reproducibility aid, not a complete
+deterministic scheduler or sandbox.
 
 The capability system is partial. `--capability-strict` is useful for static
 effect/capability consistency, but it is not a production sandbox.
@@ -332,8 +345,7 @@ literals are not implemented.
 1. Stronger static verification beyond the current SMT arithmetic fragment.
 2. More complete type inference and generic checking for future language
    constructs.
-3. Deterministic runtime hooks for time/random.
-4. Richer standard library beyond the current safe list helper subset.
-5. More AI generation benchmarks with saved model outputs.
-6. Package release workflow after the prototype stabilizes.
-7. Documentation site generated from `docs/`, `grammar/`, and `examples/`.
+3. Richer standard library beyond the current safe list helper subset.
+4. More AI generation benchmarks with saved model outputs.
+5. Package release workflow after the prototype stabilizes.
+6. Documentation site generated from `docs/`, `grammar/`, and `examples/`.

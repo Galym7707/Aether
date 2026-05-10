@@ -1,0 +1,6 @@
+function main() returns Unit
+  effects time.now, log
+do
+  print("time.now epochMillis")
+  print(intToString(time.now().epochMillis))
+end

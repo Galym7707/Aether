@@ -124,3 +124,11 @@ the body directly calls a known function, or passes a named effectful callback
 to a supported Option/Result helper, the static effect checker rejects missing
 effect declarations with a structured error. This makes "I think this function
 is pure" a checkable claim for the implemented direct and named-callback cases.
+
+## Deterministic Runtime Hooks
+
+`random()` declares `effects random`. `time.now()` and `now()` declare
+`effects time.now`. Running with `aether run --deterministic` makes `random()`
+use a seeded pseudo-random generator; `--seed` defaults to `0`. Deterministic
+mode freezes `time.now()` to Unix epoch `0` unless `--fixed-time` supplies an
+ISO timestamp such as `2026-05-10T00:00:00`.

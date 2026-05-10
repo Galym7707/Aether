@@ -29,6 +29,7 @@ The current repository has passed the local gates below on Windows from
 | Lexer/parser/emitter/runtime | Working for current reference, benchmark, and validation corpora. | `scripts/run_all.py`, `validation/run_validation.py` |
 | Runtime `requires` / `ensures` contracts | Implemented with structured diagnostics. | `tests/test_regressions.py::test_S001_*` |
 | Refinement-typed parameter checks | Implemented at function boundaries. | `tests/test_regressions.py::test_S002_*` |
+| Deterministic runtime hooks | Implemented for `random()`, `time.now()`, and `now()` via `aether run --deterministic`, `--seed`, and `--fixed-time`. | `tests/test_deterministic_runtime.py`; examples 18-19 |
 | Capability gating | Implemented as opt-in `--capability-strict`. | `tests/test_regressions.py::test_capability_*` |
 | Parser fuzzer | Wired into `scripts/run_all.py`. | run output: fuzz PASS, 200 rounds x 3 modes |
 
@@ -80,7 +81,6 @@ Open v0.4+ items remain in `SPEC_ISSUES.md`:
 - S-005 pattern-match expression helper verbosity.
 - S-006 brace record-update literal.
 - S-007 generic-function type checking.
-- S-009 deterministic time/random mode.
 - S-010 compile-cache ergonomics on mounted filesystems.
 - S-013 value-level `as` cast.
 - S-014 non-zero contract diagnostic positions.

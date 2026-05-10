@@ -25,6 +25,8 @@ python -B -m transpiler.aether.cli check examples\14_function_type_effects.aeth
 python -B -m transpiler.aether.cli check examples\15_effect_row_precision_direct.aeth
 python -B -m transpiler.aether.cli check examples\16_effect_row_precision_function_type.aeth
 python -B -m transpiler.aether.cli check examples\17_effect_row_precision_option_result.aeth
+python -B -m transpiler.aether.cli check examples\18_deterministic_random.aeth
+python -B -m transpiler.aether.cli check examples\19_deterministic_time.aeth
 ```
 
 Run a few examples:
@@ -43,6 +45,8 @@ python -B -m transpiler.aether.cli run examples\14_function_type_effects.aeth
 python -B -m transpiler.aether.cli run examples\15_effect_row_precision_direct.aeth
 python -B -m transpiler.aether.cli run examples\16_effect_row_precision_function_type.aeth
 python -B -m transpiler.aether.cli run examples\17_effect_row_precision_option_result.aeth
+python -B -m transpiler.aether.cli run --deterministic --seed=123 examples\18_deterministic_random.aeth
+python -B -m transpiler.aether.cli run --deterministic --fixed-time=2026-05-10T00:00:00 examples\19_deterministic_time.aeth
 ```
 
 Expected output from those commands, in order:
@@ -77,6 +81,12 @@ bad update
 user:1
 user:1
 precise effects ok
+deterministic random sequence
+224899942
+1149664691
+374463918
+time.now epochMillis
+1778371200000
 ```
 
 ## Negative Examples
@@ -139,7 +149,9 @@ Start with:
 12. `15_effect_row_precision_direct.aeth`
 13. `16_effect_row_precision_function_type.aeth`
 14. `17_effect_row_precision_option_result.aeth`
-15. `05_safe_normalize_weights.aeth`
+15. `18_deterministic_random.aeth`
+16. `19_deterministic_time.aeth`
+17. `05_safe_normalize_weights.aeth`
 
 Avoid copying from `examples/negative/` unless you are intentionally writing a
 program that demonstrates a diagnostic.
