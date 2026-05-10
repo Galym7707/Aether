@@ -1,0 +1,18 @@
+// Expected diagnostic: FUNCTION_TYPE_EFFECT_MISMATCH.
+function fetchBilling(id: Int) returns String
+  effects net.fetch("https://billing.example.com/*")
+do
+  return "billing"
+end
+
+function useFetcher(f: function(Int) returns String effects net.fetch("https://api.example.com/*"), id: Int) returns String
+  effects net.fetch("https://api.example.com/*")
+do
+  return f(id)
+end
+
+function main() returns Unit
+  effects net.fetch("https://api.example.com/*"), log
+do
+  print(useFetcher(fetchBilling, 1))
+end

@@ -22,25 +22,38 @@ An effect is a dotted path: `category.action` or `category.action(arg)`.
 
 In v0.1 these were tracked as opaque strings. The current checker preserves
 string arguments for effects such as `net.fetch("https://api.x/*")` and
-supports prefix/glob-aware subset checks for direct function calls. The runtime
+performs precise row checks for direct calls, function-typed parameters, and
+named callbacks passed to the implemented Option/Result helpers. The runtime
 strict checker keeps the same compatibility rule for observed effects.
 
 ## Composition rule
 
 A function `f` may invoke another function `g` only if every effect in `g`'s declared set is also in `f`'s declared set, **except** that `pure` is the bottom element: a `pure` function may only call `pure` functions.
 
-The checker enforces this conservatively: dotted path prefixes are allowed, an
-unargumented caller declaration such as `net.fetch` covers narrower
-argumented callee declarations, and a caller glob can cover concrete matching
-URLs or a narrower trailing-star glob. The reverse direction is rejected.
+The implemented coverage rules are deliberately small and exact:
+
+- `pure` is bottom: it covers only calls with no effects.
+- `log` covers only `log`.
+- `fs.read` covers only `fs.read`; `fs.write` covers only `fs.write`.
+- `net.fetch` covers every `net.fetch("...")` effect.
+- `net.fetch("*")` covers every argumented fetch.
+- `net.fetch("https://api.example.com/*")` covers URLs under that prefix.
+- A concrete URL covers only the exact same URL.
+- A narrower caller row never covers a broader callee row.
+
+For example, `effects net.fetch("https://api.example.com/*")` covers
+`net.fetch("https://api.example.com/users")`, but it does not cover
+`net.fetch("https://billing.example.com/*")` or `net.fetch`.
+Direct-call row failures use diagnostic code `EFFECT_NOT_COVERED`.
 
 For the implemented higher-order Option/Result helpers (`mapOption`,
 `andThenOption`, `mapResult`, `mapErr`, and `andThenResult`), named callback
 functions contribute their declared effects to the enclosing function. A pure
 function that calls `mapOption(Some(1), logValue)` is rejected if `logValue`
 declares `effects log`. The diagnostic code is
-`HIGHER_ORDER_EFFECT_ESCAPE`. Unknown function-valued parameters and dynamic
-callbacks remain a prototype limitation.
+`HIGHER_ORDER_EFFECT_ESCAPE`. The same precise `net.fetch(...)` row coverage
+rules apply. Unknown function-valued parameters and dynamic callbacks remain a
+prototype limitation.
 
 Function types can now carry the same effect information:
 
@@ -52,7 +65,9 @@ Function types can now carry the same effect information:
 
 The `effects` annotation on a function type is optional and defaults to
 `pure`. Calling a function-typed parameter with `effects log` from a pure
-function is rejected with `HIGHER_ORDER_EFFECT_ESCAPE`.
+function is rejected with `HIGHER_ORDER_EFFECT_ESCAPE`. Passing a named
+function whose effects are not covered by a function-typed parameter is rejected
+with `FUNCTION_TYPE_EFFECT_MISMATCH`.
 
 ## Capability gating
 

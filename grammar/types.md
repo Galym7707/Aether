@@ -133,6 +133,13 @@ function's own `effects` clause. For example, calling
 `f: function(Int) returns Int effects log` from an `effects pure` function
 produces `HIGHER_ORDER_EFFECT_ESCAPE`.
 
+Effect arguments are part of function type compatibility. A parameter declared
+as `function(Int) returns String effects net.fetch("https://api.example.com/*")`
+accepts a callback whose effect is
+`net.fetch("https://api.example.com/users/*")`, but rejects one whose effect is
+`net.fetch("https://billing.example.com/*")` with
+`FUNCTION_TYPE_EFFECT_MISMATCH`.
+
 ## Subtyping
 
 There is no implemented general subtyping system. Refinement-typed parameters

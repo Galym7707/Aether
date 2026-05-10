@@ -149,7 +149,7 @@ end
 """,
         "check",
     )
-    assert diag["code"] == "E0801", diag
+    assert diag["code"] == "EFFECT_NOT_COVERED", diag
     assert diag["category"] == "effect", diag
     assert diag["source_snippet"], diag
 

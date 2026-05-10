@@ -126,8 +126,8 @@ coverage: `tests/test_regressions.py::test_capability_*`.
 
 ### S-019 - Static effect checking is wired by default (resolved 2026-05-08)
 `transpiler/aether/passes/effects.py` walks each `FunctionDecl`, checks direct
-calls to known local and stdlib functions, and reports `E0801` when callee
-effects are not covered by caller effects. `aether check`, `aether run`,
+calls to known local and stdlib functions, and reports `EFFECT_NOT_COVERED`
+when callee effects are not covered by caller effects. `aether check`, `aether run`,
 `aether test`, the benchmark harness, and the agent SDK call this pass by
 default. Regression coverage:
 `tests/test_regressions.py::test_static_effect_check_blocks_pure_print` and

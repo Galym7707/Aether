@@ -22,6 +22,9 @@ python -B -m transpiler.aether.cli check examples\11_exhaustive_match.aeth
 python -B -m transpiler.aether.cli check examples\12_pure_option_result_chaining.aeth
 python -B -m transpiler.aether.cli check examples\13_effect_aware_helpers.aeth
 python -B -m transpiler.aether.cli check examples\14_function_type_effects.aeth
+python -B -m transpiler.aether.cli check examples\15_effect_row_precision_direct.aeth
+python -B -m transpiler.aether.cli check examples\16_effect_row_precision_function_type.aeth
+python -B -m transpiler.aether.cli check examples\17_effect_row_precision_option_result.aeth
 ```
 
 Run a few examples:
@@ -37,6 +40,9 @@ python -B -m transpiler.aether.cli run examples\11_exhaustive_match.aeth
 python -B -m transpiler.aether.cli run examples\12_pure_option_result_chaining.aeth
 python -B -m transpiler.aether.cli run examples\13_effect_aware_helpers.aeth
 python -B -m transpiler.aether.cli run examples\14_function_type_effects.aeth
+python -B -m transpiler.aether.cli run examples\15_effect_row_precision_direct.aeth
+python -B -m transpiler.aether.cli run examples\16_effect_row_precision_function_type.aeth
+python -B -m transpiler.aether.cli run examples\17_effect_row_precision_option_result.aeth
 ```
 
 Expected output from those commands, in order:
@@ -68,6 +74,9 @@ bad update
 8
 5
 10
+user:1
+user:1
+precise effects ok
 ```
 
 ## Negative Examples
@@ -86,6 +95,9 @@ python -B -m transpiler.aether.cli --json check examples\negative\08_bad_result_
 python -B -m transpiler.aether.cli --json check examples\negative\09_effect_escape_map_option.aeth
 python -B -m transpiler.aether.cli --json check examples\negative\10_effect_escape_map_result.aeth
 python -B -m transpiler.aether.cli --json check examples\negative\11_function_type_effect_escape.aeth
+python -B -m transpiler.aether.cli --json check examples\negative\12_effect_row_direct_mismatch.aeth
+python -B -m transpiler.aether.cli --json check examples\negative\13_function_type_effect_mismatch.aeth
+python -B -m transpiler.aether.cli --json check examples\negative\14_helper_effect_row_escape.aeth
 python -B -m transpiler.aether.cli --json check examples\negative\06_effect_violation_demo.aeth
 ```
 
@@ -104,7 +116,10 @@ Expected diagnostics:
 | `negative/09_effect_escape_map_option.aeth` | `check` | `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect` |
 | `negative/10_effect_escape_map_result.aeth` | `check` | `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect` |
 | `negative/11_function_type_effect_escape.aeth` | `check` | `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect` |
-| `negative/06_effect_violation_demo.aeth` | `check` | `E0801`, category `effect` |
+| `negative/12_effect_row_direct_mismatch.aeth` | `check` | `EFFECT_NOT_COVERED`, category `effect` |
+| `negative/13_function_type_effect_mismatch.aeth` | `check` | `FUNCTION_TYPE_EFFECT_MISMATCH`, category `type` |
+| `negative/14_helper_effect_row_escape.aeth` | `check` | `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect` |
+| `negative/06_effect_violation_demo.aeth` | `check` | `EFFECT_NOT_COVERED`, category `effect` |
 
 ## Best Files For AI Imitation
 
@@ -121,7 +136,10 @@ Start with:
 9. `12_pure_option_result_chaining.aeth`
 10. `13_effect_aware_helpers.aeth`
 11. `14_function_type_effects.aeth`
-12. `05_safe_normalize_weights.aeth`
+12. `15_effect_row_precision_direct.aeth`
+13. `16_effect_row_precision_function_type.aeth`
+14. `17_effect_row_precision_option_result.aeth`
+15. `05_safe_normalize_weights.aeth`
 
 Avoid copying from `examples/negative/` unless you are intentionally writing a
 program that demonstrates a diagnostic.

@@ -119,6 +119,8 @@ Most common syntax rules:
 - Effect annotations on function types, for example
   `function(Int) returns Int effects log`, with omitted function type effects
   defaulting to pure.
+- Precise argumented effect rows for supported `net.fetch("...")` effects
+  across direct calls, function types, and named Option/Result callbacks.
 - Static match exhaustiveness diagnostics for known `Option`, `Result`, and
   user-defined union scrutinees.
 - Runtime index diagnostics for dynamic out-of-bounds cases, without Python
@@ -155,6 +157,8 @@ Most common syntax rules:
 - Complete higher-order effect inference for anonymous or dynamically supplied
   callbacks. Named callbacks passed to the standard Option/Result helpers are
   checked; unknown callbacks remain a documented prototype limitation.
+- General effect-row algebra beyond the supported string-literal
+  `net.fetch("...")` patterns.
 - A production security model for capabilities. `--capability-strict` is an
   opt-in static check, not a complete sandbox.
 - A package release. `pip install -e .` is for local development.
@@ -180,6 +184,7 @@ python -B tests\test_option_result_helpers.py
 python -B tests\test_match_exhaustiveness.py
 python -B tests\test_higher_order_effects.py
 python -B tests\test_function_type_effects.py
+python -B tests\test_effect_row_precision.py
 python -m pytest -q
 ```
 

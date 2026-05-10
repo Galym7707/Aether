@@ -145,7 +145,9 @@ end
 
 The diagnostic code is `HIGHER_ORDER_EFFECT_ESCAPE`. Fix it by adding the
 escaped effect to the enclosing function, passing a pure callback, or moving
-the effectful work outside the helper.
+the effectful work outside the helper. For argumented effects such as
+`net.fetch("https://billing.example.com/*")`, the enclosing function must
+declare a row that precisely covers that URL pattern.
 
 Function-typed parameters can also declare callback effects:
 
@@ -165,6 +167,17 @@ effects too:
 ```aether
 function(Int) returns function(Int) returns Bool effects log effects pure
 ```
+
+Function type effect rows are precise. A parameter typed as
+`function(Int) returns String effects net.fetch("https://api.example.com/*")`
+can accept a callback with `effects net.fetch("https://api.example.com/users/*")`,
+but not one with `effects net.fetch("https://billing.example.com/*")`.
+That argument mismatch uses diagnostic code `FUNCTION_TYPE_EFFECT_MISMATCH`.
+
+Direct calls use the same rule. A function with
+`effects net.fetch("https://api.example.com/*")` cannot call a callee requiring
+`effects net.fetch("https://billing.example.com/*")`; the diagnostic code is
+`EFFECT_NOT_COVERED`.
 
 ### If / Else
 
@@ -433,7 +446,8 @@ do
 end
 ```
 
-`aether check` rejects this with `E0801` because `print` requires `log`.
+`aether check` rejects this with `EFFECT_NOT_COVERED` because `print` requires
+`log`.
 
 ## Ready-To-Copy AI Prompt
 
@@ -451,6 +465,8 @@ Aether syntax rules:
 - Use `if cond then ... end`, not `if (...) { ... }`.
 - Use named helper predicates, not lambdas like `(x) => ...`.
 - Every function must include an `effects` clause. Use `effects pure` for pure helpers and `effects log` for functions that print.
+- For network-like effects, use precise rows such as `effects net.fetch("https://api.example.com/*")`; this does not cover other domains.
+- Annotate effectful function-typed parameters, for example `function(Int) returns String effects net.fetch("https://api.example.com/*")`.
 - Use `requires` and `ensures` for preconditions and postconditions.
 - Prefer `safeAt(xs, i)`, `updateAt(xs, i, value)`, and `safeSlice(xs, start, end)` for safe list access/update/slicing.
 - Prefer exhaustive `match` for `Option` and `Result`.

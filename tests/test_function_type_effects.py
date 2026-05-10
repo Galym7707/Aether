@@ -165,7 +165,7 @@ def test_passing_effectful_function_to_default_pure_function_type_is_rejected():
         """
     )
     diag = result.diagnostic or {}
-    assert diag.get("code") == "TYPE_ARGUMENT_MISMATCH", result.to_dict()
+    assert diag.get("code") == "FUNCTION_TYPE_EFFECT_MISMATCH", result.to_dict()
     assert diag.get("expected") == "function(Int) returns Int", diag
     assert diag.get("actual") == "function(Int) returns Int effects log", diag
 
@@ -182,7 +182,7 @@ def test_incorrect_callback_effect_annotation_still_triggers_direct_effect_diagn
         """
     )
     diag = result.diagnostic or {}
-    assert diag.get("code") == "E0801", result.to_dict()
+    assert diag.get("code") == "EFFECT_NOT_COVERED", result.to_dict()
     assert diag.get("category") == "effect", diag
 
 

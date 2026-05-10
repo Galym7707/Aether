@@ -189,7 +189,7 @@ and a result table without claiming unrun benchmark results.
 | `aether check examples\01_safe_divide.aeth` | pass | `OK: examples\01_safe_divide.aeth (2 decls)` |
 | `aether run examples\01_safe_divide.aeth` | pass | printed `5` |
 | `aether ast examples\01_safe_divide.aeth` | pass | printed AST JSON with 2 declarations |
-| `aether --json check examples\negative\06_effect_violation_demo.aeth` | expected failure | produced JSON diagnostic `E0801`, category `effect`, line `2`, source snippet present |
+| `aether --json check examples\negative\06_effect_violation_demo.aeth` | expected failure | produced JSON diagnostic `EFFECT_NOT_COVERED`, category `effect`, source snippet present |
 | `python -m pytest -q` | pass | `98 passed in 8.37s` |
 | `python -B scripts\fuzz_parser.py --rounds 200 --mode all` | pass | 0 violations, 0 emit violations, 0 roundtrip errors |
 | `git diff --check` | pass | exit 0; only line-ending warnings from Git on Windows |
@@ -276,6 +276,29 @@ Added `examples/14_function_type_effects.aeth`,
 `tests/test_function_type_effects.py`. Added
 `docs/AETHER_FUNCTION_TYPE_EFFECTS_REPORT.md` for the full implementation and
 verification report.
+
+## Effect Row Precision Pass
+
+Implemented precise coverage for supported argumented effects. `pure` remains
+bottom, `log`, `fs.read`, and `fs.write` cover only themselves, and
+`net.fetch("...")` rows use exact or trailing-star URL coverage. For example,
+`net.fetch("https://api.example.com/*")` covers
+`net.fetch("https://api.example.com/users")` but not
+`net.fetch("https://billing.example.com/*")` or broader `net.fetch`.
+
+Direct-call mismatches now report `EFFECT_NOT_COVERED` with the caller, callee,
+required effect, declared caller row, source snippet, and repair hint. Function
+type callback mismatches report `FUNCTION_TYPE_EFFECT_MISMATCH`; named
+Option/Result helper callback escapes continue to report
+`HIGHER_ORDER_EFFECT_ESCAPE` using the same precise coverage rules.
+
+Added examples `examples/15_effect_row_precision_direct.aeth`,
+`examples/16_effect_row_precision_function_type.aeth`, and
+`examples/17_effect_row_precision_option_result.aeth`, negative examples
+`12` through `14`, tests in `tests/test_effect_row_precision.py`, benchmark
+tasks `t26_effect_row_direct_mismatch` and
+`t27_effect_row_callback_mismatch`, and
+`docs/AETHER_EFFECT_ROW_PRECISION_REPORT.md`.
 
 ## 8. Remaining Limitations
 

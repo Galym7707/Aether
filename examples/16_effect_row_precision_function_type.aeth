@@ -1,0 +1,17 @@
+function fetchUser(id: Int) returns String
+  effects net.fetch("https://api.example.com/users/*")
+do
+  return join(["user:", intToString(id)], "")
+end
+
+function useFetcher(f: function(Int) returns String effects net.fetch("https://api.example.com/*"), id: Int) returns String
+  effects net.fetch("https://api.example.com/*")
+do
+  return f(id)
+end
+
+function main() returns Unit
+  effects net.fetch("https://api.example.com/*"), log
+do
+  print(useFetcher(fetchUser, 1))
+end

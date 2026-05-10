@@ -1,0 +1,16 @@
+{
+  "expected_stdout": "",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "expected_exit_code": 2,
+  "expected_diagnostic_code": "EFFECT_NOT_COVERED",
+  "expected_diagnostic_category": "effect",
+  "expected_stderr_pattern": "net\\.fetch\\(\"https://billing\\.example\\.com/\\*\"\\)",
+  "python_equivalent": "python_equivalent.py",
+  "python_expected_exit_code": 0,
+  "python_expected_stdout": "billing\n",
+  "python_expected_stderr": "",
+  "python_forbidden_stderr_pattern": "(?i)(effect|contract|precondition|error)",
+  "tags": ["effects", "effect-row", "net-fetch", "ai-generation"],
+  "difficulty": "medium"
+}

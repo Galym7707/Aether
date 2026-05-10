@@ -36,8 +36,8 @@ The current repository has passed the local gates below on Windows from
 
 | Phase item | Status | Evidence |
 |---|---|---|
-| 3.1 Static effect checking | Implemented by default for `aether check`, `aether run`, `aether test`, harness, and SDK. Violations use `E0801`. | `transpiler/aether/passes/effects.py`; CLI check/run regression tests |
-| 3.2 Effect-glob matching | Implemented for broad/narrow effects, concrete strings, and trailing-star globs. | `tests/test_regressions.py::test_S004_*` |
+| 3.1 Static effect checking | Implemented by default for `aether check`, `aether run`, `aether test`, harness, and SDK. Direct-call violations use `EFFECT_NOT_COVERED`. | `transpiler/aether/passes/effects.py`; CLI check/run regression tests |
+| 3.2 Effect-glob matching | Implemented for precise `net.fetch("...")` rows, concrete strings, and trailing-star globs. | `tests/test_regressions.py::test_S004_*`; `tests/test_effect_row_precision.py` |
 | 3.3 Canonical AST round-trip | Implemented in `transpiler/aether/printer.py`; corpus round-trip regression passes. | regression output: 33 corpus programs pass |
 | 3.4 Scoped SMT contract pass | Implemented in `transpiler/aether/passes/smt.py`; arithmetic `E0901`/`E0902` fragment only. | `tests/test_regressions.py::test_smt_contract_pass_arithmetic_fragment` |
 | 3.5 Agent SDK skeleton | Implemented in `transpiler/aether/agent_sdk.py`; harness delegates core execution/grading to it. | `tests/test_regressions.py::test_agent_sdk_parse_check_run_and_grade` |

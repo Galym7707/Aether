@@ -10,6 +10,7 @@ left to runtime behavior or future type analysis.
 
 from __future__ import annotations
 
+import ast as py_ast
 from dataclasses import dataclass
 from fnmatch import fnmatchcase
 from typing import Any, Dict, Iterable, List, Optional, Tuple
@@ -157,8 +158,53 @@ def _effect_name(effect: EffectSpec) -> str:
     if effect.has_arg:
         if effect.arg is None:
             return f"{name}(?)"
-        return f"{name}({effect.arg!r})"
+        return f"{name}({_quote_effect_arg(effect.arg)})"
     return name
+
+
+def _quote_effect_arg(value: str) -> str:
+    return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def _effect_from_source(source: str) -> EffectSpec:
+    text = source.strip()
+    if "(" not in text:
+        path = tuple(part for part in text.split(".") if part)
+        return EffectSpec(path)
+    path_text, raw_arg = text.split("(", 1)
+    path = tuple(part for part in path_text.split(".") if part)
+    raw_arg = raw_arg.rsplit(")", 1)[0].strip()
+    try:
+        parsed = py_ast.literal_eval(raw_arg)
+    except (SyntaxError, ValueError):
+        parsed = None
+    if isinstance(parsed, str):
+        return EffectSpec(path, parsed, True)
+    return EffectSpec(path, None, True)
+
+
+def effect_sources(effects: Iterable[Dict[str, Any]]) -> Tuple[str, ...]:
+    """Return canonical source-like effect names from parsed effect AST nodes."""
+    return tuple(_effect_name(effect) for effect in _effect_specs(effects))
+
+
+def effect_row_covers(declared: Iterable[str], required: Iterable[str]) -> bool:
+    """Return True when every required effect is covered by the declaration row."""
+    declared_specs = tuple(_effect_from_source(effect) for effect in declared)
+    for required_effect in required:
+        required_spec = _effect_from_source(required_effect)
+        if not any(_covers(declared_spec, required_spec) for declared_spec in declared_specs):
+            return False
+    return True
+
+
+def first_uncovered_effect(declared: Iterable[str], required: Iterable[str]) -> Optional[str]:
+    declared_specs = tuple(_effect_from_source(effect) for effect in declared)
+    for required_effect in required:
+        required_spec = _effect_from_source(required_effect)
+        if not any(_covers(declared_spec, required_spec) for declared_spec in declared_specs):
+            return required_effect
+    return None
 
 
 def _has_glob(pattern: str) -> bool:
@@ -195,25 +241,23 @@ def _glob_covers(declared_pattern: str, required_pattern: str) -> bool:
 def _covers(declared: EffectSpec, required: EffectSpec) -> bool:
     """True when a caller declaration covers a callee effect.
 
-    This mirrors the current runtime prefix rule: declaring `fs` covers
-    `fs.read`, while declaring `fs.read` does not cover a callee that declares
-    broader `fs`. For equal paths, an unargumented caller effect such as
-    `net.fetch` covers an argumented callee effect like
-    `net.fetch("https://api.x/*")`; a narrower caller glob does not cover a
-    broader callee declaration.
+    Effect rows are intentionally precise: `log`, `fs.read`, and `fs.write`
+    cover only themselves. `net.fetch` is the one supported row with URL
+    arguments; unargumented `net.fetch` covers all URL fetches, while
+    argumented rows use exact or trailing-star glob coverage.
     """
-    if len(declared.path) > len(required.path):
+    if declared.path != required.path:
         return False
-    if declared.path != required.path[: len(declared.path)]:
-        return False
-    if len(declared.path) < len(required.path):
-        return True
     if not declared.has_arg:
+        if required.has_arg:
+            return declared.path == ("net", "fetch")
         return True
     if not required.has_arg:
         return False
     if declared.arg is None or required.arg is None:
         return False
+    if declared.path != ("net", "fetch"):
+        return declared.arg == required.arg
     return _glob_covers(declared.arg, required.arg)
 
 
@@ -359,7 +403,6 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
         caller = fn["name"]
         caller_effects = _effect_specs(fn.get("effects", []))
         param_effects = _function_param_effect_table(fn)
-        pos = fn.get("pos") or {"line": 0, "column": 0}
 
         for root_expr in _function_expressions(fn):
             for expr in _walk_expr(root_expr):
@@ -373,22 +416,23 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
                     for required in required_effects:
                         if _effect_allowed(required, caller_effects):
                             continue
+                        required_name = _effect_name(required)
                         diags.append(
                             Diagnostic(
-                                code="E0801",
+                                code="EFFECT_NOT_COVERED",
                                 category="effect",
                                 severity="error",
                                 message=(
                                     f"function {caller!r} declares effects "
                                     f"{_format_effect_set(caller_effects)} but calls "
                                     f"{callee!r}, which requires effect "
-                                    f"{_effect_name(required)!r}"
+                                    f"{required_name!r}"
                                 ),
-                                position=Position(pos.get("line", 0), pos.get("column", 0)),
+                                position=_pos(expr),
                                 suggestion=(
-                                    f"add effect {_effect_name(required)!r} to "
-                                    f"{caller!r}, or call only functions covered by "
-                                    "the declared effects"
+                                    f"add `effects {required_name}` to the enclosing "
+                                    "function, or call a function whose effects are "
+                                    "covered by the current effect row"
                                 ),
                                 confidence=1.0,
                                 extra={
@@ -397,7 +441,8 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
                                     "caller_effects": [
                                         _effect_name(effect) for effect in caller_effects
                                     ],
-                                    "required_effect": _effect_name(required),
+                                    "required_effect": required_name,
+                                    "legacy_code": "E0801",
                                 },
                             )
                         )
@@ -419,9 +464,9 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
                                 ),
                                 position=_pos(expr),
                                 suggestion=(
-                                    f"add effect {escaped_name!r} to {caller!r}, "
-                                    f"or change parameter {callee!r} to a pure "
-                                    "function type"
+                                    f"add `effects {escaped_name}` to the enclosing "
+                                    "function, or call a function whose effects are "
+                                    "covered by the current effect row"
                                 ),
                                 confidence=1.0,
                                 extra={
@@ -431,6 +476,9 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
                                     "escaped_effect": escaped_name,
                                     "caller_effects": [
                                         _effect_name(effect) for effect in caller_effects
+                                    ],
+                                    "expected_function_type_effects": [
+                                        _effect_name(effect) for effect in param_effects[callee]
                                     ],
                                 },
                             )
@@ -464,9 +512,9 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
                             ),
                             position=_pos(expr),
                             suggestion=(
-                                f"add effect {escaped_name!r} to {caller!r}, "
-                                f"pass a pure callback to {callee!r}, or move the "
-                                "effectful work outside the helper"
+                                f"add `effects {escaped_name}` to the enclosing "
+                                "function, or call a function whose effects are "
+                                "covered by the current effect row"
                             ),
                             confidence=1.0,
                             extra={
@@ -476,6 +524,9 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
                                 "escaped_effect": escaped_name,
                                 "caller_effects": [
                                     _effect_name(effect) for effect in caller_effects
+                                ],
+                                "actual_callback_effects": [
+                                    _effect_name(effect) for effect in known_effects[callback_name]
                                 ],
                             },
                         )

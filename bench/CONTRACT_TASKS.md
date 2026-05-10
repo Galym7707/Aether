@@ -5,8 +5,8 @@
 These tasks test invalid-input cases where the Python equivalents in this
 repository silently accept bad inputs and print misleading results, while the
 Aether reference solutions reject the same inputs through contracts,
-refinement-typed parameters, explicit safe-list helper results, or
-higher-order effect diagnostics for Option/Result callbacks.
+refinement-typed parameters, explicit safe-list helper results, higher-order
+effect diagnostics for Option/Result callbacks, or precise effect-row checks.
 
 The benchmark source of truth for these results is the local harness output from
 `python -m bench.harness run-reference`,
@@ -31,6 +31,8 @@ uses per-task `bench/tasks/<task_id>/grader.json` files. No root-level
 | 10 | t23_map_option_effect_escape | Logging callback passed through `mapOption` from a pure function. | Prints `audit:1` with no effect declaration. | Fails static check with `HIGHER_ORDER_EFFECT_ESCAPE`. | `HIGHER_ORDER_EFFECT_ESCAPE` |
 | 11 | t24_map_result_effect_escape | Logging callback passed through `mapResult` from a pure function. | Prints `audit:2` with no effect declaration. | Fails static check with `HIGHER_ORDER_EFFECT_ESCAPE`. | `HIGHER_ORDER_EFFECT_ESCAPE` |
 | 12 | t25_map_err_effect_escape | Logging error mapper passed through `mapErr` from a pure function. | Prints `audit:bad` with no effect declaration. | Fails static check with `HIGHER_ORDER_EFFECT_ESCAPE`. | `HIGHER_ORDER_EFFECT_ESCAPE` |
+| 13 | t26_effect_row_direct_mismatch | Direct call requires billing-domain `net.fetch` while caller declares only API-domain fetch. | Prints `billing` without effect metadata. | Fails static check with `EFFECT_NOT_COVERED`. | `EFFECT_NOT_COVERED` |
+| 14 | t27_effect_row_callback_mismatch | Callback passed to `mapOption` requires billing-domain `net.fetch` while caller declares only API-domain fetch. | Prints `101` after running callback. | Fails static check with `HIGHER_ORDER_EFFECT_ESCAPE`. | `HIGHER_ORDER_EFFECT_ESCAPE` |
 
 ## 1. t06_contract_non_empty_minimum
 
@@ -294,6 +296,39 @@ Expected diagnostic: `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect`.
 Verification result: confirmed by
 `python -m bench.harness run-task t25_map_err_effect_escape --candidate bench\tasks\t25_map_err_effect_escape\reference.aeth`.
 
+## 13. t26_effect_row_direct_mismatch
+
+The reference program calls a function requiring
+`net.fetch("https://billing.example.com/*")` from a caller that declares only
+`net.fetch("https://api.example.com/*")`.
+
+Python runs the call and prints `billing`. Aether rejects the direct call with
+`EFFECT_NOT_COVERED` because the declared row does not cover the billing
+domain.
+
+Expected exit code: `2`.
+
+Expected diagnostic: `EFFECT_NOT_COVERED`, category `effect`.
+
+Verification result: confirmed by
+`python -m bench.harness run-reference`.
+
+## 14. t27_effect_row_callback_mismatch
+
+The reference program passes a named callback requiring
+`net.fetch("https://billing.example.com/*")` to `mapOption` from a caller that
+declares only `net.fetch("https://api.example.com/*")`.
+
+Python runs the callback and prints `101`. Aether rejects the helper call with
+`HIGHER_ORDER_EFFECT_ESCAPE`.
+
+Expected exit code: `2`.
+
+Expected diagnostic: `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect`.
+
+Verification result: confirmed by
+`python -m bench.harness run-reference`.
+
 ## Harness Changes
 
 `compile_and_run` now returns `stdout`, `stderr`, and `exit_code` for parse,
@@ -327,8 +362,9 @@ hard-coded `python3`, and it includes the Python-equivalent benchmark check.
 Command: `python -m bench.harness run-reference`
 
 Result: passed. The latest command in this pass reported
-`# 20/20 reference solutions pass`. The safe-list and Option/Result helper
-tasks were marked `ok: true`; the contract-wedge tasks remained in wedge mode.
+`# 25/25 reference solutions pass`. The safe-list, Option/Result helper, and
+effect-row tasks were marked `ok: true`; the contract-wedge tasks remained in
+wedge mode.
 
 Command:
 `python -m bench.harness run-task t06_contract_non_empty_minimum --candidate bench\tasks\t06_contract_non_empty_minimum\reference.aeth`
@@ -375,6 +411,11 @@ Result: passed for the intended Python behavior. Observed outputs were:
 | t20_safe_slice_helper | `0` | `[30]\n` | empty |
 | t21_option_unwrap_helper | `0` | `0\n` | empty |
 | t22_result_error_handling | `0` | `99\n` | empty |
+| t23_map_option_effect_escape | `0` | `audit:1\n` | empty |
+| t24_map_result_effect_escape | `0` | `audit:2\n` | empty |
+| t25_map_err_effect_escape | `0` | `audit:bad\n` | empty |
+| t26_effect_row_direct_mismatch | `0` | `billing\n` | empty |
+| t27_effect_row_callback_mismatch | `0` | `101\n` | empty |
 
 Command: `python tests\test_regressions.py`
 
@@ -385,7 +426,7 @@ regression `S-012` was skipped because this platform does not expose
 Command: `python scripts\run_all.py`
 
 Result: passed. The latest command in this pass reported `# reference: 10/10`,
-`# bench: 20/20`, `# python eq: 17/17`, `# regression: PASS`,
+`# bench: 25/25`, `# python eq: 22/22`, `# regression: PASS`,
 `# additional: PASS`, and `# fuzz: PASS`.
 
 Command: `python -B scripts\fuzz_parser.py --rounds 200 --mode all`

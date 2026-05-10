@@ -120,7 +120,7 @@ Added `tests/test_function_type_effects.py` covering:
 - effectful function-typed callbacks with a correct enclosing `effects log`;
 - `HIGHER_ORDER_EFFECT_ESCAPE` for missing enclosing effects;
 - rejection of effectful functions passed to default-pure function types;
-- existing direct-call `E0801` behavior for incorrectly annotated callbacks.
+- existing direct-call effect behavior for incorrectly annotated callbacks.
 
 ## 8. Verification Results
 
@@ -147,9 +147,9 @@ Added `tests/test_function_type_effects.py` covering:
 - Lambda syntax is still intentionally unsupported.
 - Function type effects are tracked for supported function values and
   parameters, not for arbitrary dynamic values.
-- Function effect compatibility in the type checker is deliberately simple; it
-  handles exact and dotted-prefix effect names but does not fully model effect
-  arguments as richly as the effect checker.
+- Function effect compatibility now models the supported string-literal
+  `net.fetch("...")` rows, but it is still not a complete algebra for
+  arbitrary effect arguments.
 - Runtime source spans remain best effort for some dynamic failures.
 
 ## 10. Recommended Next Tasks
@@ -158,5 +158,5 @@ Added `tests/test_function_type_effects.py` covering:
 2. Add effect-aware checking for collection helpers such as `map`, `filter`,
    and `foldLeft`.
 3. Improve diagnostics for effect mismatch when passing function values.
-4. Decide whether function type effects should support full effect argument
-   compatibility in the type checker.
+4. Extend effect-row precision beyond the currently supported string-literal
+   `net.fetch("...")` cases.

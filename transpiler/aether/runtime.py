@@ -130,25 +130,26 @@ class EffectTracker:
         if has_arg:
             if arg is None:
                 return f"{name}(?)"
-            return f"{name}({arg!r})"
+            escaped = arg.replace("\\", "\\\\").replace('"', '\\"')
+            return f'{name}("{escaped}")'
         return name
 
     @classmethod
     def _prefix_match(cls, declared, observed) -> bool:
         declared_path, declared_arg, declared_has_arg = cls._split_effect(declared)
         observed_path, observed_arg, observed_has_arg = cls._split_effect(observed)
-        if len(declared_path) > len(observed_path):
+        if declared_path != observed_path:
             return False
-        if declared_path != observed_path[:len(declared_path)]:
-            return False
-        if len(declared_path) < len(observed_path):
-            return True
         if not declared_has_arg:
+            if observed_has_arg:
+                return declared_path == ("net", "fetch")
             return True
         if not observed_has_arg:
             return False
         if declared_arg is None or observed_arg is None:
             return False
+        if declared_path != ("net", "fetch"):
+            return declared_arg == observed_arg
         return cls._glob_covers(declared_arg, observed_arg)
 
 

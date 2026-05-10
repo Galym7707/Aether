@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from ..diagnostics import Diagnostic, Position
+from .effects import effect_row_covers, effect_sources, first_uncovered_effect
 
 
 @dataclass(frozen=True)
@@ -1439,15 +1440,24 @@ class _TypeChecker:
             ok = self._unify(param_ty, actual.ty, subst, fn_generics)
             expected_ty = self._substitute(param_ty, subst)
             if not ok:
-                self._type_diag(
-                    "TYPE_ARGUMENT_MISMATCH",
-                    expected_ty,
-                    actual.ty,
-                    self._pos(arg),
-                    f"Argument {idx + 1} passed to {name} has type {actual.ty} but expected {expected_ty}.",
-                    "pass an argument matching the function parameter type",
-                    {"function": name, "argument": params[idx].get("name", str(idx + 1))},
-                )
+                if self._function_effect_mismatch(expected_ty, actual.ty):
+                    self._function_effect_diag(
+                        expected_ty,
+                        actual.ty,
+                        self._pos(arg),
+                        function=name,
+                        argument=params[idx].get("name", str(idx + 1)),
+                    )
+                else:
+                    self._type_diag(
+                        "TYPE_ARGUMENT_MISMATCH",
+                        expected_ty,
+                        actual.ty,
+                        self._pos(arg),
+                        f"Argument {idx + 1} passed to {name} has type {actual.ty} but expected {expected_ty}.",
+                        "pass an argument matching the function parameter type",
+                        {"function": name, "argument": params[idx].get("name", str(idx + 1))},
+                    )
         ret = self._substitute(self._type_from_ast(fn.get("return_type"), fn_generics), subst)
         return ValueInfo(ret)
 
@@ -1572,21 +1582,33 @@ class _TypeChecker:
         return AType("function", params + (ret,), self._effect_names(fn.get("effects", [])))
 
     def _effect_names(self, effects: Iterable[Dict[str, Any]]) -> Tuple[str, ...]:
-        names: List[str] = []
-        for effect in effects:
-            path = ".".join(effect.get("path") or ())
-            if not path or path == "pure":
-                continue
-            names.append(path)
-        return tuple(names)
+        return effect_sources(effects)
 
     def _effects_cover(self, expected: Tuple[str, ...], actual: Tuple[str, ...]) -> bool:
-        if not actual:
+        return effect_row_covers(expected, actual)
+
+    def _function_effect_mismatch(self, expected: AType, actual: AType) -> bool:
+        exp = self._dealias(expected)
+        act = self._dealias(actual)
+        if exp.name != "function" or act.name != "function":
+            return False
+        if len(exp.args) != len(act.args):
+            return False
+        if self._effects_cover(exp.effects, act.effects):
+            return False
+        return all(
+            self._compatible_ignore_top_function_effects(e, a)
+            for e, a in zip(exp.args, act.args)
+        )
+
+    def _compatible_ignore_top_function_effects(self, expected: AType, actual: AType) -> bool:
+        exp = self._dealias(expected)
+        act = self._dealias(actual)
+        if exp.unknown or act.unknown:
             return True
-        for effect in actual:
-            if not any(effect == allowed or effect.startswith(allowed + ".") for allowed in expected):
-                return False
-        return True
+        if exp.name != act.name or len(exp.args) != len(act.args):
+            return False
+        return all(self._compatible(e, a) for e, a in zip(exp.args, act.args))
 
     def _list_elem_type(self, ty: Optional[AType]) -> AType:
         ty = self._dealias(ty)
@@ -1743,6 +1765,9 @@ class _TypeChecker:
     ) -> None:
         if self._compatible(expected, actual):
             return
+        if self._function_effect_mismatch(expected, actual):
+            self._function_effect_diag(expected, actual, pos, context=context)
+            return
         self._type_diag(
             code,
             expected,
@@ -1818,6 +1843,54 @@ class _TypeChecker:
                 suggestion=hint,
                 confidence=0.95,
                 extra=payload,
+            )
+        )
+
+    def _function_effect_diag(
+        self,
+        expected: AType,
+        actual: AType,
+        pos: Position,
+        *,
+        context: Optional[str] = None,
+        function: Optional[str] = None,
+        argument: Optional[str] = None,
+    ) -> None:
+        missing = first_uncovered_effect(expected.effects, actual.effects)
+        message_context = context or "function-typed argument"
+        if function and argument:
+            message_context = f"argument {argument!r} passed to {function!r}"
+        hint_effect = missing or ", ".join(actual.effects) or "the callback effect"
+        extra = {
+            "expected": str(expected),
+            "actual": str(actual),
+            "expected_function_type_effects": list(expected.effects),
+            "actual_callback_effects": list(actual.effects),
+            "required_effect": hint_effect,
+        }
+        if function:
+            extra["function"] = function
+        if argument:
+            extra["argument"] = argument
+        if context:
+            extra["context"] = context
+        self.diags.append(
+            Diagnostic(
+                code="FUNCTION_TYPE_EFFECT_MISMATCH",
+                category="type",
+                severity="error",
+                message=(
+                    f"effect row mismatch for {message_context}: expected {expected}, "
+                    f"got {actual}"
+                ),
+                position=pos,
+                suggestion=(
+                    f"add `effects {hint_effect}` to the function type, or pass a "
+                    "function whose effects are covered by the expected function "
+                    "type"
+                ),
+                confidence=0.95,
+                extra=extra,
             )
         )
 

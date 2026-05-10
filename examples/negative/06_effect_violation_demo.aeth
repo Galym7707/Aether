@@ -1,4 +1,4 @@
-// Expected: `aether check` fails with E0801 effect diagnostic.
+// Expected: `aether check` fails with EFFECT_NOT_COVERED effect diagnostic.
 function badPurePrinter() returns Unit
   effects pure
 do

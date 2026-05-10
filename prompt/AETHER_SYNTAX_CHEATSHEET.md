@@ -31,6 +31,8 @@ Rules:
 - When passing a named callback to `mapOption`, `andThenOption`, `mapResult`, `mapErr`, or `andThenResult`, declare any callback effects on the enclosing function.
 - Annotate effectful function-typed parameters: `function(Int) returns Int effects log`.
 - Omitted function type effects default to pure.
+- For network effects, use precise rows: `net.fetch` covers all fetches, `net.fetch("*")` covers all argumented fetches, and `net.fetch("https://api.example.com/*")` covers only that URL prefix.
+- `net.fetch("https://api.example.com/*")` does not cover `net.fetch("https://billing.example.com/*")`.
 - Use `unwrapOr(opt, default)` only when a fallback is correct.
 - Use `unwrapOrResult(res, default)` only when a fallback is correct.
 - Use `expectSome(opt, message)` or `expectOk(res, message)` only when failure should be a diagnostic.
@@ -93,5 +95,21 @@ function applyLogged(f: function(Int) returns Int effects log, x: Int) returns I
   effects log
 do
   return f(x)
+end
+```
+
+Good precise network-effect pattern:
+
+```aether
+function fetchUser(id: Int) returns String
+  effects net.fetch("https://api.example.com/users/*")
+do
+  return "user"
+end
+
+function main() returns Unit
+  effects net.fetch("https://api.example.com/*")
+do
+  let value: String = fetchUser(1)
 end
 ```

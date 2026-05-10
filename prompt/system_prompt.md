@@ -69,7 +69,7 @@ do
 end
 ```
 
-Effect lattice: `pure`, `fs.read`, `fs.write`, `net.fetch`, `net.serve`, `db.read`, `db.write`, `time.now`, `time.sleep`, `random`, `log`, `panic`. A `pure` function may only call `pure` functions. A function calling `print` must declare `effects log`.
+Effect lattice: `pure`, `fs.read`, `fs.write`, `net.fetch`, `net.serve`, `db.read`, `db.write`, `time.now`, `time.sleep`, `random`, `log`, `panic`. A `pure` function may only call `pure` functions. A function calling `print` must declare `effects log`. Argumented `net.fetch("...")` rows are precise: `net.fetch("https://api.example.com/*")` does not cover another domain.
 
 ## Contracts
 

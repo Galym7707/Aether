@@ -1,0 +1,12 @@
+// Expected diagnostic: HIGHER_ORDER_EFFECT_ESCAPE.
+function fetchBillingScore(id: Int) returns Int
+  effects net.fetch("https://billing.example.com/*")
+do
+  return id
+end
+
+function main() returns Unit
+  effects net.fetch("https://api.example.com/*")
+do
+  let value: Option<Int> = mapOption(Some(1), fetchBillingScore)
+end

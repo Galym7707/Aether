@@ -296,7 +296,7 @@ end
 
 
 def test_static_effect_check_blocks_pure_print():
-    """A pure function calling print must fail statically with E0801."""
+    """A pure function calling print must fail statically with EFFECT_NOT_COVERED."""
     from aether.passes.effects import check_effects
     from aether.parser import parse as _parse
     src = """
@@ -315,12 +315,12 @@ end
     ast = _parse(src, "<effect>")
     diags = check_effects(ast)
     assert len(diags) == 1, diags
-    assert diags[0].code == "E0801", diags[0].to_dict()
+    assert diags[0].code == "EFFECT_NOT_COVERED", diags[0].to_dict()
     assert diags[0].category == "effect", diags[0].to_dict()
     assert diags[0].extra["caller"] == "helper", diags[0].to_dict()
     assert diags[0].extra["callee"] == "print", diags[0].to_dict()
     assert diags[0].extra["required_effect"] == "log", diags[0].to_dict()
-    print("static effect checker: pure function calling print flagged with E0801")
+    print("static effect checker: pure function calling print flagged with EFFECT_NOT_COVERED")
 
 
 def test_S004_static_effect_glob_matching():
@@ -376,7 +376,7 @@ end
     ast = _parse(narrow_caller, "<effect-glob>")
     diags = check_effects(ast)
     assert len(diags) == 1, diags
-    assert diags[0].code == "E0801", diags[0].to_dict()
+    assert diags[0].code == "EFFECT_NOT_COVERED", diags[0].to_dict()
     assert diags[0].extra["caller"] == "caller", diags[0].to_dict()
     assert diags[0].extra["callee"] == "fetchAny", diags[0].to_dict()
     assert diags[0].extra["required_effect"] == "net.fetch", diags[0].to_dict()
@@ -397,9 +397,9 @@ end
     ast = _parse(wrong_domain, "<effect-glob>")
     diags = check_effects(ast)
     assert len(diags) == 1, diags
-    assert diags[0].code == "E0801", diags[0].to_dict()
+    assert diags[0].code == "EFFECT_NOT_COVERED", diags[0].to_dict()
     assert diags[0].extra["required_effect"] == (
-        "net.fetch('https://api.x/users/42')"
+        'net.fetch("https://api.x/users/42")'
     ), diags[0].to_dict()
     print("S-004: static effect glob matching accepts broad callers and rejects narrow ones")
 
@@ -631,7 +631,7 @@ end
             text=True,
         )
         assert proc.returncode == 2, proc
-        assert "E0801" in proc.stderr, proc.stderr
+        assert "EFFECT_NOT_COVERED" in proc.stderr, proc.stderr
         assert "main ran" not in proc.stdout, proc.stdout
         assert "main ran" not in proc.stderr, proc.stderr
     finally:

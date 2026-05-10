@@ -1,0 +1,12 @@
+function fetchUser(id: Int) returns String
+  effects net.fetch("https://api.example.com/users/*")
+do
+  return join(["user:", intToString(id)], "")
+end
+
+function main() returns Unit
+  effects net.fetch("https://api.example.com/*"), log
+do
+  let value: String = fetchUser(1)
+  print(value)
+end

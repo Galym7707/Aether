@@ -1,0 +1,13 @@
+// Expected diagnostic: EFFECT_NOT_COVERED.
+function fetchBilling(id: Int) returns String
+  effects net.fetch("https://billing.example.com/*")
+do
+  return "billing"
+end
+
+function main() returns Unit
+  effects net.fetch("https://api.example.com/*"), log
+do
+  let value: String = fetchBilling(1)
+  print(value)
+end

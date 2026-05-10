@@ -1,0 +1,20 @@
+function fetchScore(id: Int) returns Int
+  effects net.fetch("https://api.example.com/users/*")
+do
+  return id + 10
+end
+
+function fetchErrorLabel(message: String) returns String
+  effects net.fetch("https://api.example.com/errors/*")
+do
+  return join(["remote:", message], "")
+end
+
+function main() returns Unit
+  effects net.fetch("https://api.example.com/*"), log
+do
+  let optionValue: Option<Int> = mapOption(Some(1), fetchScore)
+  let resultValue: Result<Int, String> = mapResult(Ok(2), fetchScore)
+  let errorValue: Result<Int, String> = mapErr(Err("missing"), fetchErrorLabel)
+  print("precise effects ok")
+end

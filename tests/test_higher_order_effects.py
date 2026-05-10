@@ -39,7 +39,7 @@ def _assert_effect_escape(source: str, helper: str):
     extra = diag.get("extra") or {}
     assert extra.get("helper") == helper, diag
     assert extra.get("escaped_effect") == "log", diag
-    assert "add effect 'log'" in (diag.get("hint") or ""), diag
+    assert "add `effects log`" in (diag.get("hint") or ""), diag
     return diag
 
 
