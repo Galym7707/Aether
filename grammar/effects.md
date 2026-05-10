@@ -42,6 +42,18 @@ declares `effects log`. The diagnostic code is
 `HIGHER_ORDER_EFFECT_ESCAPE`. Unknown function-valued parameters and dynamic
 callbacks remain a prototype limitation.
 
+Function types can now carry the same effect information:
+
+    function apply(f: function(Int) returns Int effects log, x: Int) returns Int
+      effects log
+    do
+      return f(x)
+    end
+
+The `effects` annotation on a function type is optional and defaults to
+`pure`. Calling a function-typed parameter with `effects log` from a pure
+function is rejected with `HIGHER_ORDER_EFFECT_ESCAPE`.
+
 ## Capability gating
 
 Effects are *type-level*. To actually perform an effect, the function must be invoked from a module that holds the corresponding capability:

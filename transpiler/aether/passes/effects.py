@@ -234,6 +234,15 @@ def _local_effect_table(ast: Dict[str, Any]) -> Dict[str, EffectSet]:
     return table
 
 
+def _function_param_effect_table(fn: Dict[str, Any]) -> Dict[str, EffectSet]:
+    table: Dict[str, EffectSet] = {}
+    for param in fn.get("params", []):
+        ty = param.get("type") or {}
+        if ty.get("kind") == "FunctionType":
+            table[param.get("name", "")] = _effect_specs(ty.get("effects", []))
+    return table
+
+
 def _resolve_callee_name(callee: Dict[str, Any]) -> Optional[str]:
     if callee.get("kind") == "Ident":
         return callee["name"]
@@ -349,6 +358,7 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
             continue
         caller = fn["name"]
         caller_effects = _effect_specs(fn.get("effects", []))
+        param_effects = _function_param_effect_table(fn)
         pos = fn.get("pos") or {"line": 0, "column": 0}
 
         for root_expr in _function_expressions(fn):
@@ -356,40 +366,78 @@ def check_effects(ast: Dict[str, Any]) -> List[Diagnostic]:
                 if expr.get("kind") != "Call":
                     continue
                 callee = _resolve_callee_name(expr["func"])
-                if callee is None or callee not in known_effects:
+                if callee is None:
                     continue
-                required_effects = known_effects[callee]
-                for required in required_effects:
-                    if _effect_allowed(required, caller_effects):
-                        continue
-                    diags.append(
-                        Diagnostic(
-                            code="E0801",
-                            category="effect",
-                            severity="error",
-                            message=(
-                                f"function {caller!r} declares effects "
-                                f"{_format_effect_set(caller_effects)} but calls "
-                                f"{callee!r}, which requires effect "
-                                f"{_effect_name(required)!r}"
-                            ),
-                            position=Position(pos.get("line", 0), pos.get("column", 0)),
-                            suggestion=(
-                                f"add effect {_effect_name(required)!r} to "
-                                f"{caller!r}, or call only functions covered by "
-                                "the declared effects"
-                            ),
-                            confidence=1.0,
-                            extra={
-                                "caller": caller,
-                                "callee": callee,
-                                "caller_effects": [
-                                    _effect_name(effect) for effect in caller_effects
-                                ],
-                                "required_effect": _effect_name(required),
-                            },
+                if callee in known_effects:
+                    required_effects = known_effects[callee]
+                    for required in required_effects:
+                        if _effect_allowed(required, caller_effects):
+                            continue
+                        diags.append(
+                            Diagnostic(
+                                code="E0801",
+                                category="effect",
+                                severity="error",
+                                message=(
+                                    f"function {caller!r} declares effects "
+                                    f"{_format_effect_set(caller_effects)} but calls "
+                                    f"{callee!r}, which requires effect "
+                                    f"{_effect_name(required)!r}"
+                                ),
+                                position=Position(pos.get("line", 0), pos.get("column", 0)),
+                                suggestion=(
+                                    f"add effect {_effect_name(required)!r} to "
+                                    f"{caller!r}, or call only functions covered by "
+                                    "the declared effects"
+                                ),
+                                confidence=1.0,
+                                extra={
+                                    "caller": caller,
+                                    "callee": callee,
+                                    "caller_effects": [
+                                        _effect_name(effect) for effect in caller_effects
+                                    ],
+                                    "required_effect": _effect_name(required),
+                                },
+                            )
                         )
-                    )
+                elif callee in param_effects:
+                    for escaped in param_effects[callee]:
+                        if _effect_allowed(escaped, caller_effects):
+                            continue
+                        escaped_name = _effect_name(escaped)
+                        diags.append(
+                            Diagnostic(
+                                code="HIGHER_ORDER_EFFECT_ESCAPE",
+                                category="effect",
+                                severity="error",
+                                message=(
+                                    f"function-typed parameter {callee!r} requires "
+                                    f"effect {escaped_name!r}, but enclosing function "
+                                    f"{caller!r} declares effects "
+                                    f"{_format_effect_set(caller_effects)}"
+                                ),
+                                position=_pos(expr),
+                                suggestion=(
+                                    f"add effect {escaped_name!r} to {caller!r}, "
+                                    f"or change parameter {callee!r} to a pure "
+                                    "function type"
+                                ),
+                                confidence=1.0,
+                                extra={
+                                    "caller": caller,
+                                    "helper": callee,
+                                    "callback": callee,
+                                    "escaped_effect": escaped_name,
+                                    "caller_effects": [
+                                        _effect_name(effect) for effect in caller_effects
+                                    ],
+                                },
+                            )
+                        )
+                    continue
+                else:
+                    continue
                 callback_index = _HIGHER_ORDER_CALLBACK_ARG.get(callee)
                 if callback_index is None:
                     continue

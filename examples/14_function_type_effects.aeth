@@ -1,0 +1,31 @@
+function applyPure(f: function(Int) returns Int, x: Int) returns Int
+  effects pure
+do
+  return f(x)
+end
+
+function applyLogged(f: function(Int) returns Int effects log, x: Int) returns Int
+  effects log
+do
+  return f(x)
+end
+
+function double(x: Int) returns Int
+  effects pure
+do
+  return x * 2
+end
+
+function auditAndDouble(x: Int) returns Int
+  effects log
+do
+  print(intToString(x))
+  return x * 2
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(applyPure(double, 4)))
+  print(intToString(applyLogged(auditAndDouble, 5)))
+end

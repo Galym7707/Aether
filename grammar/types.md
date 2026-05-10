@@ -118,6 +118,21 @@ function calls, for example rejecting `choose(1, "bad")` for
 `function choose<T>(a: T, b: T) returns T`. It does not implement full type
 inference for every future language construct.
 
+## Function Type Effects
+
+Function types may include an optional effect clause after the return type:
+
+```aether
+function(Int) returns Int effects log
+function(Int) returns function(Int) returns Bool effects log effects pure
+```
+
+If omitted, the function type defaults to `effects pure`. When a function-typed
+parameter is called, its annotated effects must be covered by the enclosing
+function's own `effects` clause. For example, calling
+`f: function(Int) returns Int effects log` from an `effects pure` function
+produces `HIGHER_ORDER_EFFECT_ESCAPE`.
+
 ## Subtyping
 
 There is no implemented general subtyping system. Refinement-typed parameters

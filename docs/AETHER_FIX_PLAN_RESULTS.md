@@ -178,6 +178,7 @@ and a result table without claiming unrun benchmark results.
 | `python -B tests\test_option_result_helpers.py` | pass | `OPTION RESULT HELPER TESTS PASS` |
 | `python -B tests\test_match_exhaustiveness.py` | pass | `MATCH EXHAUSTIVENESS TESTS PASS` |
 | `python -B tests\test_higher_order_effects.py` | pass | `HIGHER ORDER EFFECT TESTS PASS` |
+| `python -B tests\test_function_type_effects.py` | pass | `FUNCTION TYPE EFFECT TESTS PASS` |
 | `python -B -m transpiler.aether.cli check examples\01_safe_divide.aeth` | pass | `OK: examples\01_safe_divide.aeth (2 decls)` |
 | `python -B -m transpiler.aether.cli run examples\01_safe_divide.aeth` | pass | printed `5` |
 | `python -B -m transpiler.aether.cli ast examples\01_safe_divide.aeth` | pass | printed AST JSON with 2 declarations |
@@ -189,7 +190,7 @@ and a result table without claiming unrun benchmark results.
 | `aether run examples\01_safe_divide.aeth` | pass | printed `5` |
 | `aether ast examples\01_safe_divide.aeth` | pass | printed AST JSON with 2 declarations |
 | `aether --json check examples\negative\06_effect_violation_demo.aeth` | expected failure | produced JSON diagnostic `E0801`, category `effect`, line `2`, source snippet present |
-| `python -m pytest -q` | pass | `90 passed in 29.09s` |
+| `python -m pytest -q` | pass | `98 passed in 8.37s` |
 | `python -B scripts\fuzz_parser.py --rounds 200 --mode all` | pass | 0 violations, 0 emit violations, 0 roundtrip errors |
 | `git diff --check` | pass | exit 0; only line-ending warnings from Git on Windows |
 | `python3 -B scripts/run_all.py` | not run | `python3` command is not installed on this Windows host |
@@ -255,6 +256,26 @@ Added benchmark wedge tasks `t23_map_option_effect_escape`,
 `t24_map_result_effect_escape`, and `t25_map_err_effect_escape`, showing Python
 executing callback side effects while Aether rejects missing effect
 declarations.
+
+## Function Type Effects Pass
+
+Implemented effect annotations on function types. The parser now accepts
+`function(Int) returns Int effects log`, and omitted function type effects
+default to pure. Nested function types can carry their own effects, for example
+`function(Int) returns function(Int) returns Bool effects log effects pure`.
+
+The typechecker now preserves function type effects and can typecheck calls
+through function-typed parameters. Passing an effectful named function where a
+pure function type is expected is rejected. The effect checker now emits
+`HIGHER_ORDER_EFFECT_ESCAPE` when a function-typed parameter such as
+`f: function(Int) returns Int effects log` is called from an enclosing function
+that does not declare a covering effect.
+
+Added `examples/14_function_type_effects.aeth`,
+`examples/negative/11_function_type_effect_escape.aeth`, and
+`tests/test_function_type_effects.py`. Added
+`docs/AETHER_FUNCTION_TYPE_EFFECTS_REPORT.md` for the full implementation and
+verification report.
 
 ## 8. Remaining Limitations
 

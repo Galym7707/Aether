@@ -21,6 +21,7 @@ python -B -m transpiler.aether.cli check examples\10_result_helpers.aeth
 python -B -m transpiler.aether.cli check examples\11_exhaustive_match.aeth
 python -B -m transpiler.aether.cli check examples\12_pure_option_result_chaining.aeth
 python -B -m transpiler.aether.cli check examples\13_effect_aware_helpers.aeth
+python -B -m transpiler.aether.cli check examples\14_function_type_effects.aeth
 ```
 
 Run a few examples:
@@ -35,6 +36,7 @@ python -B -m transpiler.aether.cli run examples\10_result_helpers.aeth
 python -B -m transpiler.aether.cli run examples\11_exhaustive_match.aeth
 python -B -m transpiler.aether.cli run examples\12_pure_option_result_chaining.aeth
 python -B -m transpiler.aether.cli run examples\13_effect_aware_helpers.aeth
+python -B -m transpiler.aether.cli run examples\14_function_type_effects.aeth
 ```
 
 Expected output from those commands, in order:
@@ -63,6 +65,9 @@ bad update
 9
 14
 9
+8
+5
+10
 ```
 
 ## Negative Examples
@@ -80,6 +85,7 @@ python -B -m transpiler.aether.cli --json check examples\negative\07_bad_option_
 python -B -m transpiler.aether.cli --json check examples\negative\08_bad_result_helper_type.aeth
 python -B -m transpiler.aether.cli --json check examples\negative\09_effect_escape_map_option.aeth
 python -B -m transpiler.aether.cli --json check examples\negative\10_effect_escape_map_result.aeth
+python -B -m transpiler.aether.cli --json check examples\negative\11_function_type_effect_escape.aeth
 python -B -m transpiler.aether.cli --json check examples\negative\06_effect_violation_demo.aeth
 ```
 
@@ -97,6 +103,7 @@ Expected diagnostics:
 | `negative/08_bad_result_helper_type.aeth` | `check` | `RESULT_HELPER_TYPE_MISMATCH`, category `type` |
 | `negative/09_effect_escape_map_option.aeth` | `check` | `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect` |
 | `negative/10_effect_escape_map_result.aeth` | `check` | `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect` |
+| `negative/11_function_type_effect_escape.aeth` | `check` | `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect` |
 | `negative/06_effect_violation_demo.aeth` | `check` | `E0801`, category `effect` |
 
 ## Best Files For AI Imitation
@@ -113,7 +120,8 @@ Start with:
 8. `11_exhaustive_match.aeth`
 9. `12_pure_option_result_chaining.aeth`
 10. `13_effect_aware_helpers.aeth`
-11. `05_safe_normalize_weights.aeth`
+11. `14_function_type_effects.aeth`
+12. `05_safe_normalize_weights.aeth`
 
 Avoid copying from `examples/negative/` unless you are intentionally writing a
 program that demonstrates a diagnostic.

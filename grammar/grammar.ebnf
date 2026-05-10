@@ -81,7 +81,7 @@ union_case       = "case" IDENT [ "(" param_list ")" ] ;
 
 type_expr        = type_atom { "<" type_expr { "," type_expr } ">" } ;
 type_atom        = IDENT
-                 | "function" "(" [ type_expr { "," type_expr } ] ")" "returns" type_expr ;
+                 | "function" "(" [ type_expr { "," type_expr } ] ")" "returns" type_expr [ effects_clause ] ;
 
 (* ============================================================ *)
 (* Functions                                                    *)

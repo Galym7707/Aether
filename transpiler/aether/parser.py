@@ -236,7 +236,7 @@ class Parser:
                 params.append(self._parse_param())
         self.expect_sym(")")
         self.expect_kw("returns")
-        ret_type = self.parse_type_expr()
+        ret_type = self.parse_type_expr(stop_before_decl_effect=True)
         requires_clauses: List[Dict[str, Any]] = []
         ensures_clauses: List[Dict[str, Any]] = []
         effects: List[Dict[str, Any]] = []
@@ -278,12 +278,25 @@ class Parser:
         ty = self.parse_type_expr()
         return {"name": n, "type": ty}
 
-    def parse_effect_list(self) -> List[Dict[str, Any]]:
+    def parse_effect_list(self, *, type_context: bool = False) -> List[Dict[str, Any]]:
         out = [self.parse_effect()]
         while self.at_sym(","):
+            if type_context and self._comma_ends_type_effect_list():
+                break
             self.advance()
             out.append(self.parse_effect())
         return out
+
+    def _comma_ends_type_effect_list(self) -> bool:
+        nxt = self.peek(1)
+        after = self.peek(2)
+        if nxt.kind == "ident" and after.kind == "sym" and after.value == ":":
+            return True
+        if nxt.kind == "ident" and not (after.kind == "sym" and after.value in {".", "("}):
+            return True
+        if nxt.kind == "kw" and nxt.value == "function":
+            return True
+        return False
 
     def parse_effect(self) -> Dict[str, Any]:
         if self.at_kw("pure"):
@@ -303,7 +316,7 @@ class Parser:
 
     # --- type expressions ----------------------------------------------
 
-    def parse_type_expr(self) -> Dict[str, Any]:
+    def parse_type_expr(self, *, stop_before_decl_effect: bool = False) -> Dict[str, Any]:
         # function ( T1, T2, ... ) returns T
         if self.at_kw("function"):
             self.advance()
@@ -316,8 +329,14 @@ class Parser:
                     params.append(self.parse_type_expr())
             self.expect_sym(")")
             self.expect_kw("returns")
-            ret = self.parse_type_expr()
-            return {"kind": "FunctionType", "params": params, "returns": ret}
+            ret = self.parse_type_expr(stop_before_decl_effect=stop_before_decl_effect)
+            effects = [{"path": ["pure"], "arg": None}]
+            if self.at_kw("effects") and not (
+                stop_before_decl_effect and self._effect_clause_belongs_to_decl()
+            ):
+                self.advance()
+                effects = self.parse_effect_list(type_context=True)
+            return {"kind": "FunctionType", "params": params, "returns": ret, "effects": effects}
         # IDENT [<...>]
         name = self.expect_ident().value
         args: List[Dict[str, Any]] = []
@@ -331,6 +350,38 @@ class Parser:
             self.expect_sym(">")
             return {"kind": "GenericType", "name": name, "args": args}
         return {"kind": "TypeName", "name": name}
+
+    def _effect_clause_belongs_to_decl(self) -> bool:
+        """True when the current `effects` token is the enclosing function clause.
+
+        Function declarations and function types both use `effects` after a
+        return type. In a declaration such as
+        `function make() returns function(Int) returns Int effects pure do`,
+        the single `effects pure` is the declaration clause and the function
+        type defaults to pure. To annotate the returned function type itself,
+        write two clauses: `... returns Int effects log effects pure do`.
+        """
+        depth = 0
+        idx = self.i + 1
+        while True:
+            tok = self.peek(idx - self.i)
+            if tok.kind == "eof":
+                return False
+            if tok.kind == "sym":
+                if tok.value in {"(", "[", "<"}:
+                    depth += 1
+                elif tok.value in {")", "]", ">"}:
+                    if depth == 0:
+                        return False
+                    depth -= 1
+                elif depth == 0 and tok.value in {",", "="}:
+                    return False
+            elif depth == 0 and tok.kind == "kw":
+                if tok.value in {"do", "requires", "ensures"}:
+                    return True
+                if tok.value == "effects":
+                    return False
+            idx += 1
 
     # --- block / statements --------------------------------------------
 
