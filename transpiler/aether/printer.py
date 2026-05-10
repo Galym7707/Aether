@@ -269,7 +269,11 @@ def _expr(
             return f"({src})"
         return src
     if kind == "Call":
-        return f"{_postfix_base(e['func'])}(" + ", ".join(
+        type_args = e.get("type_args") or []
+        generic = ""
+        if type_args:
+            generic = "<" + ", ".join(_type(arg) for arg in type_args) + ">"
+        return f"{_postfix_base(e['func'])}{generic}(" + ", ".join(
             _expr(a) for a in e.get("args", [])
         ) + ")"
     if kind == "Field":

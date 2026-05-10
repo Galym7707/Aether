@@ -42,9 +42,9 @@ def test_common_ai_wrong_syntax_has_repair_hints():
         ("function f(x: Int) returns Int { return x }\n", "E0007", "do"),
         ("function f() returns Unit\n  effects pure\ndo\n  let xs: List<Int> = [1]\n  xs.append(2)\nend\n", "E0009", "append(xs, x)"),
         (
-            "function identity<T>(x: T) returns T\n  effects pure\ndo\n  return x\nend\nfunction main() returns Unit\n  effects pure\ndo\n  let x: Int = identity<Int>(5)\nend\n",
+            "function identity<T>(x: T) returns T\n  effects pure\ndo\n  return x\nend\nfunction main() returns Unit\n  effects pure\ndo\n  let x: Int = identity[Integer](5)\nend\n",
             "E0008",
-            "identity(5)",
+            "f<Int>(x)",
         ),
     ]
     for source, code, hint_fragment in cases:

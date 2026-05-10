@@ -23,7 +23,7 @@ def test_common_ai_syntax_errors_have_specific_codes():
     assert _first_code("let f = (x) => x + 1") == "E0005"
     assert _first_code("result[i] = value") == "E0006"
     assert _first_code("if x > 0 { return x }") == "E0007"
-    assert _first_code("let x = identity<Int>(5)") == "E0008"
+    assert _first_code("let x = identity[Integer](5)") == "E0008"
     assert _first_code("xs.append(1)") == "E0009"
     assert _first_code("xs[1:3]") == "E0010"
     assert _first_code("xs.get(1)") == "E0011"
@@ -47,6 +47,21 @@ do
 end
 """
     assert lint_common_ai_syntax(src) == []
+
+
+def test_prelint_allows_explicit_generic_call_syntax():
+    assert lint_common_ai_syntax("let x: Int = identity<Int>(5)") == []
+    assert lint_common_ai_syntax("let xs: List<Int> = id<List<Int>>([1, 2])") == []
+
+
+def test_generic_call_repair_hints_point_to_supported_syntax():
+    square = lint_common_ai_syntax("let x: Int = identity[Integer](5)")[0]
+    assert square.code == "E0008", square.to_dict()
+    assert "Use f<Int>(x)" in (square.suggestion or ""), square.to_dict()
+
+    turbofish = lint_common_ai_syntax("let x: Int = identity::<Int>(5)")[0]
+    assert turbofish.code == "E0008", turbofish.to_dict()
+    assert "Use f<Int>(x)" in (turbofish.suggestion or ""), turbofish.to_dict()
 
 
 def test_list_repair_hints_point_to_standard_helpers():

@@ -1,0 +1,62 @@
+function id<T>(x: T) returns T
+  effects pure
+do
+  return x
+end
+
+function singleton<T>(x: T) returns List<T>
+  effects pure
+do
+  return [x]
+end
+
+function wrapOption<T>(x: T) returns Option<T>
+  effects pure
+do
+  return Some(x)
+end
+
+function makeResult<T, E>(x: T) returns Result<T, E>
+  effects pure
+do
+  return Ok(x)
+end
+
+function optionValue(value: Option<Int>) returns Int
+  effects pure
+do
+  match value do
+    case Some(x) do
+      return x
+    end
+    case None() do
+      return -1
+    end
+  end
+end
+
+function resultValue(value: Result<Int, String>) returns Int
+  effects pure
+do
+  match value do
+    case Ok(x) do
+      return x
+    end
+    case Err(message) do
+      return -1
+    end
+  end
+end
+
+function main() returns Unit
+  effects log
+do
+  let xs: List<Int> = singleton<Int>(5)
+  let ys: List<Int> = id<List<Int>>([1, 2])
+  let opt: Option<Int> = wrapOption<Int>(7)
+  let res: Result<Int, String> = makeResult<Int, String>(9)
+  print(intToString(xs[0]))
+  print(intToString(ys[1]))
+  print(intToString(optionValue(opt)))
+  print(intToString(resultValue(res)))
+end

@@ -99,10 +99,16 @@ def lint_common_ai_syntax(source: str, filename: str = "<input>") -> List[Diagno
                 "Aether does not support direct list item assignment. Use `updateAt(xs, i, value)` and handle `Result`.",
             ),
             (
-                _explicit_generic_call_match(line),
+                _square_generic_call_match(line),
                 "E0008",
-                "Aether does not support explicit generic call syntax.",
-                "call the function normally, for example `identity(5)`, and let Aether infer the type",
+                "Aether explicit generic calls use angle brackets.",
+                "Use f<Int>(x), not f[Integer](x) or f::<Int>(x).",
+            ),
+            (
+                _turbofish_generic_call_match(line),
+                "E0008",
+                "Aether explicit generic calls use direct angle brackets.",
+                "Use f<Int>(x), not f[Integer](x) or f::<Int>(x).",
             ),
             (
                 _match_brace_block_match(line),
@@ -182,7 +188,9 @@ def _match_brace_block_match(line: str) -> Optional[re.Match[str]]:
     return re.search(r"\bmatch\b[^{]*\{", line)
 
 
-def _explicit_generic_call_match(line: str) -> Optional[re.Match[str]]:
-    if line.lstrip().startswith("function "):
-        return None
-    return re.search(r"(?<!\.)\b[A-Za-z_][A-Za-z_0-9?!]*\s*<[^>\n]+>\s*\(", line)
+def _square_generic_call_match(line: str) -> Optional[re.Match[str]]:
+    return re.search(r"(?<!\.)\b[A-Za-z_][A-Za-z_0-9?!]*\s*\[[A-Za-z_][^\]\n]*\]\s*\(", line)
+
+
+def _turbofish_generic_call_match(line: str) -> Optional[re.Match[str]]:
+    return re.search(r"(?<!\.)\b[A-Za-z_][A-Za-z_0-9?!]*\s*::\s*<[^>\n]+>\s*\(", line)

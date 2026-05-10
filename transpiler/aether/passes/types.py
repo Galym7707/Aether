@@ -538,6 +538,11 @@ class _TypeChecker:
     ) -> ValueInfo:
         name = self._callee_name(expr.get("func") or {})
         args = expr.get("args", [])
+        explicit_type_args = expr.get("type_args") or []
+        if explicit_type_args and name not in self.functions:
+            self._generic_call_on_non_generic(name, expr)
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(UNKNOWN)
         if name == "append":
             return self._infer_append(expr, env, generic_vars)
         if name == "prepend":
@@ -550,7 +555,7 @@ class _TypeChecker:
         if name == "get":
             return self._infer_get(expr, env, generic_vars)
         if name in {"safeAt", "updateAt", "safeSlice", "inBounds", "validSliceBounds"} and name in self.functions:
-            return self._infer_user_call(name, expr, env, generic_vars)
+            return self._infer_user_call(name, expr, env, generic_vars, expected)
         if name == "safeAt":
             return self._infer_safe_at(expr, env, expected, generic_vars)
         if name == "updateAt":
@@ -639,9 +644,13 @@ class _TypeChecker:
         if name in {"keys", "values"}:
             return self._infer_map_keys_values(name, expr, env, generic_vars)
         if name in env and self._dealias(env[name].ty).name == "function":
+            if explicit_type_args:
+                self._generic_call_on_non_generic(name, expr)
+                self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+                return ValueInfo(UNKNOWN)
             return self._infer_function_value_call(name, expr, env, generic_vars)
         if name in self.functions:
-            return self._infer_user_call(name, expr, env, generic_vars)
+            return self._infer_user_call(name, expr, env, generic_vars, expected)
 
         self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
         return ValueInfo(UNKNOWN)
@@ -1429,12 +1438,27 @@ class _TypeChecker:
         expr: Dict[str, Any],
         env: Dict[str, ValueInfo],
         generic_vars: set[str],
+        expected: Optional[AType] = None,
     ) -> ValueInfo:
         fn = self.functions[name]
-        fn_generics = set(fn.get("generics", []))
+        fn_generic_names = list(fn.get("generics", []))
+        fn_generics = set(fn_generic_names)
+        explicit_type_args = expr.get("type_args") or []
         subst: Dict[str, AType] = {}
         args = expr.get("args", [])
         params = fn.get("params", [])
+        explicit = bool(explicit_type_args)
+        if explicit:
+            if not fn_generic_names:
+                self._generic_call_on_non_generic(name, expr)
+                explicit = False
+            elif len(explicit_type_args) != len(fn_generic_names):
+                self._generic_type_arg_arity(name, expr, len(fn_generic_names), len(explicit_type_args))
+                self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+                return ValueInfo(UNKNOWN)
+            else:
+                for type_name, type_ast in zip(fn_generic_names, explicit_type_args):
+                    subst[type_name] = self._type_from_ast(type_ast, generic_vars)
         for idx, arg in enumerate(args):
             if idx >= len(params):
                 self._infer_expr(arg, env, None, generic_vars)
@@ -1456,15 +1480,35 @@ class _TypeChecker:
                     )
                 else:
                     self._type_diag(
-                        "TYPE_ARGUMENT_MISMATCH",
+                        "GENERIC_TYPE_ARG_MISMATCH" if explicit else "TYPE_ARGUMENT_MISMATCH",
                         expected_ty,
                         actual.ty,
                         self._pos(arg),
-                        f"Argument {idx + 1} passed to {name} has type {actual.ty} but expected {expected_ty}.",
-                        "pass an argument matching the function parameter type",
+                        (
+                            f"Argument {idx + 1} passed to {name} has type {actual.ty} but explicit type "
+                            f"arguments require {expected_ty}."
+                            if explicit
+                            else f"Argument {idx + 1} passed to {name} has type {actual.ty} but expected {expected_ty}."
+                        ),
+                        (
+                            "change the explicit type arguments or pass arguments with those types"
+                            if explicit
+                            else "pass an argument matching the function parameter type"
+                        ),
                         {"function": name, "argument": params[idx].get("name", str(idx + 1))},
                     )
         ret = self._substitute(self._type_from_ast(fn.get("return_type"), fn_generics), subst)
+        if explicit and expected is not None and not self._compatible(expected, ret):
+            self._type_diag(
+                "GENERIC_RETURN_TYPE_MISMATCH",
+                expected,
+                ret,
+                self._pos(expr),
+                f"explicit type arguments make {name} return {ret}, but context expects {expected}.",
+                "change the explicit type arguments or the expected destination type",
+                {"function": name},
+            )
+            return ValueInfo(UNKNOWN)
         return ValueInfo(ret)
 
     def _infer_function_value_call(
@@ -1759,6 +1803,53 @@ class _TypeChecker:
     # ------------------------------------------------------------------
     # Diagnostics
     # ------------------------------------------------------------------
+
+    def _generic_call_on_non_generic(self, name: Optional[str], expr: Dict[str, Any]) -> None:
+        function = name or "<unknown>"
+        actual = len(expr.get("type_args") or [])
+        self.diags.append(
+            Diagnostic(
+                code="GENERIC_CALL_ON_NON_GENERIC",
+                category="type",
+                severity="error",
+                message=f"function {function!r} is not generic but was called with explicit type arguments.",
+                position=self._pos(expr),
+                suggestion="remove the explicit type arguments or call a generic function",
+                confidence=0.95,
+                extra={
+                    "function": function,
+                    "expected": "0 type arguments",
+                    "actual": f"{actual} type argument{'s' if actual != 1 else ''}",
+                },
+            )
+        )
+
+    def _generic_type_arg_arity(
+        self,
+        name: str,
+        expr: Dict[str, Any],
+        expected_count: int,
+        actual_count: int,
+    ) -> None:
+        self.diags.append(
+            Diagnostic(
+                code="GENERIC_TYPE_ARG_ARITY",
+                category="type",
+                severity="error",
+                message=(
+                    f"generic function {name!r} expects {expected_count} type argument"
+                    f"{'s' if expected_count != 1 else ''}, got {actual_count}."
+                ),
+                position=self._pos(expr),
+                suggestion="match the number of explicit type arguments to the function declaration",
+                confidence=0.95,
+                extra={
+                    "function": name,
+                    "expected": str(expected_count),
+                    "actual": str(actual_count),
+                },
+            )
+        )
 
     def _diag_if_incompatible(
         self,

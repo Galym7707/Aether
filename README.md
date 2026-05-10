@@ -106,6 +106,8 @@ Most common syntax rules:
   element types, nested lists, `Map<K,V>` helper flows, `Option<T>` /
   `Result<T,E>` constructors, and user generic functions such as
   `function id<T>(x: T) returns T`.
+- Explicit generic calls for supported user generic functions, for example
+  `id<Int>(5)`, `makeResult<Int, String>(5)`, and `id<List<Int>>([1, 2])`.
 - Static diagnostics for mixed list literals, wrong `append` element types,
   empty lists without contextual type, non-Int indexes, negative indexes, and
   obvious known-length out-of-bounds indexes.
@@ -141,9 +143,10 @@ Most common syntax rules:
 - Complete static verification. The type checker is stronger than the original
   prototype for supported generic/list constructs, but it is not a proof
   system and does not infer or verify every possible program property.
-- Explicit generic call syntax such as `identity<Int>(5)`. Generic functions
-  are called normally, for example `identity(5)`, and the checker infers
-  supported type variables from arguments.
+- Complete generic inference for every future language construct. Normal
+  inferred calls such as `identity(5)` and explicit calls such as
+  `identity<Int>(5)` work for the supported subset, but this is not a complete
+  Hindley-Milner-style inference engine.
 - Precise call-site source spans for every runtime diagnostic. Contract,
   refinement, and index diagnostics now include useful source lines where
   feasible, but some runtime errors still report boundary/helper positions.
@@ -195,6 +198,7 @@ python -B tests\test_json_diagnostics.py
 python -B tests\test_prelint_ai_syntax_errors.py
 python -B tests\test_list_operations.py
 python -B tests\test_generic_typechecking.py
+python -B tests\test_explicit_generic_calls.py
 python -B tests\test_static_index_diagnostics.py
 python -B tests\test_contract_diagnostics.py
 python -B tests\test_ai_repair_diagnostics.py

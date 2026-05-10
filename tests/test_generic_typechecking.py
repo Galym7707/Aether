@@ -197,8 +197,8 @@ end
     assert diag["actual"] == "String", diag
 
 
-def test_explicit_generic_call_syntax_is_rejected():
-    diag = _diag(
+def test_explicit_generic_call_syntax_is_supported():
+    _check_ok(
         """
 function identity<T>(x: T) returns T
   effects pure
@@ -213,7 +213,6 @@ do
 end
 """
     )
-    assert diag["code"] == "E0008", diag
 
 
 if __name__ == "__main__":
@@ -225,5 +224,5 @@ if __name__ == "__main__":
     test_method_append_push_are_unsupported_syntax()
     test_generic_identity_inference_and_mismatch()
     test_generic_function_arguments_must_agree()
-    test_explicit_generic_call_syntax_is_rejected()
+    test_explicit_generic_call_syntax_is_supported()
     print("GENERIC TYPECHECKING TESTS PASS")

@@ -109,9 +109,18 @@ function map<T, U>(xs: List<T>, f: function(T) returns U) returns List<U>
     end
 
 Type parameters are written in angle brackets after the function name. They may
-appear in parameters, return type, contracts, and effect rows. Calls use normal
-function-call syntax, for example `identity(5)`. Explicit generic calls such as
-`identity<Int>(5)` are not implemented and are rejected by prelint.
+appear in parameters, return type, contracts, and effect rows. Calls may rely on
+inference, for example `identity(5)`, or supply explicit type arguments:
+
+```aether
+identity<Int>(5)
+makeResult<Int, String>(5)
+identity<List<Int>>([1, 2])
+```
+
+Explicit type arguments are checked statically and erased before runtime.
+Square-bracket and turbofish forms such as `identity[Int](5)` and
+`identity::<Int>(5)` are not Aether syntax.
 
 The current checker validates supported generic relationships in direct user
 function calls, for example rejecting `choose(1, "bad")` for

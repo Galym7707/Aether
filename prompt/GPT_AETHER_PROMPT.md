@@ -31,8 +31,9 @@ Syntax constraints:
   `result.is_ok()`.
 - Aether requires a contextual type for empty lists, for example
   `let xs: List<Int> = []`.
-- Aether calls generic functions normally, for example `identity(5)`, not
-  `identity<Int>(5)`.
+- Aether generic calls may be inferred, for example `identity(5)`, or explicit,
+  for example `identity<Int>(5)` and `makeResult<Int, String>(5)`.
+- Use `f<Int>(x)`, not `f[Integer](x)` or `f::<Int>(x)`.
 - Use examples from `docs/AETHER_LANGUAGE_GUIDE.md` and `examples/`.
 ```
 

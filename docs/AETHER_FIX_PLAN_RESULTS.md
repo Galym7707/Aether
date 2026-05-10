@@ -312,14 +312,31 @@ Added `examples/18_deterministic_random.aeth`,
 `tests/test_deterministic_runtime.py`. Updated README, language guide,
 feature matrix, stdlib/effect docs, and example index.
 
+## Explicit Generic Calls Pass
+
+Added parser, AST, printer, and type-checker support for explicit generic calls:
+`id<Int>(5)`, `makeResult<Int, String>(5)`, and nested forms such as
+`id<List<Int>>([1, 2])`. Ordinary inferred calls such as `id(5)` remain
+supported.
+
+The checker reports stable diagnostics for explicit generic misuse:
+`GENERIC_CALL_ON_NON_GENERIC`, `GENERIC_TYPE_ARG_ARITY`,
+`GENERIC_TYPE_ARG_MISMATCH`, and `GENERIC_RETURN_TYPE_MISMATCH`. Prelint now
+keeps `f<Int>(x)` valid while rejecting common wrong forms such as
+`f[Integer](x)` and `f::<Int>(x)` with repair hints.
+
+Added `tests/test_explicit_generic_calls.py`, examples 20-21, negative examples
+15-17, benchmark tasks t28-t29, and
+`docs/AETHER_EXPLICIT_GENERIC_CALLS_REPORT.md`.
+
 ## 8. Remaining Limitations
 
 Aether is still not production-ready.
 
-Generic/list type checking is implemented for supported constructs, but Aether
-still does not have complete type inference, value-dependent typing, or full
-proof of generic program consistency. Explicit generic call syntax such as
-`identity<Int>(5)` is intentionally unsupported.
+Generic/list type checking is implemented for supported constructs, including
+explicit generic calls such as `identity<Int>(5)`. Aether still does not have
+complete type inference, value-dependent typing, or full proof of generic
+program consistency.
 
 Static verification is limited. The SMT pass handles only a small arithmetic
 fragment; most contracts/refinements remain runtime checks.

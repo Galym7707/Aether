@@ -1,0 +1,16 @@
+{
+  "expected_stdout": "",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "expected_exit_code": 2,
+  "expected_diagnostic_code": "GENERIC_TYPE_ARG_MISMATCH",
+  "expected_diagnostic_category": "type",
+  "expected_stderr_pattern": "GENERIC_TYPE_ARG_MISMATCH|explicit type arguments",
+  "python_equivalent": "python_equivalent.py",
+  "python_expected_exit_code": 0,
+  "python_expected_stdout": "accepted:bad\n",
+  "python_expected_stderr": "",
+  "python_forbidden_stderr_pattern": "(?i)(type|generic|mismatch|error)",
+  "tags": ["generics", "typecheck", "ai-generation"],
+  "difficulty": "easy"
+}

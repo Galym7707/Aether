@@ -1,0 +1,11 @@
+function id<T>(x: T) returns T
+  effects pure
+do
+  return x
+end
+
+function main() returns Unit
+  effects pure
+do
+  let value: Int = id<Int, String>(5)
+end

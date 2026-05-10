@@ -67,8 +67,17 @@ do
 end
 ```
 
-Call generic functions normally, for example `identity(5)`. Explicit generic
-call syntax such as `identity<Int>(5)` is not supported.
+Call generic functions either by inference, for example `identity(5)`, or with
+explicit type arguments when inference would be unclear:
+
+```aether
+let a: Int = identity<Int>(5)
+let xs: List<Int> = identity<List<Int>>([1, 2])
+```
+
+Use `f<Int>(x)`, `f<Int, String>(x)`, and nested forms such as
+`f<Result<List<Int>, String>>(x)`. Do not use `f[Integer](x)` or
+`f::<Int>(x)`.
 
 ### Parameters And Return Types
 
@@ -353,8 +362,8 @@ These forms should not be generated:
 - Value-level casts such as `(x as Float)` are not implemented.
 - Direct list item assignment such as `result[i] = value` is unsupported.
   Use `updateAt(result, i, value)` and handle `Result`.
-- Explicit generic call syntax such as `identity<Int>(5)` is unsupported.
-  Call `identity(5)` and let the checker infer the supported type variable.
+- Square-bracket or turbofish generic call syntax such as `identity[Int](5)`
+  and `identity::<Int>(5)` is unsupported. Use `identity<Int>(5)`.
 - Static index checking catches obvious known-length cases only. Dynamic index
   checks remain runtime diagnostics.
 
@@ -495,6 +504,7 @@ Aether syntax rules:
 - For network-like effects, use precise rows such as `effects net.fetch("https://api.example.com/*")`; this does not cover other domains.
 - Annotate effectful function-typed parameters, for example `function(Int) returns String effects net.fetch("https://api.example.com/*")`.
 - For reproducible randomness or time in examples, run with `aether run --deterministic --seed=123` and optional `--fixed-time=2026-05-10T00:00:00`.
+- For complex generic helpers, use explicit generic calls such as `id<Int>(5)`, `makeResult<Int, String>(5)`, and `id<List<Int>>([1, 2])`.
 - Use `requires` and `ensures` for preconditions and postconditions.
 - Prefer `safeAt(xs, i)`, `updateAt(xs, i, value)`, and `safeSlice(xs, start, end)` for safe list access/update/slicing.
 - Prefer exhaustive `match` for `Option` and `Result`.

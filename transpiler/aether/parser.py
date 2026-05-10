@@ -626,7 +626,22 @@ class Parser:
     def _parse_postfix(self) -> Dict[str, Any]:
         e = self._parse_primary()
         while True:
-            if self.at_sym("("):
+            type_args = self._try_parse_call_type_args(e)
+            if type_args is not None:
+                call_pos = self.expr_pos(e)
+                self.expect_sym("(")
+                args: List[Dict[str, Any]] = []
+                if not self.at_sym(")"):
+                    args.append(self.parse_expr())
+                    while self.at_sym(","):
+                        self.advance()
+                        args.append(self.parse_expr())
+                self.expect_sym(")")
+                e = self.with_pos(
+                    {"kind": "Call", "func": e, "args": args, "type_args": type_args},
+                    call_pos,
+                )
+            elif self.at_sym("("):
                 call_pos = self.expr_pos(e)
                 self.advance()
                 args: List[Dict[str, Any]] = []
@@ -652,6 +667,77 @@ class Parser:
                 )
             else:
                 return e
+
+    def _try_parse_call_type_args(self, callee: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:
+        if not self.at_sym("<"):
+            return None
+        if not self._call_type_args_are_adjacent(callee):
+            return None
+        if not self._starts_type_arg_like():
+            return None
+
+        save = self.i
+        try:
+            self.advance()
+            args: List[Dict[str, Any]] = [self.parse_type_expr()]
+            while self.at_sym(","):
+                self.advance()
+                args.append(self.parse_type_expr())
+            self.expect_sym(">")
+            if self.at_sym("("):
+                return args
+        except AetherError as exc:
+            self.i = save
+            if self._tokens_suggest_generic_call(save):
+                raise self.err(
+                    "malformed explicit generic call; use f<Int>(x), f<Int, String>(x), or f<List<Int>>(xs)",
+                    exc.diag.position,
+                    suggestion="Use f<Int>(x), not f[Integer](x) or f::<Int>(x).",
+                )
+            return None
+
+        self.i = save
+        return None
+
+    def _call_type_args_are_adjacent(self, callee: Dict[str, Any]) -> bool:
+        if callee.get("kind") != "Ident":
+            return False
+        raw = callee.get("pos") or {}
+        line = raw.get("line", 0)
+        column = raw.get("column", 0)
+        name = callee.get("name", "")
+        lt = self.peek()
+        return lt.pos.line == line and lt.pos.column == column + len(name)
+
+    def _starts_type_arg_like(self) -> bool:
+        if not self.at_sym("<"):
+            return False
+        t = self.peek(1)
+        if t.kind == "kw" and t.value == "function":
+            return True
+        if t.kind != "ident":
+            return False
+        text = str(t.value)
+        return bool(text) and text[0].isupper()
+
+    def _tokens_suggest_generic_call(self, start: int) -> bool:
+        depth = 0
+        idx = start
+        start_line = self.peek().pos.line
+        while True:
+            tok = self.peek(idx - self.i)
+            if tok.kind == "eof" or tok.pos.line != start_line:
+                return False
+            if tok.kind == "sym":
+                if tok.value == "<":
+                    depth += 1
+                elif tok.value == ">":
+                    depth -= 1
+                    if depth == 0 and self.peek(idx - self.i + 1).kind == "sym" and self.peek(idx - self.i + 1).value == "(":
+                        return True
+                elif tok.value == "(":
+                    return depth > 0
+            idx += 1
 
     def _parse_primary(self) -> Dict[str, Any]:
         t = self.peek()

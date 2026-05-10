@@ -30,8 +30,9 @@ Hard rules:
   or Python slicing like `xs[start:end]`.
 - do not write `opt.unwrap()`, `result.unwrap()`, or `result.is_ok()`.
 - annotate empty lists, for example `let xs: List<Int> = []`.
-- call generic functions normally, for example `identity(5)`, not
-  `identity<Int>(5)`.
+- call generic functions by inference, for example `identity(5)`, or explicitly,
+  for example `identity<Int>(5)` and `makeResult<Int, String>(5)`.
+- use `f<Int>(x)`, not `f[Integer](x)` or `f::<Int>(x)`.
 ```
 
 ## Full Task Prompt: safeNormalizeWeights

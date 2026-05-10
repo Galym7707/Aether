@@ -1,0 +1,22 @@
+function id<T>(x: T) returns T
+  effects pure
+do
+  return x
+end
+
+function choose<T>(a: T, b: T) returns T
+  effects pure
+do
+  return b
+end
+
+function main() returns Unit
+  effects log
+do
+  let n: Int = id<Int>(5)
+  let text: String = id<String>("explicit")
+  let picked: Int = choose<Int>(1, 2)
+  print(intToString(n))
+  print(text)
+  print(intToString(picked))
+end

@@ -1,0 +1,11 @@
+function nonGeneric(x: Int) returns Int
+  effects pure
+do
+  return x
+end
+
+function main() returns Unit
+  effects pure
+do
+  let value: Int = nonGeneric<Int>(5)
+end

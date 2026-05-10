@@ -27,6 +27,8 @@ python -B -m transpiler.aether.cli check examples\16_effect_row_precision_functi
 python -B -m transpiler.aether.cli check examples\17_effect_row_precision_option_result.aeth
 python -B -m transpiler.aether.cli check examples\18_deterministic_random.aeth
 python -B -m transpiler.aether.cli check examples\19_deterministic_time.aeth
+python -B -m transpiler.aether.cli check examples\20_explicit_generic_id.aeth
+python -B -m transpiler.aether.cli check examples\21_explicit_generic_collections.aeth
 ```
 
 Run a few examples:
@@ -47,6 +49,8 @@ python -B -m transpiler.aether.cli run examples\16_effect_row_precision_function
 python -B -m transpiler.aether.cli run examples\17_effect_row_precision_option_result.aeth
 python -B -m transpiler.aether.cli run --deterministic --seed=123 examples\18_deterministic_random.aeth
 python -B -m transpiler.aether.cli run --deterministic --fixed-time=2026-05-10T00:00:00 examples\19_deterministic_time.aeth
+python -B -m transpiler.aether.cli run examples\20_explicit_generic_id.aeth
+python -B -m transpiler.aether.cli run examples\21_explicit_generic_collections.aeth
 ```
 
 Expected output from those commands, in order:
@@ -87,6 +91,13 @@ deterministic random sequence
 374463918
 time.now epochMillis
 1778371200000
+5
+explicit
+2
+5
+2
+7
+9
 ```
 
 ## Negative Examples
@@ -108,6 +119,9 @@ python -B -m transpiler.aether.cli --json check examples\negative\11_function_ty
 python -B -m transpiler.aether.cli --json check examples\negative\12_effect_row_direct_mismatch.aeth
 python -B -m transpiler.aether.cli --json check examples\negative\13_function_type_effect_mismatch.aeth
 python -B -m transpiler.aether.cli --json check examples\negative\14_helper_effect_row_escape.aeth
+python -B -m transpiler.aether.cli --json check examples\negative\15_generic_call_on_non_generic.aeth
+python -B -m transpiler.aether.cli --json check examples\negative\16_generic_type_arg_mismatch.aeth
+python -B -m transpiler.aether.cli --json check examples\negative\17_generic_type_arg_arity.aeth
 python -B -m transpiler.aether.cli --json check examples\negative\06_effect_violation_demo.aeth
 ```
 
@@ -129,6 +143,9 @@ Expected diagnostics:
 | `negative/12_effect_row_direct_mismatch.aeth` | `check` | `EFFECT_NOT_COVERED`, category `effect` |
 | `negative/13_function_type_effect_mismatch.aeth` | `check` | `FUNCTION_TYPE_EFFECT_MISMATCH`, category `type` |
 | `negative/14_helper_effect_row_escape.aeth` | `check` | `HIGHER_ORDER_EFFECT_ESCAPE`, category `effect` |
+| `negative/15_generic_call_on_non_generic.aeth` | `check` | `GENERIC_CALL_ON_NON_GENERIC`, category `type` |
+| `negative/16_generic_type_arg_mismatch.aeth` | `check` | `GENERIC_TYPE_ARG_MISMATCH`, category `type` |
+| `negative/17_generic_type_arg_arity.aeth` | `check` | `GENERIC_TYPE_ARG_ARITY`, category `type` |
 | `negative/06_effect_violation_demo.aeth` | `check` | `EFFECT_NOT_COVERED`, category `effect` |
 
 ## Best Files For AI Imitation
@@ -151,7 +168,9 @@ Start with:
 14. `17_effect_row_precision_option_result.aeth`
 15. `18_deterministic_random.aeth`
 16. `19_deterministic_time.aeth`
-17. `05_safe_normalize_weights.aeth`
+17. `20_explicit_generic_id.aeth`
+18. `21_explicit_generic_collections.aeth`
+19. `05_safe_normalize_weights.aeth`
 
 Avoid copying from `examples/negative/` unless you are intentionally writing a
 program that demonstrates a diagnostic.

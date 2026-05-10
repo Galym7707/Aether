@@ -177,7 +177,11 @@ mul_expr         = unary_expr { ( "*" | "/" | "%" ) unary_expr } ;
 unary_expr       = [ "-" ] postfix_expr ;
 postfix_expr     = primary { call_suffix | field_suffix | index_suffix } ;
 
-call_suffix      = "(" [ arg_list ] ")" ;
+call_suffix      = [ explicit_type_args ] "(" [ arg_list ] ")" ;
+explicit_type_args = "<" type_expr { "," type_expr } ">" ;
+(* Explicit type arguments are currently implemented for direct named callees,
+   for example id<Int>(5), makeResult<Int, String>(5), and
+   id<List<Int>>([1, 2]). *)
 field_suffix     = "." IDENT ;
 index_suffix     = "[" expr "]" ;
 

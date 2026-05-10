@@ -30,8 +30,9 @@ Critical syntax:
 - Do not use method style like `opt.unwrap()`, `result.unwrap()`, or
   `result.is_ok()`.
 - Annotate empty lists, for example `let xs: List<Int> = []`.
-- Call generic functions normally, for example `identity(5)`, not
-  `identity<Int>(5)`.
+- Generic calls may be inferred, for example `identity(5)`, or explicit, for
+  example `identity<Int>(5)` and `makeResult<Int, String>(5)`.
+- Use `f<Int>(x)`, not `f[Integer](x)` or `f::<Int>(x)`.
 - Copy style from `docs/AETHER_LANGUAGE_GUIDE.md` and `examples/*.aeth`.
 ```
 

@@ -44,7 +44,8 @@ Rules:
 - Do not write method-style access like `xs.get(i)`.
 - Do not write `opt.unwrap()`, `result.unwrap()`, or `result.is_ok()`.
 - Annotate empty lists: `let xs: List<Int> = []`.
-- Call generic functions normally: `identity(5)`, not `identity<Int>(5)`.
+- Generic calls may be inferred (`identity(5)`) or explicit (`identity<Int>(5)`).
+- Use `f<Int>(x)`, not `f[Integer](x)` or `f::<Int>(x)`.
 - Use `Point(1, 2)`, not `Point { x = 1, y = 2 }`.
 
 Good list update pattern:

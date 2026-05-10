@@ -1,0 +1,11 @@
+{
+  "expected_stdout": "5\n2\n7\n9\n",
+  "stdin": "",
+  "timeout_ms": 5000,
+  "python_equivalent": "python_equivalent.py",
+  "python_expected_exit_code": 0,
+  "python_expected_stdout": "5\n2\n7\n9\n",
+  "python_expected_stderr": "",
+  "tags": ["generics", "collections", "option", "result", "ai-generation"],
+  "difficulty": "easy"
+}
