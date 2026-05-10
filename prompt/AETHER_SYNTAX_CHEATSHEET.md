@@ -27,6 +27,8 @@ Rules:
 - Use `safeAt(xs, i)` for safe dynamic access; handle `Some(value)` and `None()`.
 - Use `updateAt(xs, i, value)` for safe replacement; handle `Ok(updated)` and `Err(message)`.
 - Use `safeSlice(xs, start, end)` for safe slicing; handle `Ok(part)` and `Err(message)`.
+- Use `forall x in xs: predicate` and `exists x in xs: predicate` for list-wide properties.
+- Use `sum(xs)`, `min(xs)`, `max(xs)`, `sorted(xs)`, and `permutation(xs, ys)` in contracts when they express the invariant.
 - Prefer exhaustive `match` for `Option` and `Result`.
 - When passing a named callback to `mapOption`, `andThenOption`, `mapResult`, `mapErr`, or `andThenResult`, declare any callback effects on the enclosing function.
 - Annotate effectful function-typed parameters: `function(Int) returns Int effects log`.
@@ -46,6 +48,7 @@ Rules:
 - Annotate empty lists: `let xs: List<Int> = []`.
 - Generic calls may be inferred (`identity(5)`) or explicit (`identity<Int>(5)`).
 - Use `f<Int>(x)`, not `f[Integer](x)` or `f::<Int>(x)`.
+- Use `forall`, not `for all`; write `exists x in xs: p`, not `exists(x)`.
 - Use `Point(1, 2)`, not `Point { x = 1, y = 2 }`.
 
 Good list update pattern:

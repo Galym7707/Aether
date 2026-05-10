@@ -370,6 +370,96 @@ def _ae_foldLeft(xs, z, f):
 def _ae_reverse(xs):                   return list(reversed(xs))
 def _ae_range(lo, hi):                 return list(range(lo, hi))
 
+def _aggregate_error(code: str, message: str, line: int, column: int, hint: str):
+    from .diagnostics import AetherError, Diagnostic, Position
+    raise AetherError(Diagnostic(
+        code=code,
+        category="runtime",
+        severity="error",
+        message=message,
+        position=Position(line, column),
+        suggestion=hint,
+        confidence=1.0,
+    ))
+
+def _ensure_int_list(name: str, xs, line: int, column: int):
+    if not isinstance(xs, list):
+        _aggregate_error(
+            "AGGREGATE_LIST_TYPE_RUNTIME",
+            f"{name} expects List<Int>, got {type(xs).__name__}",
+            line,
+            column,
+            f"pass a List<Int> to {name}",
+        )
+    for value in xs:
+        if not isinstance(value, int) or isinstance(value, bool):
+            _aggregate_error(
+                "AGGREGATE_ELEMENT_TYPE_RUNTIME",
+                f"{name} expects List<Int>, but an element has type {type(value).__name__}",
+                line,
+                column,
+                f"pass only Int values to {name}",
+            )
+    return xs
+
+def _ae_sum(xs, *, line: int = 0, column: int = 0):
+    values = _ensure_int_list("sum", xs, line, column)
+    if not values:
+        _aggregate_error(
+            "AGGREGATE_EMPTY_LIST_RUNTIME",
+            "sum requires a non-empty List<Int>",
+            line,
+            column,
+            "guard with `requires length(xs) > 0` before calling sum",
+        )
+    return sum(values)
+
+def _ae_min(a, b=None, *, line: int = 0, column: int = 0):
+    if b is not None:
+        return min(a, b)
+    values = _ensure_int_list("min", a, line, column)
+    if not values:
+        _aggregate_error(
+            "AGGREGATE_EMPTY_LIST_RUNTIME",
+            "min requires a non-empty List<Int>",
+            line,
+            column,
+            "guard with `requires length(xs) > 0` before calling min",
+        )
+    return min(values)
+
+def _ae_max(a, b=None, *, line: int = 0, column: int = 0):
+    if b is not None:
+        return max(a, b)
+    values = _ensure_int_list("max", a, line, column)
+    if not values:
+        _aggregate_error(
+            "AGGREGATE_EMPTY_LIST_RUNTIME",
+            "max requires a non-empty List<Int>",
+            line,
+            column,
+            "guard with `requires length(xs) > 0` before calling max",
+        )
+    return max(values)
+
+def _ae_sorted(xs):
+    values = _ensure_int_list("sorted", xs, 0, 0)
+    return all(values[i - 1] <= values[i] for i in range(1, len(values)))
+
+def _ae_permutation(xs, ys):
+    if not isinstance(xs, list) or not isinstance(ys, list):
+        return False
+    if len(xs) != len(ys):
+        return False
+    remaining = list(ys)
+    for item in xs:
+        try:
+            idx = remaining.index(item)
+        except ValueError:
+            return False
+        remaining.pop(idx)
+    return not remaining
+
 
 # ----------------------------------------------------------------------
 # Stdlib: Map
@@ -492,8 +582,6 @@ def _ae_md5(b):
     return hashlib.md5(b).digest()
 
 def _ae_abs(x):                        return abs(x)
-def _ae_min(a, b):                     return min(a, b)
-def _ae_max(a, b):                     return max(a, b)
 def _ae_floor(x):                      import math; return math.floor(x)
 def _ae_ceil(x):                       import math; return math.ceil(x)
 def _ae_pow(a, b):                     return a ** b

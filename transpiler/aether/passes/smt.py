@@ -2,9 +2,10 @@
 
 This pass intentionally implements only a small arithmetic fragment:
 requires/ensures clauses made from Int/Float arithmetic, comparisons, and
-boolean connectives. Clauses with function calls, strings, collections,
-conditionals, field/index access, or other unsupported syntax are left to the
-existing runtime contract checks.
+boolean connectives. It also folds small literal-list `sum`/`min`/`max` calls
+and `forall`/`exists` over literal numeric lists. Other function calls, strings,
+dynamic collections, conditionals, field/index access, or unsupported syntax are
+left to the existing runtime contract checks.
 """
 
 from __future__ import annotations
@@ -223,6 +224,22 @@ def _bool_expr(e: Dict[str, Any], env: Dict[str, _SmtValue], z3):
     kind = e.get("kind")
     if kind == "BoolLit":
         return z3.BoolVal(e["value"])
+    if kind == "Quantifier":
+        values = _literal_numeric_list(e.get("iterable"), z3)
+        if not values:
+            if e.get("op") == "forall":
+                return z3.BoolVal(True)
+            if e.get("op") == "exists":
+                return z3.BoolVal(False)
+        formulas = []
+        for value in values:
+            nested = dict(env)
+            nested[e.get("var", "")] = value
+            formulas.append(_bool_expr(e.get("predicate"), nested, z3))
+        if e.get("op") == "forall":
+            return z3.And(*formulas) if formulas else z3.BoolVal(True)
+        if e.get("op") == "exists":
+            return z3.Or(*formulas) if formulas else z3.BoolVal(False)
     if kind == "UnaryOp" and e.get("op") == "not":
         return z3.Not(_bool_expr(e["value"], env, z3))
     if kind == "BinOp":
@@ -252,6 +269,19 @@ def _bool_expr(e: Dict[str, Any], env: Dict[str, _SmtValue], z3):
                 return left.expr > right.expr
             if op == ">=":
                 return left.expr >= right.expr
+    if kind == "Call":
+        name = _call_name(e)
+        args = e.get("args", [])
+        if name == "sorted" and len(args) == 1:
+            values = _literal_numeric_list(args[0], z3)
+            return z3.And(*[
+                values[i - 1].expr <= values[i].expr
+                for i in range(1, len(values))
+            ]) if len(values) > 1 else z3.BoolVal(True)
+        if name == "permutation" and len(args) == 2:
+            left = _literal_python_list(args[0])
+            right = _literal_python_list(args[1])
+            return z3.BoolVal(sorted(left) == sorted(right))
     raise _UnsupportedSMT()
 
 
@@ -271,6 +301,24 @@ def _numeric_expr(e: Dict[str, Any], env: Dict[str, _SmtValue], z3) -> _SmtValue
         return _SmtValue(-value.expr, value.ty)
     if kind == "Old":
         return _numeric_expr(e["value"], env, z3)
+    if kind == "Call":
+        name = _call_name(e)
+        args = e.get("args", [])
+        if name in {"sum", "min", "max"} and len(args) == 1:
+            values = _literal_numeric_list(args[0], z3)
+            if not values:
+                raise _UnsupportedSMT()
+            if name == "sum":
+                ty = "Float" if any(value.ty == "Float" for value in values) else "Int"
+                return _SmtValue(sum((value.expr for value in values), z3.IntVal(0)), ty)
+            expr = values[0].expr
+            for value in values[1:]:
+                if name == "min":
+                    expr = z3.If(expr <= value.expr, expr, value.expr)
+                else:
+                    expr = z3.If(expr >= value.expr, expr, value.expr)
+            ty = "Float" if any(value.ty == "Float" for value in values) else "Int"
+            return _SmtValue(expr, ty)
     if kind == "BinOp":
         op = e["op"]
         if op not in {"+", "-", "*", "/", "%"}:
@@ -289,6 +337,35 @@ def _numeric_expr(e: Dict[str, Any], env: Dict[str, _SmtValue], z3) -> _SmtValue
         if op == "%" and left.ty == "Int" and right.ty == "Int":
             return _SmtValue(left.expr % right.expr, "Int")
     raise _UnsupportedSMT()
+
+
+def _call_name(e: Dict[str, Any]) -> Optional[str]:
+    func = e.get("func") or {}
+    if func.get("kind") == "Ident":
+        return func.get("name")
+    return None
+
+
+def _literal_numeric_list(e: Optional[Dict[str, Any]], z3) -> List[_SmtValue]:
+    if not e or e.get("kind") != "ListLit":
+        raise _UnsupportedSMT()
+    values: List[_SmtValue] = []
+    for elem in e.get("elems", []):
+        values.append(_numeric_expr(elem, {}, z3))
+    return values
+
+
+def _literal_python_list(e: Optional[Dict[str, Any]]) -> List[Any]:
+    if not e or e.get("kind") != "ListLit":
+        raise _UnsupportedSMT()
+    out: List[Any] = []
+    for elem in e.get("elems", []):
+        kind = elem.get("kind")
+        if kind in {"IntLit", "FloatLit", "StringLit", "BoolLit"}:
+            out.append(elem.get("value"))
+        else:
+            raise _UnsupportedSMT()
+    return out
 
 
 def _coerce_pair(left: _SmtValue, right: _SmtValue, z3) -> Tuple[_SmtValue, _SmtValue]:

@@ -22,6 +22,8 @@ KEYWORDS = {
     # Control flow
     "if", "then", "else", "elif", "match", "case", "for", "in", "while",
     "break", "continue", "return",
+    # Quantifiers
+    "forall", "exists",
     # Type/pattern
     "where", "as", "is",
     # Capability

@@ -108,6 +108,9 @@ Most common syntax rules:
   `function id<T>(x: T) returns T`.
 - Explicit generic calls for supported user generic functions, for example
   `id<Int>(5)`, `makeResult<Int, String>(5)`, and `id<List<Int>>([1, 2])`.
+- List quantifiers and aggregate predicates for contracts and helper logic:
+  `forall x in xs: ...`, `exists x in xs: ...`, `sum(xs)`, `min(xs)`,
+  `max(xs)`, `sorted(xs)`, and `permutation(xs, ys)`.
 - Static diagnostics for mixed list literals, wrong `append` element types,
   empty lists without contextual type, non-Int indexes, negative indexes, and
   obvious known-length out-of-bounds indexes.
@@ -143,6 +146,9 @@ Most common syntax rules:
 - Complete static verification. The type checker is stronger than the original
   prototype for supported generic/list constructs, but it is not a proof
   system and does not infer or verify every possible program property.
+- Complete SMT support for dynamic collection properties. Literal-list
+  `sum`/`min`/`max` and simple literal-list quantifiers are scoped; dynamic
+  collection contracts still fall back to runtime checks.
 - Complete generic inference for every future language construct. Normal
   inferred calls such as `identity(5)` and explicit calls such as
   `identity<Int>(5)` work for the supported subset, but this is not a complete
@@ -199,6 +205,7 @@ python -B tests\test_prelint_ai_syntax_errors.py
 python -B tests\test_list_operations.py
 python -B tests\test_generic_typechecking.py
 python -B tests\test_explicit_generic_calls.py
+python -B tests\test_quantifiers_and_aggregates.py
 python -B tests\test_static_index_diagnostics.py
 python -B tests\test_contract_diagnostics.py
 python -B tests\test_ai_repair_diagnostics.py

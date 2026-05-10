@@ -268,6 +268,11 @@ def _expr(
         if _UNARY_PREC < parent_prec:
             return f"({src})"
         return src
+    if kind == "Quantifier":
+        src = f"{e['op']} {e['var']} in {_expr(e['iterable'])}: {_expr(e['predicate'])}"
+        if _UNARY_PREC < parent_prec:
+            return f"({src})"
+        return src
     if kind == "Call":
         type_args = e.get("type_args") or []
         generic = ""

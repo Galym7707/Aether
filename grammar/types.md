@@ -27,6 +27,29 @@ predicates are checked at runtime when values cross function boundaries.
 
 These are the *only* built-in collection and sum-type families. There is no `Array`, `Tuple` (records cover that), `Either`, or `Maybe`.
 
+## List quantifiers and aggregates
+
+Quantifier expressions iterate over `List<T>` and return `Bool`:
+
+```aether
+forall x in xs: x >= 0
+exists x in xs: x > 100
+```
+
+The current aggregate helpers are intentionally small:
+
+```aether
+sum(xs: List<Int>) -> Int
+min(xs: List<Int>) -> Int
+max(xs: List<Int>) -> Int
+sorted(xs: List<Int>) -> Bool
+permutation(xs: List<T>, ys: List<T>) -> Bool
+```
+
+`sum`, `min`, and `max` require non-empty lists. `permutation` requires the two
+lists to have the same element type; known unequal literal lengths are reported
+by the checker.
+
 ## Records
 
     record Point do

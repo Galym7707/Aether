@@ -34,6 +34,10 @@ Syntax constraints:
 - Aether generic calls may be inferred, for example `identity(5)`, or explicit,
   for example `identity<Int>(5)` and `makeResult<Int, String>(5)`.
 - Use `f<Int>(x)`, not `f[Integer](x)` or `f::<Int>(x)`.
+- Use list invariants directly: `forall x in xs: x >= 0`,
+  `exists x in xs: x > 100`, `sum(xs)`, `sorted(xs)`, and
+  `permutation(xs, ys)`.
+- Do not write `for all`, `exists(x)`, or quantifiers without `:`.
 - Use examples from `docs/AETHER_LANGUAGE_GUIDE.md` and `examples/`.
 ```
 

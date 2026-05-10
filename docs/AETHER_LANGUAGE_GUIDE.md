@@ -108,6 +108,39 @@ do
 end
 ```
 
+### Quantifiers And List Aggregates
+
+Aether supports list quantifiers and a small collection-property stdlib for
+contracts and pure helper functions:
+
+```aether
+requires forall x in xs: x >= 0
+requires exists y in xs: y > 100
+ensures sum(result) == sum(xs)
+ensures min(result) == min(xs)
+ensures max(result) >= max(xs)
+ensures sorted(result)
+ensures permutation(xs, result)
+```
+
+`forall` and `exists` return `Bool`. `sum`, `min`, `max`, and `sorted` currently
+operate on `List<Int>`. `permutation(xs, ys)` accepts two lists with the same
+element type and returns `Bool`; when both literal lengths are known and differ,
+the checker reports a length diagnostic. `sum`, `min`, and `max` require
+non-empty lists and raise structured diagnostics if an empty dynamic list
+reaches runtime.
+
+Use this syntax exactly:
+
+```aether
+let ok: Bool = forall x in [1, 2, 3]: x > 0
+let hasLarge: Bool = exists x in xs: x > 100
+let total: Int = sum(xs)
+```
+
+Do not write `for all x in xs`, `exists(x)`, or omit the colon before the
+predicate.
+
 ### Effects
 
 Effects are mandatory. The static effect checker runs by default for direct
@@ -356,6 +389,9 @@ These forms should not be generated:
   unsupported. Use `isOk(result)` and `isSome(option)`.
 - Python slicing syntax such as `xs[start:end]` is unsupported. Use
   `safeSlice(xs, start, end)`.
+- Quantifier spellings such as `for all x in xs`, `exists(x)`, or
+  `forall x in xs x > 0` are unsupported. Use `forall x in xs: x > 0` or
+  `exists x in xs: x > 0`.
 - General method-call style is unsupported. `Shape.Circle(...)` works for union constructors; field access such as `point.x` works for records.
 - Brace blocks are unsupported. Use `do/end` and `if ... then ... end`.
 - Record literal syntax `Point { x = 1, y = 2 }` is not implemented. Use positional constructors such as `Point(1, 2)`.
@@ -505,6 +541,7 @@ Aether syntax rules:
 - Annotate effectful function-typed parameters, for example `function(Int) returns String effects net.fetch("https://api.example.com/*")`.
 - For reproducible randomness or time in examples, run with `aether run --deterministic --seed=123` and optional `--fixed-time=2026-05-10T00:00:00`.
 - For complex generic helpers, use explicit generic calls such as `id<Int>(5)`, `makeResult<Int, String>(5)`, and `id<List<Int>>([1, 2])`.
+- Use collection contracts like `forall x in xs: x >= 0`, `sum(xs)`, `sorted(xs)`, and `permutation(xs, ys)` when they express the invariant directly.
 - Use `requires` and `ensures` for preconditions and postconditions.
 - Prefer `safeAt(xs, i)`, `updateAt(xs, i, value)`, and `safeSlice(xs, start, end)` for safe list access/update/slicing.
 - Prefer exhaustive `match` for `Option` and `Result`.
@@ -513,6 +550,7 @@ Aether syntax rules:
 - Do not use direct list item assignment like `xs[i] = value`; handle `updateAt` with `Result`.
 - Do not use Python slicing like `xs[start:end]`; handle `safeSlice` with `Result`.
 - Do not use method style like `opt.unwrap()`, `result.unwrap()`, or `result.is_ok()`.
+- Do not write quantifiers as `for all`, `exists(x)`, or without `:`.
 - For records, use positional construction like `Point(1, 2)`, not `Point { x = 1, y = 2 }`.
 
 Follow the style of `examples/01_safe_divide.aeth`,

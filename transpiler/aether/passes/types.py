@@ -324,6 +324,8 @@ class _TypeChecker:
                 )
                 return ValueInfo(BOOL)
             return value
+        if kind == "Quantifier":
+            return self._infer_quantifier(expr, env, generic_vars)
         if kind == "BinOp":
             return self._infer_binop(expr, env, generic_vars)
         if kind == "Call":
@@ -529,6 +531,38 @@ class _TypeChecker:
                 return ValueInfo(INT, const_int=const)
         return ValueInfo(UNKNOWN)
 
+    def _infer_quantifier(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        iterable = self._infer_expr(expr.get("iterable"), env, None, generic_vars)
+        iter_ty = self._dealias(iterable.ty)
+        if iter_ty.name != "List" or not iter_ty.args:
+            self._type_diag(
+                "QUANTIFIER_ITERABLE_TYPE",
+                AType("List", (UNKNOWN,)),
+                iterable.ty,
+                self._expr_pos(expr.get("iterable")) or self._pos(expr),
+                f"{expr.get('op')} expects a List<T> after `in`.",
+                "write `forall x in xs: predicate` where xs has type List<T>",
+                {"quantifier": expr.get("op")},
+            )
+            return ValueInfo(BOOL)
+        nested_env = dict(env)
+        nested_env[expr.get("var", "")] = ValueInfo(iter_ty.args[0])
+        predicate = self._infer_expr(expr.get("predicate"), nested_env, BOOL, generic_vars)
+        self._diag_if_incompatible(
+            "QUANTIFIER_PREDICATE_TYPE",
+            BOOL,
+            predicate.ty,
+            self._expr_pos(expr.get("predicate")) or self._pos(expr),
+            f"{expr.get('op')} predicate",
+            "quantifier predicates must return Bool",
+        )
+        return ValueInfo(BOOL)
+
     def _infer_call(
         self,
         expr: Dict[str, Any],
@@ -610,8 +644,16 @@ class _TypeChecker:
             self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
             return ValueInfo(BOOL)
         if name in {"abs", "min", "max", "floor", "ceil"}:
+            if name in {"min", "max"} and len(args) == 1:
+                return self._infer_int_list_aggregate(name, expr, env, generic_vars)
             self._infer_args(args, env, [INT] * len(args), generic_vars)
             return ValueInfo(INT)
+        if name == "sum":
+            return self._infer_int_list_aggregate(name, expr, env, generic_vars)
+        if name == "sorted":
+            return self._infer_sorted(expr, env, generic_vars)
+        if name == "permutation":
+            return self._infer_permutation(expr, env, generic_vars)
         if name in {"sqrt", "pow"}:
             self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
             return ValueInfo(FLOAT)
@@ -658,6 +700,157 @@ class _TypeChecker:
     # ------------------------------------------------------------------
     # Built-in calls
     # ------------------------------------------------------------------
+
+    def _infer_int_list_aggregate(
+        self,
+        name: str,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 1:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(INT)
+        arg = args[0]
+        if arg.get("kind") == "ListLit" and not arg.get("elems"):
+            self._simple_diag(
+                "AGGREGATE_EMPTY_LIST",
+                f"{name} requires a non-empty List<Int>.",
+                self._pos(arg),
+                f"guard with `requires length(xs) > 0` before calling {name}",
+                {"function": name, "expected": "non-empty List<Int>", "actual": "empty List"},
+            )
+            return ValueInfo(INT)
+        list_info = self._infer_expr(arg, env, None, generic_vars)
+        list_ty = self._dealias(list_info.ty)
+        if list_ty.name != "List" or not list_ty.args:
+            self._type_diag(
+                "AGGREGATE_LIST_TYPE",
+                AType("List", (INT,)),
+                list_info.ty,
+                self._pos(arg),
+                f"{name} expects List<Int>.",
+                f"pass a List<Int> to {name}",
+                {"function": name},
+            )
+            return ValueInfo(INT)
+        elem_ty = list_ty.args[0]
+        if not self._compatible(INT, elem_ty):
+            self._type_diag(
+                "AGGREGATE_ELEMENT_TYPE",
+                INT,
+                elem_ty,
+                self._pos(arg),
+                f"{name} expects List<Int>, got List<{elem_ty}>.",
+                f"pass only Int values to {name}",
+                {"function": name},
+            )
+        if list_info.list_len == 0:
+            self._simple_diag(
+                "AGGREGATE_EMPTY_LIST",
+                f"{name} requires a non-empty List<Int>.",
+                self._pos(arg),
+                f"guard with `requires length(xs) > 0` before calling {name}",
+                {"function": name, "expected": "non-empty List<Int>", "actual": "empty List"},
+            )
+        return ValueInfo(INT)
+
+    def _infer_sorted(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 1:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(BOOL)
+        list_info = self._infer_expr(args[0], env, None, generic_vars)
+        list_ty = self._dealias(list_info.ty)
+        if list_ty.name != "List" or not list_ty.args:
+            self._type_diag(
+                "SORTED_LIST_TYPE",
+                AType("List", (INT,)),
+                list_info.ty,
+                self._pos(args[0]),
+                "sorted expects List<Int>.",
+                "pass a List<Int> to sorted",
+                {"function": "sorted"},
+            )
+            return ValueInfo(BOOL)
+        if not self._compatible(INT, list_ty.args[0]):
+            self._type_diag(
+                "SORTED_ELEMENT_TYPE",
+                INT,
+                list_ty.args[0],
+                self._pos(args[0]),
+                f"sorted expects List<Int>, got List<{list_ty.args[0]}>.",
+                "sort predicates currently support Int lists only",
+                {"function": "sorted"},
+            )
+        return ValueInfo(BOOL)
+
+    def _infer_permutation(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        args = expr.get("args", [])
+        if len(args) != 2:
+            self._infer_args(args, env, [UNKNOWN] * len(args), generic_vars)
+            return ValueInfo(BOOL)
+        left = self._infer_expr(args[0], env, None, generic_vars)
+        left_ty = self._dealias(left.ty)
+        right_expected = left.ty if left_ty.name == "List" else None
+        right = self._infer_expr(args[1], env, right_expected, generic_vars)
+        right_ty = self._dealias(right.ty)
+        if left_ty.name != "List" or not left_ty.args:
+            self._type_diag(
+                "PERMUTATION_LIST_TYPE",
+                AType("List", (UNKNOWN,)),
+                left.ty,
+                self._pos(args[0]),
+                "permutation expects the first argument to be List<T>.",
+                "pass two lists with the same element type",
+                {"function": "permutation", "argument": "xs"},
+            )
+            return ValueInfo(BOOL)
+        if right_ty.name != "List" or not right_ty.args:
+            self._type_diag(
+                "PERMUTATION_LIST_TYPE",
+                AType("List", (left_ty.args[0],)),
+                right.ty,
+                self._pos(args[1]),
+                "permutation expects the second argument to be List<T>.",
+                "pass two lists with the same element type",
+                {"function": "permutation", "argument": "ys"},
+            )
+            return ValueInfo(BOOL)
+        if not self._compatible(left_ty.args[0], right_ty.args[0]):
+            self._type_diag(
+                "PERMUTATION_TYPE_MISMATCH",
+                left_ty.args[0],
+                right_ty.args[0],
+                self._pos(args[1]),
+                f"permutation arguments have different element types: {left_ty.args[0]} and {right_ty.args[0]}.",
+                "use lists with the same element type",
+                {"function": "permutation"},
+            )
+        if left.list_len is not None and right.list_len is not None and left.list_len != right.list_len:
+            self._simple_diag(
+                "PERMUTATION_LENGTH_MISMATCH",
+                f"permutation requires equal lengths, got {left.list_len} and {right.list_len}.",
+                self._pos(expr),
+                "call permutation only when length(xs) == length(ys)",
+                {
+                    "function": "permutation",
+                    "expected": f"length {left.list_len}",
+                    "actual": f"length {right.list_len}",
+                },
+            )
+        return ValueInfo(BOOL)
 
     def _infer_args(
         self,

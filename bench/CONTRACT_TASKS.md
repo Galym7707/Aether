@@ -35,6 +35,8 @@ uses per-task `bench/tasks/<task_id>/grader.json` files. No root-level
 | 14 | t27_effect_row_callback_mismatch | Callback passed to `mapOption` requires billing-domain `net.fetch` while caller declares only API-domain fetch. | Prints `101` after running callback. | Fails static check with `HIGHER_ORDER_EFFECT_ESCAPE`. | `HIGHER_ORDER_EFFECT_ESCAPE` |
 | 15 | t28_explicit_generic_collection | Explicit generic calls for collection, `Option`, and `Result` helper flow. | Prints the same concrete values with no static type metadata. | Passes with `id<List<Int>>`, `wrapOption<Int>`, and `makeResult<Int, String>`. | none; successful generic path |
 | 16 | t29_generic_type_mismatch | Explicit generic call pins `T = Int` while passing a `String`. | Prints `accepted:bad` with exit code `0` and empty stderr. | Fails static check with `GENERIC_TYPE_ARG_MISMATCH`. | `GENERIC_TYPE_ARG_MISMATCH` |
+| 17 | t30_quantifiers_sum_average | Empty input passed to an average using `forall` and `sum`. | Prints fake average `0`. | Fails `requires length(xs) > 0`. | `E0301` contract |
+| 18 | t31_permutation_check | Different-length sorted lists compared as if they were the same items. | Prints `same` after a prefix-only `zip` comparison. | Fails `requires length(xs) == length(ys)`. | `E0301` contract |
 
 ## 1. t06_contract_non_empty_minimum
 

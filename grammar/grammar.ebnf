@@ -190,11 +190,14 @@ arg_list         = expr { "," expr } ;
 primary          = literal
                  | IDENT
                  | "(" expr ")"
+                 | quantifier_expr
                  | if_expr
                  | match_expr
                  | list_literal
                  | map_literal
                  | "old" "(" expr ")" ;
+
+quantifier_expr  = ( "forall" | "exists" ) IDENT "in" expr ":" expr ;
 
 if_expr          = "if" expr "then" expr { "elif" expr "then" expr } "else" expr "end" ;
 match_expr       = "match" expr "do" { match_arm_expr } "end" ;

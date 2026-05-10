@@ -1,0 +1,14 @@
+function average(xs: List<Int>) returns Int
+  requires length(xs) > 0
+  requires forall x in xs: x >= 0
+  ensures result == sum(xs) / length(xs)
+  effects pure
+do
+  return sum(xs) / length(xs)
+end
+
+function main() returns Unit
+  effects log
+do
+  print(intToString(average([])))
+end

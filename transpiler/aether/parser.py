@@ -764,6 +764,8 @@ class Parser:
             v = self.parse_expr()
             self.expect_sym(")")
             return self.with_pos({"kind": "Old", "value": v}, kw.pos)
+        if t.kind == "kw" and t.value in {"forall", "exists"}:
+            return self._parse_quantifier()
         if t.kind == "kw" and t.value in ("self", "result"):
             self.advance()
             return self.with_pos({"kind": "Ident", "name": t.value}, t.pos)
@@ -812,6 +814,30 @@ class Parser:
             self.advance()
             return self.with_pos({"kind": "Ident", "name": t.value}, t.pos)
         raise self.err(f"expected expression, got {self._show(t)}", t.pos)
+
+    def _parse_quantifier(self) -> Dict[str, Any]:
+        kw = self.advance()
+        var_tok = self.expect_ident()
+        self.expect_kw("in")
+        iterable = self.parse_expr()
+        if not self.at_sym(":"):
+            raise self.err(
+                f"expected ':' in {kw.value} expression",
+                self.peek().pos,
+                suggestion=f"write `{kw.value} {var_tok.value} in xs: predicate`",
+            )
+        self.advance()
+        predicate = self.parse_expr()
+        return self.with_pos(
+            {
+                "kind": "Quantifier",
+                "op": kw.value,
+                "var": var_tok.value,
+                "iterable": iterable,
+                "predicate": predicate,
+            },
+            kw.pos,
+        )
 
     def _parse_if_expr(self) -> Dict[str, Any]:
         kw = self.expect_kw("if")

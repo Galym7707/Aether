@@ -214,6 +214,20 @@ The constructors `Some`, `None`, `Ok`, `Err` are also always in scope.
       effects pure
     function max(a: Int, b: Int) returns Int
       effects pure
+    function sum(xs: List<Int>) returns Int
+      requires length(xs) > 0
+      effects pure
+    function min(xs: List<Int>) returns Int
+      requires length(xs) > 0
+      effects pure
+    function max(xs: List<Int>) returns Int
+      requires length(xs) > 0
+      effects pure
+    function sorted(xs: List<Int>) returns Bool
+      effects pure
+    function permutation<T>(xs: List<T>, ys: List<T>) returns Bool
+      requires length(xs) == length(ys)
+      effects pure
     function floor(x: Float) returns Int
       effects pure
     function ceil(x: Float) returns Int

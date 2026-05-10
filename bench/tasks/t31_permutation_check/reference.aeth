@@ -1,0 +1,19 @@
+function sameSortedItems(xs: List<Int>, ys: List<Int>) returns Bool
+  requires sorted(xs)
+  requires sorted(ys)
+  requires length(xs) == length(ys)
+  ensures result == permutation(xs, ys)
+  effects pure
+do
+  return permutation(xs, ys)
+end
+
+function main() returns Unit
+  effects log
+do
+  if sameSortedItems([1, 2], [1, 2, 3]) then
+    print("same")
+  else
+    print("different")
+  end
+end

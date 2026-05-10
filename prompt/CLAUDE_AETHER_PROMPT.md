@@ -33,6 +33,10 @@ Hard rules:
 - call generic functions by inference, for example `identity(5)`, or explicitly,
   for example `identity<Int>(5)` and `makeResult<Int, String>(5)`.
 - use `f<Int>(x)`, not `f[Integer](x)` or `f::<Int>(x)`.
+- express list invariants with `forall x in xs: x >= 0`,
+  `exists x in xs: x > 100`, `sum(xs)`, `sorted(xs)`, and
+  `permutation(xs, ys)`.
+- do not write `for all`, `exists(x)`, or quantifiers without `:`.
 ```
 
 ## Full Task Prompt: safeNormalizeWeights

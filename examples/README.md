@@ -29,6 +29,8 @@ python -B -m transpiler.aether.cli check examples\18_deterministic_random.aeth
 python -B -m transpiler.aether.cli check examples\19_deterministic_time.aeth
 python -B -m transpiler.aether.cli check examples\20_explicit_generic_id.aeth
 python -B -m transpiler.aether.cli check examples\21_explicit_generic_collections.aeth
+python -B -m transpiler.aether.cli check examples\22_quantifiers_simple.aeth
+python -B -m transpiler.aether.cli check examples\23_sort_and_permutation.aeth
 ```
 
 Run a few examples:
@@ -51,6 +53,8 @@ python -B -m transpiler.aether.cli run --deterministic --seed=123 examples\18_de
 python -B -m transpiler.aether.cli run --deterministic --fixed-time=2026-05-10T00:00:00 examples\19_deterministic_time.aeth
 python -B -m transpiler.aether.cli run examples\20_explicit_generic_id.aeth
 python -B -m transpiler.aether.cli run examples\21_explicit_generic_collections.aeth
+python -B -m transpiler.aether.cli run examples\22_quantifiers_simple.aeth
+python -B -m transpiler.aether.cli run examples\23_sort_and_permutation.aeth
 ```
 
 Expected output from those commands, in order:
@@ -98,6 +102,12 @@ explicit
 2
 7
 9
+non-negative
+no-large
+60
+sorted
+permutation
+6
 ```
 
 ## Negative Examples
@@ -170,7 +180,9 @@ Start with:
 16. `19_deterministic_time.aeth`
 17. `20_explicit_generic_id.aeth`
 18. `21_explicit_generic_collections.aeth`
-19. `05_safe_normalize_weights.aeth`
+19. `22_quantifiers_simple.aeth`
+20. `23_sort_and_permutation.aeth`
+21. `05_safe_normalize_weights.aeth`
 
 Avoid copying from `examples/negative/` unless you are intentionally writing a
 program that demonstrates a diagnostic.

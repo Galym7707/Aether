@@ -73,6 +73,7 @@ def main() -> int:
         os.path.join("tests", "test_list_operations.py"),
         os.path.join("tests", "test_generic_typechecking.py"),
         os.path.join("tests", "test_explicit_generic_calls.py"),
+        os.path.join("tests", "test_quantifiers_and_aggregates.py"),
         os.path.join("tests", "test_static_index_diagnostics.py"),
         os.path.join("tests", "test_contract_diagnostics.py"),
         os.path.join("tests", "test_ai_repair_diagnostics.py"),

@@ -32,6 +32,9 @@ def test_common_ai_syntax_errors_have_specific_codes():
     assert _first_code("result.is_ok()") == "E0014"
     assert _first_code("option.is_some()") == "E0015"
     assert _first_code("match opt { case Some(v) { v } }") == "E0016"
+    assert _first_code("for all x in xs: x > 0") == "E0017"
+    assert _first_code("exists(x)") == "E0018"
+    assert _first_code("forall x in xs x > 0") == "E0019"
 
 
 def test_prelint_does_not_flag_supported_index_equality_or_map_literal():

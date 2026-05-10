@@ -468,10 +468,27 @@ def emit_expr(ctx: EmitContext, e: Dict[str, Any]) -> str:
         if e["op"] == "not":
             return f"(not {v})"
         raise NotImplementedError(f"unop: {e['op']}")
+    if k == "Quantifier":
+        var = mangle(e["var"])
+        iterable = emit_expr(ctx, e["iterable"])
+        predicate = emit_expr(ctx, e["predicate"])
+        if e["op"] == "forall":
+            return f"all(bool({predicate}) for {var} in {iterable})"
+        if e["op"] == "exists":
+            return f"any(bool({predicate}) for {var} in {iterable})"
+        raise NotImplementedError(f"quantifier: {e['op']}")
     if k == "Call":
         func_src = emit_callee(ctx, e["func"])
         args = ", ".join(emit_expr(ctx, a) for a in e["args"])
         callee_name = e["func"].get("name") if e["func"].get("kind") == "Ident" else None
+        if callee_name in {"sum", "min", "max"} and callee_name not in ctx.function_names:
+            if callee_name == "sum" or len(e.get("args", [])) == 1:
+                raw_pos = e.get("pos") or {"line": 0, "column": 0}
+                line = int(raw_pos.get("line", 0))
+                col = int(raw_pos.get("column", 0))
+                if args:
+                    return f"{func_src}({args}, line={line}, column={col})"
+                return f"{func_src}(line={line}, column={col})"
         if callee_name in {"expectSome", "expectOk"} and callee_name not in ctx.function_names:
             raw_pos = e.get("pos") or {"line": 0, "column": 0}
             line = int(raw_pos.get("line", 0))
@@ -594,6 +611,8 @@ def _pretty(e: Dict[str, Any]) -> str:
         return f"({_pretty(e['left'])} {e['op']} {_pretty(e['right'])})"
     if k == "UnaryOp":
         return f"({e['op']} {_pretty(e['value'])})"
+    if k == "Quantifier":
+        return f"{e['op']} {e['var']} in {_pretty(e['iterable'])}: {_pretty(e['predicate'])}"
     if k == "Call":
         return f"{_pretty(e['func'])}(...)"
     if k == "Field":

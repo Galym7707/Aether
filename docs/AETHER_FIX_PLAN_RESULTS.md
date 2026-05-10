@@ -329,6 +329,21 @@ Added `tests/test_explicit_generic_calls.py`, examples 20-21, negative examples
 15-17, benchmark tasks t28-t29, and
 `docs/AETHER_EXPLICIT_GENERIC_CALLS_REPORT.md`.
 
+## Quantifiers And Aggregates Pass
+
+Added list quantifier expressions and aggregate helpers for collection
+contracts: `forall x in xs: predicate`, `exists x in xs: predicate`,
+`sum(xs)`, `min(xs)`, `max(xs)`, `sorted(xs)`, and
+`permutation(xs, ys)`.
+
+The parser now emits `Quantifier` AST nodes, the emitter lowers them to Python
+`all`/`any` loops, and the type checker validates list element types, predicate
+types, non-empty aggregate requirements, and same-element-type permutation
+arguments. Runtime aggregate failures use structured diagnostics.
+
+Added `tests/test_quantifiers_and_aggregates.py`, examples 22-23, benchmark
+tasks t30-t31, and `docs/AETHER_QUANTIFIERS_REPORT.md`.
+
 ## 8. Remaining Limitations
 
 Aether is still not production-ready.

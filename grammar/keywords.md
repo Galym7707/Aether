@@ -1,6 +1,6 @@
 # Aether Keywords (v0.1)
 
-Total: 47 reserved words. Locked for v0.1.
+Total: 49 reserved words. Locked for v0.1.
 
 Every keyword is a fully spelled English-style word that maps to common natural-language tokens, so model embeddings recall them reliably. No symbolic operators are reserved beyond the standard arithmetic, comparison, and assignment set.
 
@@ -45,6 +45,8 @@ Every keyword is a fully spelled English-style word that maps to common natural-
 | `case`      | Pattern arm in a match.                                                  |
 | `for`       | Iteration over an iterable.                                              |
 | `in`        | Used inside `for`, also membership test inside expressions.              |
+| `forall`    | Quantifier expression over a list: `forall x in xs: predicate`.          |
+| `exists`    | Quantifier expression over a list: `exists x in xs: predicate`.          |
 | `while`     | Loop while a condition holds.                                            |
 | `break`     | Exit the innermost loop.                                                 |
 | `continue`  | Skip to the next iteration of the innermost loop.                        |

@@ -1,0 +1,33 @@
+function allNonNegative(xs: List<Int>) returns Bool
+  effects pure
+do
+  return forall x in xs: x >= 0
+end
+
+function hasLarge(xs: List<Int>) returns Bool
+  effects pure
+do
+  return exists x in xs: x > 100
+end
+
+function total(xs: List<Int>) returns Int
+  requires length(xs) > 0
+  requires forall x in xs: x >= 0
+  ensures result == sum(xs)
+  effects pure
+do
+  return sum(xs)
+end
+
+function main() returns Unit
+  effects log
+do
+  let xs: List<Int> = [10, 20, 30]
+  if allNonNegative(xs) then
+    print("non-negative")
+  end
+  if not hasLarge(xs) then
+    print("no-large")
+  end
+  print(intToString(total(xs)))
+end

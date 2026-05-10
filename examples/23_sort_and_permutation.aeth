@@ -1,0 +1,25 @@
+function checkedSortedCopy(xs: List<Int>) returns List<Int>
+  requires length(xs) > 0
+  requires sorted(xs)
+  ensures sorted(result)
+  ensures permutation(xs, result)
+  ensures min(result) == min(xs)
+  ensures max(result) == max(xs)
+  effects pure
+do
+  return xs
+end
+
+function main() returns Unit
+  effects log
+do
+  let xs: List<Int> = [1, 2, 3]
+  let ys: List<Int> = checkedSortedCopy(xs)
+  if sorted(ys) then
+    print("sorted")
+  end
+  if permutation(xs, ys) then
+    print("permutation")
+  end
+  print(intToString(sum(ys)))
+end

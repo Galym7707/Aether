@@ -75,6 +75,24 @@ def lint_common_ai_syntax(source: str, filename: str = "<input>") -> List[Diagno
                 "Use `isSome(option)`.",
             ),
             (
+                re.search(r"\bfor\s+all\b", line),
+                "E0017",
+                "Aether uses `forall`, not `for all`.",
+                "write `forall x in xs: predicate`",
+            ),
+            (
+                re.search(r"\b(exists|forall)\s*\(", line),
+                "E0018",
+                "Aether quantifiers are not function calls.",
+                "write `exists x in xs: predicate` or `forall x in xs: predicate`",
+            ),
+            (
+                re.search(r"\b(forall|exists)\b(?![^:\n]*:)", line),
+                "E0019",
+                "Aether quantifiers require a colon before the predicate.",
+                "write `forall x in xs: predicate`",
+            ),
+            (
                 re.search(r"=>", line),
                 "E0005",
                 "Aether does not support JavaScript lambdas.",

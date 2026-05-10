@@ -84,6 +84,15 @@ supported user generic functions and container types, but the checker is not a
 complete generic inference or proof system. Explicit type arguments are not
 runtime values and do not add runtime reflection.
 
+## Follow-Up: Quantifiers And Aggregates
+
+The next pass added list quantifiers and aggregate helpers that compose with the
+explicit generic work: `forall x in xs: predicate`, `exists x in xs: predicate`,
+`sum(xs)`, `min(xs)`, `max(xs)`, `sorted(xs)`, and
+`permutation(xs, ys)`. These features are documented in
+`docs/AETHER_QUANTIFIERS_REPORT.md` and covered by
+`tests/test_quantifiers_and_aggregates.py`.
+
 ## Recommended Next Task
 
 Add richer generic constraint diagnostics and, if needed, support explicit type
