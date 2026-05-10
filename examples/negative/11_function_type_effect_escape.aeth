@@ -1,0 +1,7 @@
+// Expected diagnostic: HIGHER_ORDER_EFFECT_ESCAPE.
+// Repair: add effects log to applyLogged, or require a pure callback instead.
+function applyLogged(f: function(Int) returns Int effects log, x: Int) returns Int
+  effects pure
+do
+  return f(x)
+end

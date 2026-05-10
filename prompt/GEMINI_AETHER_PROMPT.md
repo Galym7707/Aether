@@ -23,6 +23,7 @@ Critical syntax:
 - Use `unwrapOr` / `unwrapOrResult` only when a fallback is correct.
 - Use `expectSome` / `expectOk` only when failure should be a structured diagnostic.
 - If a named callback passed to `mapOption`, `andThenOption`, `mapResult`, `mapErr`, or `andThenResult` has effects, declare those effects on the enclosing function.
+- For function-typed parameters, write effect annotations such as `function(Int) returns Int effects log`; omitted function type effects mean pure.
 - Do not use `xs.append(x)`, `xs.push(x)`, `xs.get(i)`, `xs[i] = value`,
   or Python slicing like `xs[start:end]`.
 - Do not use method style like `opt.unwrap()`, `result.unwrap()`, or

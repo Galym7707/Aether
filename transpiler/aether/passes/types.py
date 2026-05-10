@@ -20,8 +20,15 @@ from ..diagnostics import Diagnostic, Position
 class AType:
     name: str
     args: Tuple["AType", ...] = ()
+    effects: Tuple[str, ...] = ()
 
     def __str__(self) -> str:
+        if self.name == "function" and self.args:
+            params = ", ".join(str(arg) for arg in self.args[:-1])
+            out = f"function({params}) returns {self.args[-1]}"
+            if self.effects:
+                out += " effects " + ", ".join(self.effects)
+            return out
         if not self.args:
             return self.name
         return f"{self.name}<" + ", ".join(str(arg) for arg in self.args) + ">"
@@ -283,7 +290,12 @@ class _TypeChecker:
         if kind == "NullLit":
             return ValueInfo(UNIT)
         if kind == "Ident":
-            return env.get(expr.get("name"), ValueInfo(UNKNOWN))
+            name = expr.get("name")
+            if name in env:
+                return env[name]
+            if name in self.functions:
+                return ValueInfo(self._function_type_from_decl(self.functions[name]))
+            return ValueInfo(UNKNOWN)
         if kind == "ListLit":
             return self._infer_list_literal(expr, env, expected, generic_vars)
         if kind == "MapLit":
@@ -619,6 +631,8 @@ class _TypeChecker:
             return self._infer_list_builtin(name, expr, env, generic_vars)
         if name in {"keys", "values"}:
             return self._infer_map_keys_values(name, expr, env, generic_vars)
+        if name in env and self._dealias(env[name].ty).name == "function":
+            return self._infer_function_value_call(name, expr, env, generic_vars)
         if name in self.functions:
             return self._infer_user_call(name, expr, env, generic_vars)
 
@@ -1437,6 +1451,31 @@ class _TypeChecker:
         ret = self._substitute(self._type_from_ast(fn.get("return_type"), fn_generics), subst)
         return ValueInfo(ret)
 
+    def _infer_function_value_call(
+        self,
+        name: str,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        fn_ty = self._dealias(env[name].ty)
+        params = fn_ty.args[:-1]
+        ret = fn_ty.args[-1] if fn_ty.args else UNKNOWN
+        args = expr.get("args", [])
+        for idx, arg in enumerate(args):
+            expected = params[idx] if idx < len(params) else UNKNOWN
+            actual = self._infer_expr(arg, env, None if expected.unknown else expected, generic_vars)
+            if idx < len(params):
+                self._diag_if_incompatible(
+                    "TYPE_ARGUMENT_MISMATCH",
+                    expected,
+                    actual.ty,
+                    self._pos(arg),
+                    f"argument {idx + 1} passed to {name}",
+                    "pass an argument matching the function parameter type",
+                )
+        return ValueInfo(ret)
+
     # ------------------------------------------------------------------
     # Type helpers
     # ------------------------------------------------------------------
@@ -1460,7 +1499,7 @@ class _TypeChecker:
         if kind == "FunctionType":
             params = tuple(self._type_from_ast(arg) for arg in ty.get("params", []))
             ret = self._type_from_ast(ty.get("returns"))
-            return AType("function", params + (ret,))
+            return AType("function", params + (ret,), self._effect_names(ty.get("effects", [])))
         return UNKNOWN
 
     def _compatible(self, expected: AType, actual: AType) -> bool:
@@ -1471,6 +1510,8 @@ class _TypeChecker:
         if exp.unknown or act.unknown:
             return True
         if exp.name != act.name:
+            return False
+        if exp.name == "function" and not self._effects_cover(exp.effects, act.effects):
             return False
         if len(exp.args) != len(act.args):
             return False
@@ -1496,6 +1537,8 @@ class _TypeChecker:
         act = self._dealias(actual)
         if exp.name != act.name or len(exp.args) != len(act.args):
             return False
+        if exp.name == "function" and not self._effects_cover(exp.effects, act.effects):
+            return False
         return all(self._unify(e, a, subst, typevars) for e, a in zip(exp.args, act.args))
 
     def _substitute(self, ty: AType, subst: Mapping[str, AType]) -> AType:
@@ -1503,7 +1546,7 @@ class _TypeChecker:
             return subst[ty.name]
         if not ty.args:
             return ty
-        return AType(ty.name, tuple(self._substitute(arg, subst) for arg in ty.args))
+        return AType(ty.name, tuple(self._substitute(arg, subst) for arg in ty.args), ty.effects)
 
     def _contains_unresolved_typevar(self, ty: AType, typevars: set[str]) -> bool:
         if ty.name in typevars and not ty.args:
@@ -1517,7 +1560,33 @@ class _TypeChecker:
             return self._dealias(self.aliases[ty.name])
         if not ty.args:
             return ty
-        return AType(ty.name, tuple(self._dealias(arg) for arg in ty.args))
+        return AType(ty.name, tuple(self._dealias(arg) for arg in ty.args), ty.effects)
+
+    def _function_type_from_decl(self, fn: Dict[str, Any]) -> AType:
+        fn_generics = set(fn.get("generics", []))
+        params = tuple(
+            self._type_from_ast(param.get("type"), fn_generics)
+            for param in fn.get("params", [])
+        )
+        ret = self._type_from_ast(fn.get("return_type"), fn_generics)
+        return AType("function", params + (ret,), self._effect_names(fn.get("effects", [])))
+
+    def _effect_names(self, effects: Iterable[Dict[str, Any]]) -> Tuple[str, ...]:
+        names: List[str] = []
+        for effect in effects:
+            path = ".".join(effect.get("path") or ())
+            if not path or path == "pure":
+                continue
+            names.append(path)
+        return tuple(names)
+
+    def _effects_cover(self, expected: Tuple[str, ...], actual: Tuple[str, ...]) -> bool:
+        if not actual:
+            return True
+        for effect in actual:
+            if not any(effect == allowed or effect.startswith(allowed + ".") for allowed in expected):
+                return False
+        return True
 
     def _list_elem_type(self, ty: Optional[AType]) -> AType:
         ty = self._dealias(ty)
@@ -1589,14 +1658,7 @@ class _TypeChecker:
         if expr.get("kind") == "Ident":
             name = expr.get("name")
             if name in self.functions:
-                fn = self.functions[name]
-                fn_generics = set(fn.get("generics", []))
-                params = tuple(
-                    self._type_from_ast(param.get("type"), fn_generics)
-                    for param in fn.get("params", [])
-                )
-                ret = self._type_from_ast(fn.get("return_type"), fn_generics)
-                return AType("function", params + (ret,))
+                return self._function_type_from_decl(self.functions[name])
         return self._infer_expr(expr, env, None, generic_vars).ty
 
     def _function_parts(self, ty: AType) -> Tuple[Tuple[AType, ...], Optional[AType]]:

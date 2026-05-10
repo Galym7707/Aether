@@ -175,13 +175,14 @@ Updated documentation and prompts to explain:
 - Anonymous callback syntax is still unsupported by the parser, so there is no
   lambda effect inference yet.
 - Dynamic function-valued parameters remain conservatively unchecked.
-- Function types do not yet carry explicit effect rows.
+- Later pass note: function types now carry explicit effect annotations for the
+  supported subset, for example `function(Int) returns Int effects log`.
 - Runtime source spans remain best effort for some non-contract failures.
 
 ## 10. Recommended Next Tasks
 
-1. Add effect annotations to function types if Aether adds first-class function
-   values or lambda syntax.
+1. Extend function type effect checking to future anonymous callback syntax if
+   Aether adds lambdas.
 2. Extend effect propagation to future generic collection helpers such as
    `map`, `filter`, and `foldLeft`.
 3. Improve runtime call-site span threading for remaining dynamic failures.

@@ -29,6 +29,8 @@ Rules:
 - Use `safeSlice(xs, start, end)` for safe slicing; handle `Ok(part)` and `Err(message)`.
 - Prefer exhaustive `match` for `Option` and `Result`.
 - When passing a named callback to `mapOption`, `andThenOption`, `mapResult`, `mapErr`, or `andThenResult`, declare any callback effects on the enclosing function.
+- Annotate effectful function-typed parameters: `function(Int) returns Int effects log`.
+- Omitted function type effects default to pure.
 - Use `unwrapOr(opt, default)` only when a fallback is correct.
 - Use `unwrapOrResult(res, default)` only when a fallback is correct.
 - Use `expectSome(opt, message)` or `expectOk(res, message)` only when failure should be a diagnostic.
@@ -81,5 +83,15 @@ function main() returns Unit
   effects log
 do
   let value: Option<Int> = mapOption(Some(1), logValue)
+end
+```
+
+Good function-typed parameter pattern:
+
+```aether
+function applyLogged(f: function(Int) returns Int effects log, x: Int) returns Int
+  effects log
+do
+  return f(x)
 end
 ```

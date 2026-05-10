@@ -24,6 +24,7 @@ Hard rules:
 - use `unwrapOr` / `unwrapOrResult` only when a fallback is correct.
 - use `expectSome` / `expectOk` only when failure should be a structured diagnostic.
 - declare callback effects on the enclosing function when using `mapOption`, `andThenOption`, `mapResult`, `mapErr`, or `andThenResult`.
+- annotate function-typed parameters with effects, for example `function(Int) returns Int effects log`; omitted effects default to pure.
 - do not write `xs.append(x)`, `xs.push(x)`, `xs.get(i)`, `xs[i] = value`,
   or Python slicing like `xs[start:end]`.
 - do not write `opt.unwrap()`, `result.unwrap()`, or `result.is_ok()`.

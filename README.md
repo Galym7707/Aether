@@ -116,6 +116,9 @@ Most common syntax rules:
   `unwrapOrResult`, `mapResult`, and `expectOk`.
 - Effect-aware checking for named callbacks passed to `mapOption`,
   `andThenOption`, `mapResult`, `mapErr`, and `andThenResult`.
+- Effect annotations on function types, for example
+  `function(Int) returns Int effects log`, with omitted function type effects
+  defaulting to pure.
 - Static match exhaustiveness diagnostics for known `Option`, `Result`, and
   user-defined union scrutinees.
 - Runtime index diagnostics for dynamic out-of-bounds cases, without Python
@@ -176,6 +179,7 @@ python -B tests\test_safe_list_helpers.py
 python -B tests\test_option_result_helpers.py
 python -B tests\test_match_exhaustiveness.py
 python -B tests\test_higher_order_effects.py
+python -B tests\test_function_type_effects.py
 python -m pytest -q
 ```
 

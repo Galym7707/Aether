@@ -116,7 +116,11 @@ def _type(t: Dict[str, Any]) -> str:
         return f"{t['name']}<" + ", ".join(_type(a) for a in t.get("args", [])) + ">"
     if kind == "FunctionType":
         params = ", ".join(_type(p) for p in t.get("params", []))
-        return f"function({params}) returns {_type(t['returns'])}"
+        src = f"function({params}) returns {_type(t['returns'])}"
+        effects = t.get("effects") or []
+        if effects and not (len(effects) == 1 and effects[0].get("path") == ["pure"]):
+            src += " effects " + ", ".join(_effect(e) for e in effects)
+        return src
     raise NotImplementedError(f"type kind: {kind}")
 
 

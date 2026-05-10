@@ -147,6 +147,25 @@ The diagnostic code is `HIGHER_ORDER_EFFECT_ESCAPE`. Fix it by adding the
 escaped effect to the enclosing function, passing a pure callback, or moving
 the effectful work outside the helper.
 
+Function-typed parameters can also declare callback effects:
+
+```aether
+function applyLogged(f: function(Int) returns Int effects log, x: Int) returns Int
+  effects log
+do
+  return f(x)
+end
+```
+
+The `effects` annotation on a function type is optional and defaults to
+`effects pure`. If `applyLogged` above declared `effects pure`, calling `f(x)`
+would produce `HIGHER_ORDER_EFFECT_ESCAPE`. Nested function types can carry
+effects too:
+
+```aether
+function(Int) returns function(Int) returns Bool effects log effects pure
+```
+
 ### If / Else
 
 ```aether
