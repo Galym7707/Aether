@@ -39,7 +39,7 @@ Critical syntax:
   `permutation(xs, ys)`.
 - Use half-open ranges in quantifiers: `forall i in 0..length(xs) - 1: xs[i] <= xs[i + 1]`.
 - Use record updates on existing records: `account { balance = newBalance }`.
-- Do not use `Point { x = 1 }` as a record constructor; use positional constructors.
+- Use record literals for new records: `Point { x = 1, y = 2 }`; include every declared field and no extra fields.
 - Do not write `for all`, `exists(x)`, or omit the colon in a quantifier.
 - Copy style from `docs/AETHER_LANGUAGE_GUIDE.md` and `examples/*.aeth`.
 ```

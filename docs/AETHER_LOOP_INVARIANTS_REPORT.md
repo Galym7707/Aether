@@ -88,13 +88,13 @@ Commands run on Windows with `python`:
 
 - The SMT fragment is intentionally small. It handles simple arithmetic
   decreases and literal/range quantifier cases, not full loop verification.
-- Runtime loop checks run after normal loop-body execution. `continue` can skip
-  the post-body checks in the current emitter.
+- Runtime loop checks run after normal loop-body execution and before
+  `continue` jumps to the next iteration.
 - Invariants over dynamic collections are mostly runtime checks.
-- Record literal constructor syntax such as `Point { x = 1 }` is still not
-  implemented.
+- Record literals are now implemented in the follow-up pass. They require every
+  declared field and no extra fields.
 
 ## Recommended Next Task
 
-Thread loop source-span metadata through more runtime paths and make `continue`
-execute loop invariant/variant checks before jumping to the next iteration.
+Thread loop source-span metadata through more runtime paths and broaden the SMT
+loop fragment beyond simple arithmetic decreases.

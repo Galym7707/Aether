@@ -360,6 +360,20 @@ can disprove a decrease. Dynamic cases use runtime fallback diagnostics:
 Added `tests/test_loop_invariants_and_records.py`, examples 24-25, and
 `docs/AETHER_LOOP_INVARIANTS_REPORT.md`.
 
+## Continue Invariants And Record Literals Pass
+
+Loop invariant and variant checks now run before every emitted `continue`, so a
+continued iteration is checked the same way as a normal iteration end.
+
+Added record literals with syntax `Point { x = 1, y = 2 }`. The parser stores a
+`RecordLiteral` AST node, the type checker requires every declared field and no
+extra fields, and runtime construction uses record metadata emitted from the
+record definition. Missing and extra fields report
+`RECORD_LITERAL_MISSING_FIELD` and `RECORD_LITERAL_EXTRA_FIELD`.
+
+Added `tests/test_continue_loop_invariants.py`,
+`tests/test_record_literals.py`, examples 26-27, and documentation updates.
+
 ## 8. Remaining Limitations
 
 Aether is still not production-ready.
@@ -385,8 +399,9 @@ deterministic scheduler or sandbox.
 The capability system is partial. `--capability-strict` is useful for static
 effect/capability consistency, but it is not a production sandbox.
 
-Record literals, direct list item assignment, value-level `as` casts, and set
-literals are not implemented.
+Direct list item assignment, value-level `as` casts, and set literals are not
+implemented. Record literals are implemented for declared records, but generic
+record literals are not implemented.
 
 ## 9. Next Steps
 

@@ -1,4 +1,4 @@
-# Aether Type System (v0.1)
+﻿# Aether Type System (v0.1)
 
 Aether is gradually typed at function bodies and explicit at function/module
 boundaries. The current repository has a structural type diagnostic pass for
@@ -79,23 +79,21 @@ unsupported cases are checked by runtime diagnostics such as
       y: Float
     end
 
+Record literal syntax creates a record from named fields:
+
+    let p1 = Point { x = 0.0, y = 0.0 }
+
+The checker requires every declared field and rejects extra fields.
+
 Record update syntax copies an existing record and replaces named fields:
 
     let p2 = p1 { x = p1.x + 1.0 }
 
-This is not a record literal; positional constructors such as `Point(0.0, 0.0)`
-remain the way to create records.
+Positional constructors such as `Point(0.0, 0.0)` also remain supported.
 
-Records have structural equality and are immutable by default. In v0.1, construct
-records positionally — the record decl emits a constructor with parameters in
-declared order:
-
-    let p1 = Point(0.0, 0.0)
-    let p2 = Point(p1.x + 1.0, p1.y)        // works in v0.1
-
-A planned brace-init form is **not in v0.1** (see SPEC_ISSUES S-006):
-
-    let p2 = Point { x = p.x + 1.0, y = p.y }   // ❌ parses as map literal, will fail
+Records have structural equality and are immutable by default. Record literals
+create new values; copy-update expressions update existing values. Both forms
+return new records.
 
 ## Tagged unions
 
@@ -117,7 +115,7 @@ if no arm matches.
     type PositiveInt = Int where self > 0
     type Probability = Float where self >= 0.0 and self <= 1.0
 
-Inside the refinement clause, `self` is the candidate value. The predicate is checked at runtime when a value crosses a function or module boundary into the refined type. Inside a function body, the refinement is *assumed* — the type checker does not re-prove it.
+Inside the refinement clause, `self` is the candidate value. The predicate is checked at runtime when a value crosses a function or module boundary into the refined type. Inside a function body, the refinement is *assumed* вЂ” the type checker does not re-prove it.
 
 This is intentional: v0.1 traded static guarantees for low complexity. The
 current toolchain includes a scoped Z3-backed SMT pass for requires/ensures
@@ -138,8 +136,8 @@ rather than full capability-typed handles.
 
 ## Type ascription
 
-    let x: Int = parseInt!("42")    // ascription on `let` — works in v0.1
-    let y = (3.14 as Float)         // ❌ NOT IN v0.1 — value-level `as` is parked (see SPEC_ISSUES S-013)
+    let x: Int = parseInt!("42")    // ascription on `let` вЂ” works in v0.1
+    let y = (3.14 as Float)         // вќЊ NOT IN v0.1 вЂ” value-level `as` is parked (see SPEC_ISSUES S-013)
 
 Value-level `as` conversion is design text, not current implementation. There
 is no implicit numeric coercion in the current examples.
@@ -215,7 +213,7 @@ a contextual type or annotation:
     let xs: List<Int> = []      // works
     let ys = []                 // TYPE_EMPTY_LIST_NEEDS_ANNOTATION
 
-Inside a function body, every `let` binding is inferred from its initializer. Function parameters and return types are never inferred — they are always written.
+Inside a function body, every `let` binding is inferred from its initializer. Function parameters and return types are never inferred вЂ” they are always written.
 
 ## Equality and hashability
 

@@ -298,6 +298,12 @@ def _expr(
             for item in e.get("updates", [])
         )
         return f"{_postfix_base(e['value'])} {{ {updates} }}"
+    if kind == "RecordLiteral":
+        fields = ", ".join(
+            f"{item['field']} = {_expr(item['value'])}"
+            for item in e.get("fields", [])
+        )
+        return f"{e['name']} {{ {fields} }}"
     if kind == "ListLit":
         return "[" + ", ".join(_expr(x) for x in e.get("elems", [])) + "]"
     if kind == "MapLit":

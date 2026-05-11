@@ -39,7 +39,7 @@ Hard rules:
   `permutation(xs, ys)`.
 - use half-open ranges in quantifiers: `forall i in 0..length(xs) - 1: xs[i] <= xs[i + 1]`.
 - update existing records with copy-update syntax: `account { balance = newBalance }`.
-- do not use `Point { x = 1 }` as a record constructor; use positional constructors.
+- create new records with literals such as `Point { x = 1, y = 2 }`; include every declared field and no extra fields.
 - do not write `for all`, `exists(x)`, or quantifiers without `:`.
 ```
 

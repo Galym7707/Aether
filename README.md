@@ -115,7 +115,8 @@ Most common syntax rules:
   invariants.
 - Loop annotations: `invariant` clauses and arithmetic `variant` expressions
   on `while` loops, with SMT checks for simple decreases and runtime fallback
-  diagnostics.
+  diagnostics. `continue` executes the same invariant/variant checks before
+  jumping to the next iteration.
 - Static diagnostics for mixed list literals, wrong `append` element types,
   empty lists without contextual type, non-Int indexes, negative indexes, and
   obvious known-length out-of-bounds indexes.
@@ -140,9 +141,10 @@ Most common syntax rules:
 - Static effect checking for direct calls to known functions.
 - Scoped SMT checks for a small Int/Float arithmetic contract fragment when
   `z3-solver` is installed.
-- Lists, maps, records with positional constructors and copy-update syntax such
-  as `account { balance = newBalance }`, tagged unions, pattern matching,
-  loops, and helper functions.
+- Lists, maps, records with positional constructors, field literals such as
+  `Point { x = 1, y = 2 }`, and copy-update syntax such as
+  `account { balance = newBalance }`, tagged unions, pattern matching, loops,
+  and helper functions.
 - Structured JSON diagnostics through `--json`.
 - `aether ast`, `aether check`, `aether run`, and `aether test`.
 - A small Agent SDK in `transpiler/aether/agent_sdk.py`.
@@ -164,7 +166,6 @@ Most common syntax rules:
 - Precise call-site source spans for every runtime diagnostic. Contract,
   refinement, and index diagnostics now include useful source lines where
   feasible, but some runtime errors still report boundary/helper positions.
-- Record literal syntax such as `Point { x = 1, y = 2 }`.
 - Direct list item assignment such as `xs[i] = value`.
 - Python list slicing syntax such as `xs[start:end]`; use `safeSlice`.
 - Method-style calls such as `xs.get(i)` or `xs.append(x)`; use free

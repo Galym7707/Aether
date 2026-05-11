@@ -95,9 +95,11 @@ verification on this machine.
 - The new checker covers supported list/generic constructs, but it is not a
   complete verifier and does not provide full type inference for future or
   unsupported syntax.
-- Explicit generic call syntax such as `identity<Int>(5)` is unsupported.
+- Explicit generic call syntax such as `identity<Int>(5)` is supported for the
+  implemented direct-call generic subset.
 - Direct list item assignment such as `xs[i] = value` is unsupported.
-- Record literal syntax such as `Point { x = 1, y = 2 }` is unsupported.
+- Record literal syntax such as `Point { x = 1, y = 2 }` is supported for
+  declared records.
 - Static index checks catch obvious known-length cases only. Dynamic cases are
   runtime checks.
 - Static contract verification is limited to the existing SMT arithmetic

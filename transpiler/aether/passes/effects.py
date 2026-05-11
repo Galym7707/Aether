@@ -322,6 +322,19 @@ def _expr_children(expr: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
     elif kind == "Index":
         yield expr["value"]
         yield expr["index"]
+    elif kind == "RangeExpr":
+        yield expr["start"]
+        yield expr["end"]
+    elif kind == "RecordUpdate":
+        yield expr["value"]
+        for item in expr.get("updates", []):
+            yield item["value"]
+    elif kind == "RecordLiteral":
+        for item in expr.get("fields", []):
+            yield item["value"]
+    elif kind == "Quantifier":
+        yield expr["iterable"]
+        yield expr["predicate"]
     elif kind == "ListLit":
         yield from expr.get("elems", [])
     elif kind == "MapLit":
@@ -372,6 +385,10 @@ def _stmt_exprs(stmt: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
                 yield from _stmt_exprs(nested)
     elif kind == "While":
         yield stmt["cond"]
+        for invariant in stmt.get("invariants", []):
+            yield invariant
+        if stmt.get("variant") is not None:
+            yield stmt["variant"]
         for nested in stmt.get("body", []):
             yield from _stmt_exprs(nested)
     elif kind == "For":

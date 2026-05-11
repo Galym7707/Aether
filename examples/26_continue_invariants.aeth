@@ -1,0 +1,15 @@
+function main() returns Unit
+  effects log
+do
+  var i: Int = 0
+  while i < 4
+  invariant i >= 0
+  variant 4 - i
+  do
+    i = i + 1
+    if i < 4 then
+      continue
+    end
+  end
+  print(intToString(i))
+end

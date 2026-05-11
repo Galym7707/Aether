@@ -333,6 +333,8 @@ class _TypeChecker:
             return ValueInfo(UNKNOWN)
         if kind == "RecordUpdate":
             return self._infer_record_update(expr, env, generic_vars)
+        if kind == "RecordLiteral":
+            return self._infer_record_literal(expr, env, generic_vars)
         if kind == "UnaryOp":
             value = self._infer_expr(expr.get("value"), env, expected, generic_vars)
             if expr.get("op") == "neg" and value.const_int is not None:
@@ -605,6 +607,62 @@ class _TypeChecker:
                 "assign a value matching the field type",
             )
         return ValueInfo(base.ty)
+
+    def _infer_record_literal(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        name = expr.get("name", "")
+        fields = self.records.get(name)
+        provided = {item.get("field", "") for item in expr.get("fields", [])}
+        if fields is None:
+            self._simple_diag(
+                "RECORD_LITERAL_UNKNOWN_TYPE",
+                f"unknown record type {name!r}.",
+                self._pos(expr),
+                "use the name of a declared record type",
+                {"record": name},
+            )
+            for item in expr.get("fields", []):
+                self._infer_expr(item.get("value"), env, None, generic_vars)
+            return ValueInfo(UNKNOWN)
+
+        for field in fields:
+            if field not in provided:
+                self._simple_diag(
+                    "RECORD_LITERAL_MISSING_FIELD",
+                    f"record literal for {name} is missing field {field!r}.",
+                    self._pos(expr),
+                    "provide every field declared by the record type",
+                    {"record": name, "field": field},
+                )
+
+        for item in expr.get("fields", []):
+            field = item.get("field", "")
+            value = item.get("value")
+            expected = fields.get(field)
+            if expected is None:
+                self._simple_diag(
+                    "RECORD_LITERAL_EXTRA_FIELD",
+                    f"record literal for {name} has extra field {field!r}.",
+                    self._pos(item),
+                    "remove fields that are not declared by the record type",
+                    {"record": name, "field": field},
+                )
+                self._infer_expr(value, env, None, generic_vars)
+                continue
+            actual = self._infer_expr(value, env, expected, generic_vars)
+            self._diag_if_incompatible(
+                "RECORD_LITERAL_FIELD_TYPE",
+                expected,
+                actual.ty,
+                self._expr_pos(value) or self._pos(item),
+                f"record literal field {field}",
+                "provide a value matching the field type",
+            )
+        return ValueInfo(AType(name))
 
     def _infer_binop(
         self,

@@ -562,6 +562,39 @@ def _aether_record_update(record, updates, line: int = 0, column: int = 0):
     new.update(updates)
     return new
 
+def _aether_record_literal(type_name: str, field_names, values, line: int = 0, column: int = 0):
+    expected = list(field_names)
+    missing = [name for name in expected if name not in values]
+    extra = [name for name in values if name not in expected]
+    if missing:
+        from .diagnostics import AetherError, Diagnostic, Position
+        raise AetherError(Diagnostic(
+            code="RECORD_LITERAL_MISSING_FIELD",
+            category="runtime",
+            severity="error",
+            message=f"record literal for {type_name} is missing field {missing[0]!r}",
+            position=Position(line, column),
+            suggestion="provide every field declared by the record type",
+            confidence=1.0,
+            extra={"record": type_name, "field": missing[0]},
+        ))
+    if extra:
+        from .diagnostics import AetherError, Diagnostic, Position
+        raise AetherError(Diagnostic(
+            code="RECORD_LITERAL_EXTRA_FIELD",
+            category="runtime",
+            severity="error",
+            message=f"record literal for {type_name} has extra field {extra[0]!r}",
+            position=Position(line, column),
+            suggestion="remove fields that are not declared by the record type",
+            confidence=1.0,
+            extra={"record": type_name, "field": extra[0]},
+        ))
+    out = {"_kind": type_name}
+    for name in expected:
+        out[name] = values[name]
+    return out
+
 def _ae_remove(m, k):
     new = dict(m)
     new.pop(k, None)
@@ -893,6 +926,7 @@ def build_namespace() -> Dict[str, Any]:
             "record_effect_arg", "_aether_index", "_aether_call",
             "_aether_match_failed", "_aether_check_loop_invariant",
             "_aether_check_loop_variant", "_aether_record_update",
+            "_aether_record_literal",
         }:
             g[name] = val
     g["_ae_time"] = {"now": _ae_now}

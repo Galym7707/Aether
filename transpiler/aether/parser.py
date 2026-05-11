@@ -20,6 +20,10 @@ def parse(source: str, filename: str = "<input>") -> Dict[str, Any]:
     return p.parse_program()
 
 
+def _looks_like_type_name(name: str) -> bool:
+    return bool(name) and name[0].isupper()
+
+
 class Parser:
     def __init__(self, tokens: List[Token]):
         self.tokens = tokens
@@ -699,15 +703,25 @@ class Parser:
                         field = self.expect_ident()
                         self.expect_sym("=")
                         value = self.parse_expr()
-                        updates.append({"field": field.value, "value": value})
+                        updates.append({
+                            "field": field.value,
+                            "value": value,
+                            "pos": field.pos.to_dict(),
+                        })
                         if not self.at_sym(","):
                             break
                         self.advance()
                 self.expect_sym("}")
-                e = self.with_pos(
-                    {"kind": "RecordUpdate", "value": e, "updates": updates},
-                    update_pos,
-                )
+                if e.get("kind") == "Ident" and _looks_like_type_name(e.get("name", "")):
+                    e = self.with_pos(
+                        {"kind": "RecordLiteral", "name": e["name"], "fields": updates},
+                        update_pos,
+                    )
+                else:
+                    e = self.with_pos(
+                        {"kind": "RecordUpdate", "value": e, "updates": updates},
+                        update_pos,
+                    )
             else:
                 return e
 

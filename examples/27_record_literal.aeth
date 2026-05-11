@@ -1,0 +1,20 @@
+record Point do
+  x: Int
+  y: Int
+end
+
+function moveRight(point: Point, delta: Int) returns Point
+  effects pure
+do
+  return point { x = point.x + delta }
+end
+
+function main() returns Unit
+  effects log
+do
+  let start: Point = Point { x = 1, y = 2 }
+  let moved: Point = moveRight(start, 5)
+  print(intToString(start.x))
+  print(intToString(moved.x))
+  print(intToString(moved.y))
+end

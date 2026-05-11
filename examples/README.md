@@ -33,6 +33,8 @@ python -B -m transpiler.aether.cli check examples\22_quantifiers_simple.aeth
 python -B -m transpiler.aether.cli check examples\23_sort_and_permutation.aeth
 python -B -m transpiler.aether.cli check examples\24_loop_invariant_bubble_sort.aeth
 python -B -m transpiler.aether.cli check examples\25_record_update.aeth
+python -B -m transpiler.aether.cli check examples\26_continue_invariants.aeth
+python -B -m transpiler.aether.cli check examples\27_record_literal.aeth
 ```
 
 Run a few examples:
@@ -59,6 +61,8 @@ python -B -m transpiler.aether.cli run examples\22_quantifiers_simple.aeth
 python -B -m transpiler.aether.cli run examples\23_sort_and_permutation.aeth
 python -B -m transpiler.aether.cli run examples\24_loop_invariant_bubble_sort.aeth
 python -B -m transpiler.aether.cli run examples\25_record_update.aeth
+python -B -m transpiler.aether.cli run examples\26_continue_invariants.aeth
+python -B -m transpiler.aether.cli run examples\27_record_literal.aeth
 ```
 
 Expected output from those commands, in order:
@@ -117,6 +121,10 @@ permutation
 3
 100
 125
+4
+1
+6
+2
 ```
 
 ## Negative Examples
@@ -193,7 +201,9 @@ Start with:
 20. `23_sort_and_permutation.aeth`
 21. `24_loop_invariant_bubble_sort.aeth`
 22. `25_record_update.aeth`
-23. `05_safe_normalize_weights.aeth`
+23. `26_continue_invariants.aeth`
+24. `27_record_literal.aeth`
+25. `05_safe_normalize_weights.aeth`
 
 Avoid copying from `examples/negative/` unless you are intentionally writing a
 program that demonstrates a diagnostic.

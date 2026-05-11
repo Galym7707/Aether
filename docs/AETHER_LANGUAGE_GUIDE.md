@@ -164,15 +164,17 @@ end
 ```
 
 Each `invariant` must be a `Bool`. The `variant` must be an `Int` expression
-that is strictly smaller after each iteration. The SMT pass proves simple
-arithmetic decreases when it can; otherwise runtime checks raise structured
-diagnostics such as `LOOP_INVARIANT_FAILED` or
+that is strictly smaller after each iteration. The checks run at the normal end
+of an iteration and before a `continue` jumps to the next iteration. The SMT
+pass proves simple arithmetic decreases when it can; otherwise runtime checks
+raise structured diagnostics such as `LOOP_INVARIANT_FAILED` or
 `LOOP_VARIANT_NOT_DECREASING`.
 
-### Record Updates
+### Record Literals And Updates
 
-Records are created with positional constructors and can be copied with updated
-fields:
+Records can be created with positional constructors or field literals. Record
+literals must provide every declared field exactly once and may not include
+extra fields:
 
 ```aether
 record Account do
@@ -180,12 +182,13 @@ record Account do
   balance: Int
 end
 
+let account: Account = Account { id = 1, balance = 100 }
 let updated: Account = account { balance = account.balance + amount }
 ```
 
-This does not mutate `account`. It creates a new record value. Do not write
-`Account { id = 1, balance = 100 }`; record literal constructors are still not
-implemented.
+The update expression does not mutate `account`; it creates a new record value.
+Missing or extra fields in a record literal produce
+`RECORD_LITERAL_MISSING_FIELD` or `RECORD_LITERAL_EXTRA_FIELD`.
 
 ### Effects
 
@@ -440,7 +443,7 @@ These forms should not be generated:
   `exists x in xs: x > 0`.
 - General method-call style is unsupported. `Shape.Circle(...)` works for union constructors; field access such as `point.x` works for records.
 - Brace blocks are unsupported. Use `do/end` and `if ... then ... end`.
-- Record literal syntax `Point { x = 1, y = 2 }` is not implemented. Use positional constructors such as `Point(1, 2)`.
+- Record literals must name a declared record type and provide exactly the declared fields: `Point { x = 1, y = 2 }`.
 - Value-level casts such as `(x as Float)` are not implemented.
 - Direct list item assignment such as `result[i] = value` is unsupported.
   Use `updateAt(result, i, value)` and handle `Result`.
@@ -599,7 +602,7 @@ Aether syntax rules:
 - Do not use Python slicing like `xs[start:end]`; handle `safeSlice` with `Result`.
 - Do not use method style like `opt.unwrap()`, `result.unwrap()`, or `result.is_ok()`.
 - Do not write quantifiers as `for all`, `exists(x)`, or without `:`.
-- For records, use positional construction like `Point(1, 2)`. Use `point { x = 3 }` only to copy-update an existing record.
+- For records, use `Point { x = 1, y = 2 }` to create by fields, `Point(1, 2)` to create positionally, and `point { x = 3 }` to copy-update an existing record.
 
 Follow the style of `examples/01_safe_divide.aeth`,
 `examples/02_non_empty_average.aeth`, and

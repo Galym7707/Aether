@@ -187,12 +187,13 @@ explicit_type_args = "<" type_expr { "," type_expr } ">" ;
    id<List<Int>>([1, 2]). *)
 field_suffix     = "." IDENT ;
 index_suffix     = "[" expr "]" ;
-record_update_suffix = "{" record_update_field { "," record_update_field } "}" ;
-record_update_field = IDENT "=" expr ;
+record_update_suffix = "{" record_field_assignment { "," record_field_assignment } "}" ;
+record_field_assignment = IDENT "=" expr ;
 
 arg_list         = expr { "," expr } ;
 
 primary          = literal
+                 | record_literal
                  | IDENT
                  | "(" expr ")"
                  | quantifier_expr
@@ -210,14 +211,15 @@ match_arm_expr   = "case" pattern "do" expr "end" ;
 
 list_literal     = "[" [ expr { "," expr } ] "]" ;
 map_literal      = "{" [ expr ":" expr { "," expr ":" expr } ] "}" ;
+record_literal   = TYPE_IDENT "{" record_field_assignment { "," record_field_assignment } "}" ;
 
-(* Implemented record update syntax copies an existing record value:
+(* Implemented record literal syntax creates a record by field name:
+   Account { id = 1, balance = 100 }
+   Implemented record update syntax copies an existing record value:
    account { balance = account.balance + amount }
-   Positional record constructors such as Account(1, 100) remain the way to
-   create a record value.
+   Positional record constructors such as Account(1, 100) also create records.
 
    Planned but not implemented in the current parser:
-   record_literal = IDENT "{" [ field_init { "," field_init } ] "}" ;
    set_literal    = "Set" "{" [ expr { "," expr } ] "}" ;
    Use positional record constructors such as Point(1, 2). *)
 
@@ -229,6 +231,7 @@ literal          = INT | FLOAT | STRING | "true" | "false" | "null" ;
 
 (*
   IDENT     : [A-Za-z_][A-Za-z_0-9]*[?!]?
+  TYPE_IDENT: IDENT beginning with an uppercase letter, used by record literals
   INT       : 0 | [1-9][0-9]* | "-" INT      (parsed as unary minus on a positive)
   FLOAT     : INT "." [0-9]+ [ ("e"|"E") ["-"|"+"] INT ]
   STRING    : "  ( escaped UTF-8 )  "

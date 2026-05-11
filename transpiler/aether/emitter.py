@@ -36,6 +36,8 @@ class EmitContext:
         # _ae_check_refinement calls at function entry for parameters whose
         # declared type matches.
         self.refinements: Dict[str, Dict[str, Any]] = {}
+        self.record_fields: Dict[str, List[str]] = {}
+        self.loop_checks_stack: List[Dict[str, Any]] = []
 
     def emit(self, s: str = ""):
         if s:
@@ -76,6 +78,7 @@ def emit(ast: Dict[str, Any]) -> str:
             ctx.function_names.add(d["name"])
         elif d["kind"] == "RecordDecl":
             ctx.record_kinds.add(d["name"])
+            ctx.record_fields[d["name"]] = [field["name"] for field in d.get("fields", [])]
         elif d["kind"] == "TypeDecl" and d.get("refinement") is not None:
             base = d.get("base") or {}
             ctx.refinements[d["name"]] = {
@@ -311,6 +314,8 @@ def emit_stmt(ctx: EmitContext, s: Dict[str, Any]):
     elif k == "Break":
         ctx.emit("break")
     elif k == "Continue":
+        if ctx.loop_checks_stack:
+            emit_loop_post_checks(ctx, ctx.loop_checks_stack[-1])
         ctx.emit("continue")
     elif k == "ExprStmt":
         ctx.emit(emit_expr(ctx, s["expr"]))
@@ -341,20 +346,13 @@ def emit_while_stmt(ctx: EmitContext, s: Dict[str, Any]):
         ctx.emit(f"{variant_prev} = {emit_expr(ctx, variant)}")
     ctx.emit(f"while {emit_expr(ctx, s['cond'])}:")
     with ctx.block():
-        emit_block(ctx, s["body"])
-        for invariant in s.get("invariants", []):
-            emit_loop_invariant_check(ctx, invariant)
-        if variant is not None and variant_prev is not None:
-            variant_next = ctx.fresh("variant_next")
-            raw_pos = variant.get("pos") or s.get("pos") or {"line": 0, "column": 0}
-            line = int(raw_pos.get("line", 0))
-            col = int(raw_pos.get("column", 0))
-            ctx.emit(f"{variant_next} = {emit_expr(ctx, variant)}")
-            ctx.emit(
-                "_aether_check_loop_variant("
-                f"{variant_prev}, {variant_next}, {line}, {col}, {_pretty(variant)!r})"
-            )
-            ctx.emit(f"{variant_prev} = {variant_next}")
+        frame = {"stmt": s, "variant_prev": variant_prev}
+        ctx.loop_checks_stack.append(frame)
+        try:
+            emit_block(ctx, s["body"])
+            emit_loop_post_checks(ctx, frame)
+        finally:
+            ctx.loop_checks_stack.pop()
 
 
 def emit_loop_invariant_check(ctx: EmitContext, invariant: Dict[str, Any]):
@@ -365,6 +363,25 @@ def emit_loop_invariant_check(ctx: EmitContext, invariant: Dict[str, Any]):
         "_aether_check_loop_invariant("
         f"bool({emit_expr(ctx, invariant)}), {line}, {col}, {_pretty(invariant)!r})"
     )
+
+
+def emit_loop_post_checks(ctx: EmitContext, frame: Dict[str, Any]):
+    stmt = frame["stmt"]
+    for invariant in stmt.get("invariants", []):
+        emit_loop_invariant_check(ctx, invariant)
+    variant = stmt.get("variant")
+    variant_prev = frame.get("variant_prev")
+    if variant is not None and variant_prev is not None:
+        variant_next = ctx.fresh("variant_next")
+        raw_pos = variant.get("pos") or stmt.get("pos") or {"line": 0, "column": 0}
+        line = int(raw_pos.get("line", 0))
+        col = int(raw_pos.get("column", 0))
+        ctx.emit(f"{variant_next} = {emit_expr(ctx, variant)}")
+        ctx.emit(
+            "_aether_check_loop_variant("
+            f"{variant_prev}, {variant_next}, {line}, {col}, {_pretty(variant)!r})"
+        )
+        ctx.emit(f"{variant_prev} = {variant_next}")
 
 
 def emit_match_stmt(ctx: EmitContext, s: Dict[str, Any]):
@@ -551,6 +568,19 @@ def emit_expr(ctx: EmitContext, e: Dict[str, Any]) -> str:
             for item in e.get("updates", [])
         )
         return f"_aether_record_update({emit_expr(ctx, e['value'])}, {{{updates}}}, {line}, {col})"
+    if k == "RecordLiteral":
+        raw_pos = e.get("pos") or {"line": 0, "column": 0}
+        line = int(raw_pos.get("line", 0))
+        col = int(raw_pos.get("column", 0))
+        values = ", ".join(
+            f"{item['field']!r}: {emit_expr(ctx, item['value'])}"
+            for item in e.get("fields", [])
+        )
+        field_names = repr(ctx.record_fields.get(e.get("name", ""), []))
+        return (
+            f"_aether_record_literal({e.get('name', '')!r}, {field_names}, "
+            f"{{{values}}}, {line}, {col})"
+        )
     if k == "Index":
         v = emit_expr(ctx, e["value"])
         i = emit_expr(ctx, e["index"])
@@ -671,4 +701,10 @@ def _pretty(e: Dict[str, Any]) -> str:
             for item in e.get("updates", [])
         )
         return f"{_pretty(e['value'])} {{ {updates} }}"
+    if k == "RecordLiteral":
+        fields = ", ".join(
+            f"{item['field']} = {_pretty(item['value'])}"
+            for item in e.get("fields", [])
+        )
+        return f"{e['name']} {{ {fields} }}"
     return f"<{k}>"
