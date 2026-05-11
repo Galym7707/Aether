@@ -14,6 +14,7 @@ Hard rules:
 - `length(xs)`, never `xs.len()`.
 - `do`/`end`, never `{}` blocks.
 - `if cond then ... end`, never JavaScript/C braces.
+- loop annotations go before `do`: `invariant ...` and `variant ...`.
 - named helper predicates, never lambdas like `(x) => ...`.
 - explicit contracts/refinements for invalid inputs.
 - `effects pure` for pure helpers and `effects log` for printing.
@@ -36,6 +37,9 @@ Hard rules:
 - express list invariants with `forall x in xs: x >= 0`,
   `exists x in xs: x > 100`, `sum(xs)`, `sorted(xs)`, and
   `permutation(xs, ys)`.
+- use half-open ranges in quantifiers: `forall i in 0..length(xs) - 1: xs[i] <= xs[i + 1]`.
+- update existing records with copy-update syntax: `account { balance = newBalance }`.
+- do not use `Point { x = 1 }` as a record constructor; use positional constructors.
 - do not write `for all`, `exists(x)`, or quantifiers without `:`.
 ```
 

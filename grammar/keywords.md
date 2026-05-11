@@ -48,6 +48,8 @@ Every keyword is a fully spelled English-style word that maps to common natural-
 | `forall`    | Quantifier expression over a list: `forall x in xs: predicate`.          |
 | `exists`    | Quantifier expression over a list: `exists x in xs: predicate`.          |
 | `while`     | Loop while a condition holds.                                            |
+| `invariant` | Boolean assertion that must hold before and after each loop iteration.   |
+| `variant`   | Int expression that must strictly decrease after each loop iteration.    |
 | `break`     | Exit the innermost loop.                                                 |
 | `continue`  | Skip to the next iteration of the innermost loop.                        |
 | `return`    | Return a value from a function.                                          |

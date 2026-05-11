@@ -111,6 +111,11 @@ Most common syntax rules:
 - List quantifiers and aggregate predicates for contracts and helper logic:
   `forall x in xs: ...`, `exists x in xs: ...`, `sum(xs)`, `min(xs)`,
   `max(xs)`, `sorted(xs)`, and `permutation(xs, ys)`.
+- Half-open Int ranges such as `0..length(xs) - 1` for quantifiers and loop
+  invariants.
+- Loop annotations: `invariant` clauses and arithmetic `variant` expressions
+  on `while` loops, with SMT checks for simple decreases and runtime fallback
+  diagnostics.
 - Static diagnostics for mixed list literals, wrong `append` element types,
   empty lists without contextual type, non-Int indexes, negative indexes, and
   obvious known-length out-of-bounds indexes.
@@ -135,8 +140,9 @@ Most common syntax rules:
 - Static effect checking for direct calls to known functions.
 - Scoped SMT checks for a small Int/Float arithmetic contract fragment when
   `z3-solver` is installed.
-- Lists, maps, records with positional constructors, tagged unions, pattern
-  matching, loops, and helper functions.
+- Lists, maps, records with positional constructors and copy-update syntax such
+  as `account { balance = newBalance }`, tagged unions, pattern matching,
+  loops, and helper functions.
 - Structured JSON diagnostics through `--json`.
 - `aether ast`, `aether check`, `aether run`, and `aether test`.
 - A small Agent SDK in `transpiler/aether/agent_sdk.py`.
@@ -149,6 +155,8 @@ Most common syntax rules:
 - Complete SMT support for dynamic collection properties. Literal-list
   `sum`/`min`/`max` and simple literal-list quantifiers are scoped; dynamic
   collection contracts still fall back to runtime checks.
+- Complete loop verification. Invariants are checked at runtime unless they fit
+  the narrow SMT fragment; variants only prove simple arithmetic decreases.
 - Complete generic inference for every future language construct. Normal
   inferred calls such as `identity(5)` and explicit calls such as
   `identity<Int>(5)` work for the supported subset, but this is not a complete

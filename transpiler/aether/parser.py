@@ -465,11 +465,25 @@ class Parser:
     def parse_while_stmt(self) -> Dict[str, Any]:
         kw = self.expect_kw("while")
         cond = self.parse_expr()
+        invariants: List[Dict[str, Any]] = []
+        variant: Optional[Dict[str, Any]] = None
+        while self.at_kw("invariant"):
+            self.advance()
+            invariants.append(self.parse_expr())
+        if self.at_kw("variant"):
+            self.advance()
+            variant = self.parse_expr()
         self.expect_kw("do")
         body = self.parse_block(end_kws=("end",))
         self.expect_kw("end")
-        return {"kind": "While", "cond": cond, "body": body,
-                "pos": kw.pos.to_dict()}
+        return {
+            "kind": "While",
+            "cond": cond,
+            "invariants": invariants,
+            "variant": variant,
+            "body": body,
+            "pos": kw.pos.to_dict(),
+        }
 
     def parse_for_stmt(self) -> Dict[str, Any]:
         kw = self.expect_kw("for")
@@ -608,7 +622,18 @@ class Parser:
         return self._binop_loop(self._parse_rel, ("==", "!="))
 
     def _parse_rel(self) -> Dict[str, Any]:
-        return self._binop_loop(self._parse_add, ("<", "<=", ">", ">=", "is", "in"))
+        return self._binop_loop(self._parse_range, ("<", "<=", ">", ">=", "is", "in"))
+
+    def _parse_range(self) -> Dict[str, Any]:
+        left = self._parse_add()
+        if self.at_sym(".."):
+            self.advance()
+            right = self._parse_add()
+            return self.with_pos(
+                {"kind": "RangeExpr", "start": left, "end": right},
+                self.expr_pos(left),
+            )
+        return left
 
     def _parse_add(self) -> Dict[str, Any]:
         return self._binop_loop(self._parse_mul, ("+", "-"))
@@ -664,6 +689,24 @@ class Parser:
                 e = self.with_pos(
                     {"kind": "Index", "value": e, "index": idx},
                     bracket.pos,
+                )
+            elif self.at_sym("{"):
+                update_pos = self.expr_pos(e)
+                self.advance()
+                updates: List[Dict[str, Any]] = []
+                if not self.at_sym("}"):
+                    while True:
+                        field = self.expect_ident()
+                        self.expect_sym("=")
+                        value = self.parse_expr()
+                        updates.append({"field": field.value, "value": value})
+                        if not self.at_sym(","):
+                            break
+                        self.advance()
+                self.expect_sym("}")
+                e = self.with_pos(
+                    {"kind": "RecordUpdate", "value": e, "updates": updates},
+                    update_pos,
                 )
             else:
                 return e

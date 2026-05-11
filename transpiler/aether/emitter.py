@@ -299,9 +299,7 @@ def emit_stmt(ctx: EmitContext, s: Dict[str, Any]):
     elif k == "If":
         emit_if_stmt(ctx, s)
     elif k == "While":
-        ctx.emit(f"while {emit_expr(ctx, s['cond'])}:")
-        with ctx.block():
-            emit_block(ctx, s["body"])
+        emit_while_stmt(ctx, s)
     elif k == "For":
         ctx.emit(f"for {mangle(s['var'])} in {emit_expr(ctx, s['iter'])}:")
         with ctx.block():
@@ -332,6 +330,41 @@ def emit_if_stmt(ctx: EmitContext, s: Dict[str, Any]):
         ctx.emit("else:")
         with ctx.block():
             emit_block(ctx, s["else"])
+
+
+def emit_while_stmt(ctx: EmitContext, s: Dict[str, Any]):
+    variant = s.get("variant")
+    variant_prev = ctx.fresh("variant_prev") if variant is not None else None
+    for invariant in s.get("invariants", []):
+        emit_loop_invariant_check(ctx, invariant)
+    if variant is not None:
+        ctx.emit(f"{variant_prev} = {emit_expr(ctx, variant)}")
+    ctx.emit(f"while {emit_expr(ctx, s['cond'])}:")
+    with ctx.block():
+        emit_block(ctx, s["body"])
+        for invariant in s.get("invariants", []):
+            emit_loop_invariant_check(ctx, invariant)
+        if variant is not None and variant_prev is not None:
+            variant_next = ctx.fresh("variant_next")
+            raw_pos = variant.get("pos") or s.get("pos") or {"line": 0, "column": 0}
+            line = int(raw_pos.get("line", 0))
+            col = int(raw_pos.get("column", 0))
+            ctx.emit(f"{variant_next} = {emit_expr(ctx, variant)}")
+            ctx.emit(
+                "_aether_check_loop_variant("
+                f"{variant_prev}, {variant_next}, {line}, {col}, {_pretty(variant)!r})"
+            )
+            ctx.emit(f"{variant_prev} = {variant_next}")
+
+
+def emit_loop_invariant_check(ctx: EmitContext, invariant: Dict[str, Any]):
+    raw_pos = invariant.get("pos") or {"line": 0, "column": 0}
+    line = int(raw_pos.get("line", 0))
+    col = int(raw_pos.get("column", 0))
+    ctx.emit(
+        "_aether_check_loop_invariant("
+        f"bool({emit_expr(ctx, invariant)}), {line}, {col}, {_pretty(invariant)!r})"
+    )
 
 
 def emit_match_stmt(ctx: EmitContext, s: Dict[str, Any]):
@@ -477,6 +510,10 @@ def emit_expr(ctx: EmitContext, e: Dict[str, Any]) -> str:
         if e["op"] == "exists":
             return f"any(bool({predicate}) for {var} in {iterable})"
         raise NotImplementedError(f"quantifier: {e['op']}")
+    if k == "RangeExpr":
+        start = emit_expr(ctx, e["start"])
+        end = emit_expr(ctx, e["end"])
+        return f"list(range({start}, {end}))"
     if k == "Call":
         func_src = emit_callee(ctx, e["func"])
         args = ", ".join(emit_expr(ctx, a) for a in e["args"])
@@ -505,6 +542,15 @@ def emit_expr(ctx: EmitContext, e: Dict[str, Any]) -> str:
     if k == "Field":
         v = emit_expr(ctx, e["value"])
         return f"{v}[{e['name']!r}]"
+    if k == "RecordUpdate":
+        raw_pos = e.get("pos") or {"line": 0, "column": 0}
+        line = int(raw_pos.get("line", 0))
+        col = int(raw_pos.get("column", 0))
+        updates = ", ".join(
+            f"{item['field']!r}: {emit_expr(ctx, item['value'])}"
+            for item in e.get("updates", [])
+        )
+        return f"_aether_record_update({emit_expr(ctx, e['value'])}, {{{updates}}}, {line}, {col})"
     if k == "Index":
         v = emit_expr(ctx, e["value"])
         i = emit_expr(ctx, e["index"])
@@ -613,8 +659,16 @@ def _pretty(e: Dict[str, Any]) -> str:
         return f"({e['op']} {_pretty(e['value'])})"
     if k == "Quantifier":
         return f"{e['op']} {e['var']} in {_pretty(e['iterable'])}: {_pretty(e['predicate'])}"
+    if k == "RangeExpr":
+        return f"{_pretty(e['start'])}..{_pretty(e['end'])}"
     if k == "Call":
         return f"{_pretty(e['func'])}(...)"
     if k == "Field":
         return f"{_pretty(e['value'])}.{e['name']}"
+    if k == "RecordUpdate":
+        updates = ", ".join(
+            f"{item['field']} = {_pretty(item['value'])}"
+            for item in e.get("updates", [])
+        )
+        return f"{_pretty(e['value'])} {{ {updates} }}"
     return f"<{k}>"

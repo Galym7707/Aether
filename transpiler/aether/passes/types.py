@@ -247,6 +247,26 @@ class _TypeChecker:
                 "while condition",
                 "conditions must have type Bool",
             )
+            for invariant in stmt.get("invariants", []):
+                invariant_info = self._infer_expr(invariant, env, BOOL, generic_vars)
+                self._diag_if_incompatible(
+                    "LOOP_INVARIANT_TYPE",
+                    BOOL,
+                    invariant_info.ty,
+                    self._expr_pos(invariant) or self._pos(stmt),
+                    "loop invariant",
+                    "loop invariants must be Bool expressions",
+                )
+            if stmt.get("variant") is not None:
+                variant_info = self._infer_expr(stmt.get("variant"), env, INT, generic_vars)
+                self._diag_if_incompatible(
+                    "LOOP_VARIANT_TYPE",
+                    INT,
+                    variant_info.ty,
+                    self._expr_pos(stmt.get("variant")) or self._pos(stmt),
+                    "loop variant",
+                    "loop variants must be Int arithmetic expressions",
+                )
             nested_env = dict(env)
             for nested in stmt.get("body", []):
                 self._check_stmt(nested, nested_env, expected_return, generic_vars)
@@ -303,12 +323,16 @@ class _TypeChecker:
             return self._infer_map_literal(expr, env, expected, generic_vars)
         if kind == "Index":
             return self._infer_index(expr, env, generic_vars)
+        if kind == "RangeExpr":
+            return self._infer_range_expr(expr, env, generic_vars)
         if kind == "Field":
             value = self._infer_expr(expr.get("value"), env, None, generic_vars)
             record_fields = self.records.get(self._dealias(value.ty).name)
             if record_fields and expr.get("name") in record_fields:
                 return ValueInfo(record_fields[expr["name"]])
             return ValueInfo(UNKNOWN)
+        if kind == "RecordUpdate":
+            return self._infer_record_update(expr, env, generic_vars)
         if kind == "UnaryOp":
             value = self._infer_expr(expr.get("value"), env, expected, generic_vars)
             if expr.get("op") == "neg" and value.const_int is not None:
@@ -507,6 +531,80 @@ class _TypeChecker:
                     },
                 )
         return ValueInfo(self._index_result_type(coll_info.ty))
+
+    def _infer_range_expr(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        start = self._infer_expr(expr.get("start"), env, INT, generic_vars)
+        end = self._infer_expr(expr.get("end"), env, INT, generic_vars)
+        self._diag_if_incompatible(
+            "RANGE_BOUND_TYPE",
+            INT,
+            start.ty,
+            self._expr_pos(expr.get("start")) or self._pos(expr),
+            "range start",
+            "range bounds must be Int expressions",
+        )
+        self._diag_if_incompatible(
+            "RANGE_BOUND_TYPE",
+            INT,
+            end.ty,
+            self._expr_pos(expr.get("end")) or self._pos(expr),
+            "range end",
+            "range bounds must be Int expressions",
+        )
+        length = None
+        if start.const_int is not None and end.const_int is not None:
+            length = max(0, end.const_int - start.const_int)
+        return ValueInfo(AType("List", (INT,)), list_len=length)
+
+    def _infer_record_update(
+        self,
+        expr: Dict[str, Any],
+        env: Dict[str, ValueInfo],
+        generic_vars: set[str],
+    ) -> ValueInfo:
+        base = self._infer_expr(expr.get("value"), env, None, generic_vars)
+        base_ty = self._dealias(base.ty)
+        fields = self.records.get(base_ty.name)
+        if fields is None:
+            self._simple_diag(
+                "RECORD_UPDATE_TARGET_TYPE",
+                f"record update target must be a record, got {base.ty}.",
+                self._expr_pos(expr.get("value")) or self._pos(expr),
+                "use `recordValue { field = value }` only with record values",
+                {"expected": "record", "actual": str(base.ty)},
+            )
+            for item in expr.get("updates", []):
+                self._infer_expr(item.get("value"), env, None, generic_vars)
+            return ValueInfo(UNKNOWN)
+        for item in expr.get("updates", []):
+            field = item.get("field", "")
+            value = item.get("value")
+            expected = fields.get(field)
+            if expected is None:
+                self._simple_diag(
+                    "RECORD_UPDATE_FIELD_UNKNOWN",
+                    f"record {base_ty.name} has no field {field!r}.",
+                    self._pos(value) if value else self._pos(expr),
+                    "update only fields declared on the record",
+                    {"record": base_ty.name, "field": field},
+                )
+                self._infer_expr(value, env, None, generic_vars)
+                continue
+            actual = self._infer_expr(value, env, expected, generic_vars)
+            self._diag_if_incompatible(
+                "RECORD_UPDATE_FIELD_TYPE",
+                expected,
+                actual.ty,
+                self._expr_pos(value) or self._pos(expr),
+                f"record field {field}",
+                "assign a value matching the field type",
+            )
+        return ValueInfo(base.ty)
 
     def _infer_binop(
         self,

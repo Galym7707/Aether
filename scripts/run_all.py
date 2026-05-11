@@ -84,6 +84,7 @@ def main() -> int:
         os.path.join("tests", "test_function_type_effects.py"),
         os.path.join("tests", "test_effect_row_precision.py"),
         os.path.join("tests", "test_deterministic_runtime.py"),
+        os.path.join("tests", "test_loop_invariants_and_records.py"),
     ):
         path = os.path.join(ROOT, rel)
         if not os.path.isfile(path):

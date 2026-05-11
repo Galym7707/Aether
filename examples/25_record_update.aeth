@@ -1,0 +1,21 @@
+record Account do
+  id: Int
+  balance: Int
+end
+
+function deposit(account: Account, amount: Int) returns Account
+  requires amount >= 0
+  ensures result.balance == account.balance + amount
+  effects pure
+do
+  return account { balance = account.balance + amount }
+end
+
+function main() returns Unit
+  effects log
+do
+  let original: Account = Account(7, 100)
+  let updated: Account = deposit(original, 25)
+  print(intToString(original.balance))
+  print(intToString(updated.balance))
+end

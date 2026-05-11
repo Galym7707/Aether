@@ -40,6 +40,8 @@ observable effect. A function that prints must declare `effects log`.
 | Blocks | `do ... end` | `{ ... }` |
 | Conditions | `if cond then ... end` | `if (...) { ... }` |
 | Loops | `while cond do ... end` | `while (...) { ... }` |
+| Loop invariant | `invariant i >= 0` inside `while` header | comments that only describe the invariant |
+| Loop variant | `variant n - i` inside `while` header | non-decreasing loop counters |
 | Contracts | `requires x > 0` | comment-only validation |
 | Effects | `effects pure` | omitted effects when pure |
 | Lambdas | helper functions | `(x) => ...` |
@@ -135,11 +137,55 @@ Use this syntax exactly:
 ```aether
 let ok: Bool = forall x in [1, 2, 3]: x > 0
 let hasLarge: Bool = exists x in xs: x > 100
+let adjacentOk: Bool = forall i in 0..length(xs) - 1: xs[i] <= xs[i + 1]
 let total: Int = sum(xs)
 ```
 
 Do not write `for all x in xs`, `exists(x)`, or omit the colon before the
 predicate.
+
+Range expressions such as `0..n` are half-open `List<Int>` values. `0..3`
+iterates `0`, `1`, and `2`. They are intended for quantifiers and small
+checked loops, not as a replacement for all list construction.
+
+### Loop Invariants And Variants
+
+`while` loops can include zero or more invariants and one arithmetic variant
+between the condition and `do`:
+
+```aether
+while i < n
+invariant i >= 0
+invariant forall j in 0..i: xs[j] >= 0
+variant n - i
+do
+  i = i + 1
+end
+```
+
+Each `invariant` must be a `Bool`. The `variant` must be an `Int` expression
+that is strictly smaller after each iteration. The SMT pass proves simple
+arithmetic decreases when it can; otherwise runtime checks raise structured
+diagnostics such as `LOOP_INVARIANT_FAILED` or
+`LOOP_VARIANT_NOT_DECREASING`.
+
+### Record Updates
+
+Records are created with positional constructors and can be copied with updated
+fields:
+
+```aether
+record Account do
+  id: Int
+  balance: Int
+end
+
+let updated: Account = account { balance = account.balance + amount }
+```
+
+This does not mutate `account`. It creates a new record value. Do not write
+`Account { id = 1, balance = 100 }`; record literal constructors are still not
+implemented.
 
 ### Effects
 
@@ -542,6 +588,8 @@ Aether syntax rules:
 - For reproducible randomness or time in examples, run with `aether run --deterministic --seed=123` and optional `--fixed-time=2026-05-10T00:00:00`.
 - For complex generic helpers, use explicit generic calls such as `id<Int>(5)`, `makeResult<Int, String>(5)`, and `id<List<Int>>([1, 2])`.
 - Use collection contracts like `forall x in xs: x >= 0`, `sum(xs)`, `sorted(xs)`, and `permutation(xs, ys)` when they express the invariant directly.
+- For loops whose correctness matters, put `invariant ...` and `variant ...` between the `while` condition and `do`.
+- Use half-open ranges in quantifiers, for example `forall i in 0..length(xs) - 1: xs[i] <= xs[i + 1]`.
 - Use `requires` and `ensures` for preconditions and postconditions.
 - Prefer `safeAt(xs, i)`, `updateAt(xs, i, value)`, and `safeSlice(xs, start, end)` for safe list access/update/slicing.
 - Prefer exhaustive `match` for `Option` and `Result`.
@@ -551,7 +599,7 @@ Aether syntax rules:
 - Do not use Python slicing like `xs[start:end]`; handle `safeSlice` with `Result`.
 - Do not use method style like `opt.unwrap()`, `result.unwrap()`, or `result.is_ok()`.
 - Do not write quantifiers as `for all`, `exists(x)`, or without `:`.
-- For records, use positional construction like `Point(1, 2)`, not `Point { x = 1, y = 2 }`.
+- For records, use positional construction like `Point(1, 2)`. Use `point { x = 3 }` only to copy-update an existing record.
 
 Follow the style of `examples/01_safe_divide.aeth`,
 `examples/02_non_empty_average.aeth`, and

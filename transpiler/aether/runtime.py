@@ -461,6 +461,67 @@ def _ae_permutation(xs, ys):
     return not remaining
 
 
+def _aether_check_loop_invariant(ok: bool, line: int = 0, column: int = 0, expr: str = ""):
+    if ok:
+        return
+    from .diagnostics import AetherError, Diagnostic, Position
+    raise AetherError(Diagnostic(
+        code="LOOP_INVARIANT_FAILED",
+        category="contract",
+        severity="error",
+        message=f"loop invariant failed: {expr}",
+        position=Position(line, column),
+        suggestion="strengthen the loop body or weaken the invariant so it holds before and after every iteration",
+        confidence=1.0,
+        extra={"contract_kind": "loop invariant", "contract": expr},
+    ))
+
+
+def _aether_check_loop_variant(prev, next_value, line: int = 0, column: int = 0, expr: str = ""):
+    if not isinstance(prev, (int, float)) or isinstance(prev, bool):
+        from .diagnostics import AetherError, Diagnostic, Position
+        raise AetherError(Diagnostic(
+            code="LOOP_VARIANT_TYPE_RUNTIME",
+            category="runtime",
+            severity="error",
+            message=f"loop variant must be numeric before the iteration: {expr}",
+            position=Position(line, column),
+            suggestion="use an Int arithmetic expression for `variant`",
+            confidence=1.0,
+            extra={"expected": "numeric", "actual": type(prev).__name__, "contract": expr},
+        ))
+    if not isinstance(next_value, (int, float)) or isinstance(next_value, bool):
+        from .diagnostics import AetherError, Diagnostic, Position
+        raise AetherError(Diagnostic(
+            code="LOOP_VARIANT_TYPE_RUNTIME",
+            category="runtime",
+            severity="error",
+            message=f"loop variant must be numeric after the iteration: {expr}",
+            position=Position(line, column),
+            suggestion="use an Int arithmetic expression for `variant`",
+            confidence=1.0,
+            extra={"expected": "numeric", "actual": type(next_value).__name__, "contract": expr},
+        ))
+    if next_value < prev:
+        return
+    from .diagnostics import AetherError, Diagnostic, Position
+    raise AetherError(Diagnostic(
+        code="LOOP_VARIANT_NOT_DECREASING",
+        category="contract",
+        severity="error",
+        message=f"loop variant did not strictly decrease: {expr}",
+        position=Position(line, column),
+        suggestion="update loop variables so `variant` is smaller after each iteration",
+        confidence=1.0,
+        extra={
+            "contract_kind": "loop variant",
+            "contract": expr,
+            "previous_value": prev,
+            "actual_value": next_value,
+        },
+    ))
+
+
 # ----------------------------------------------------------------------
 # Stdlib: Map
 # ----------------------------------------------------------------------
@@ -469,6 +530,36 @@ def _ae_size(s):                       return len(s)
 def _ae_set(m, k, v):
     new = dict(m)
     new[k] = v
+    return new
+
+def _aether_record_update(record, updates, line: int = 0, column: int = 0):
+    if not isinstance(record, dict):
+        from .diagnostics import AetherError, Diagnostic, Position
+        raise AetherError(Diagnostic(
+            code="RECORD_UPDATE_TARGET_RUNTIME",
+            category="runtime",
+            severity="error",
+            message=f"record update target must be a record, got {type(record).__name__}",
+            position=Position(line, column),
+            suggestion="use `value { field = newValue }` only with record values",
+            confidence=1.0,
+            extra={"expected": "record", "actual": type(record).__name__},
+        ))
+    unknown = [name for name in updates if name not in record]
+    if unknown:
+        from .diagnostics import AetherError, Diagnostic, Position
+        raise AetherError(Diagnostic(
+            code="RECORD_UPDATE_FIELD_UNKNOWN_RUNTIME",
+            category="runtime",
+            severity="error",
+            message=f"record update references unknown field {unknown[0]!r}",
+            position=Position(line, column),
+            suggestion="update only fields declared on the record",
+            confidence=1.0,
+            extra={"field": unknown[0]},
+        ))
+    new = dict(record)
+    new.update(updates)
     return new
 
 def _ae_remove(m, k):
@@ -800,7 +891,8 @@ def build_namespace() -> Dict[str, Any]:
             "push_effect_frame", "pop_effect_frame",
             "record_effect", "set_effect_strict",
             "record_effect_arg", "_aether_index", "_aether_call",
-            "_aether_match_failed",
+            "_aether_match_failed", "_aether_check_loop_invariant",
+            "_aether_check_loop_variant", "_aether_record_update",
         }:
             g[name] = val
     g["_ae_time"] = {"now": _ae_now}

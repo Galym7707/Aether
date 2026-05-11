@@ -156,7 +156,12 @@ def _stmt(s: Dict[str, Any]) -> str:
     if kind == "If":
         return _if_stmt(s)
     if kind == "While":
-        lines = [f"while {_expr(s['cond'])} do"]
+        lines = [f"while {_expr(s['cond'])}"]
+        for invariant in s.get("invariants", []):
+            lines.append(f"invariant {_expr(invariant)}")
+        if s.get("variant") is not None:
+            lines.append(f"variant {_expr(s['variant'])}")
+        lines.append("do")
         body = s.get("body", [])
         if body:
             lines.append(_ind(_stmt(x) for x in body))
@@ -268,6 +273,8 @@ def _expr(
         if _UNARY_PREC < parent_prec:
             return f"({src})"
         return src
+    if kind == "RangeExpr":
+        return f"{_expr(e['start'])}..{_expr(e['end'])}"
     if kind == "Quantifier":
         src = f"{e['op']} {e['var']} in {_expr(e['iterable'])}: {_expr(e['predicate'])}"
         if _UNARY_PREC < parent_prec:
@@ -285,6 +292,12 @@ def _expr(
         return f"{_postfix_base(e['value'])}.{e['name']}"
     if kind == "Index":
         return f"{_postfix_base(e['value'])}[{_expr(e['index'])}]"
+    if kind == "RecordUpdate":
+        updates = ", ".join(
+            f"{item['field']} = {_expr(item['value'])}"
+            for item in e.get("updates", [])
+        )
+        return f"{_postfix_base(e['value'])} {{ {updates} }}"
     if kind == "ListLit":
         return "[" + ", ".join(_expr(x) for x in e.get("elems", [])) + "]"
     if kind == "MapLit":

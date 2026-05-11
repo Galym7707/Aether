@@ -14,7 +14,7 @@ do
 end
 ```
 
-Block delimiters are `do` and `end`. Statements: `let`, `var`, `if/then/elif/else/end`, `while ... do ... end`, `for x in xs do ... end`, `match ... do case P do ... end ... end`, `return [expr]`, `break`, `continue`, assignment `name = expr`.
+Block delimiters are `do` and `end`. Statements: `let`, `var`, `if/then/elif/else/end`, `while ... [invariant ...] [variant ...] do ... end`, `for x in xs do ... end`, `match ... do case P do ... end ... end`, `return [expr]`, `break`, `continue`, assignment `name = expr`.
 
 Logical operators are spelled: `and`, `or`, `not`, `implies`. Equality: `==`, `!=`. Relational: `<`, `<=`, `>`, `>=`. Arithmetic: `+`, `-`, `*`, `/`, `%`. There is no method-call syntax — call functions as `foo(x, y)`, not `x.foo(y)`. Use `.` only for record field access.
 
@@ -43,6 +43,7 @@ end
 ```
 
 Construct unions as `Shape.Circle(2.0)` or unqualified `Circle(2.0)`. Pattern-match exhaustively.
+Update an existing record with copy-update syntax such as `point { x = 3.0 }`.
 
 Refinement types use `where`:
 
@@ -156,7 +157,7 @@ end
 7. Using string concatenation with `+`. Use `join([a, b], "")` instead — `+` is for numbers only.
 8. Using `==` to compare unions structurally — destructure with `match` instead.
 9. Naming a variable `result`. `result` is reserved (it refers to the return value inside `ensures`). Use `answer`, `out`, `value`, `total`, etc. instead.
-10. Constructing records with brace syntax — write `Point(1.0, 2.0)`, not `Point { x = 1.0, y = 2.0 }`. The brace form is planned for v0.2 but does not parse in v0.1.
+10. Constructing records with brace syntax — write `Point(1.0, 2.0)`, not `Point { x = 1.0, y = 2.0 }`. Use `point { x = 3.0 }` only to copy-update an existing record value.
 11. Writing `(x as Float)` as a value cast — value-level `as` is not in v0.1. Use ascription on `let` (e.g. `let y: Float = x`) or call a converting function explicitly.
 12. Writing tight expressions like `x!=3` works (the lexer handles it), but readers benefit from spaces: `x != 3`.
 13. Writing `xs[i] = value` is unsupported. Use `updateAt(xs, i, value)` and handle `Result`.

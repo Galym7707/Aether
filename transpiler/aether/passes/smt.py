@@ -95,6 +95,8 @@ def check_smt_contracts(ast: Dict[str, Any]) -> List[Diagnostic]:
             ):
                 diags.append(_diag("proved", "ensures", fn_name, clause, fn_pos))
 
+        diags.extend(_check_loop_annotations(fn.get("body", []), param_env, aliases, z3, fn_name))
+
     return diags
 
 
@@ -170,6 +172,97 @@ def _return_contexts(
                     _return_contexts(arm.get("body", []), dict(current), aliases, z3)
                 )
     return out
+
+
+def _check_loop_annotations(
+    stmts: List[Dict[str, Any]],
+    env: Dict[str, _SmtValue],
+    aliases: Dict[str, str],
+    z3,
+    fn_name: str,
+) -> List[Diagnostic]:
+    out: List[Diagnostic] = []
+    current = dict(env)
+    for stmt in stmts:
+        kind = stmt.get("kind")
+        if kind in {"Let", "Var", "Assign"}:
+            _bind_numeric_statement(stmt, current, aliases, z3)
+        elif kind == "While":
+            for invariant in stmt.get("invariants", []):
+                status = _classify_clause(invariant, current, z3)
+                if status == "disproved":
+                    out.append(_diag("disproved", "loop invariant", fn_name, invariant, _pos(invariant)))
+            variant = stmt.get("variant")
+            if variant is not None and _variant_statically_not_decreasing(
+                variant,
+                stmt.get("body", []),
+                current,
+                aliases,
+                z3,
+            ):
+                out.append(_loop_variant_diag(fn_name, variant))
+            out.extend(
+                _check_loop_annotations(
+                    stmt.get("body", []),
+                    dict(current),
+                    aliases,
+                    z3,
+                    fn_name,
+                )
+            )
+        elif kind == "If":
+            out.extend(_check_loop_annotations(stmt.get("then", []), dict(current), aliases, z3, fn_name))
+            for branch in stmt.get("elifs", []):
+                out.extend(_check_loop_annotations(branch.get("body", []), dict(current), aliases, z3, fn_name))
+            if stmt.get("else") is not None:
+                out.extend(_check_loop_annotations(stmt.get("else", []), dict(current), aliases, z3, fn_name))
+        elif kind == "For":
+            out.extend(_check_loop_annotations(stmt.get("body", []), dict(current), aliases, z3, fn_name))
+        elif kind == "Match":
+            for arm in stmt.get("arms", []):
+                out.extend(_check_loop_annotations(arm.get("body", []), dict(current), aliases, z3, fn_name))
+    return out
+
+
+def _bind_numeric_statement(
+    stmt: Dict[str, Any],
+    env: Dict[str, _SmtValue],
+    aliases: Dict[str, str],
+    z3,
+) -> None:
+    if stmt.get("kind") in {"Let", "Var"}:
+        _bind_let(stmt, env, aliases, z3)
+        return
+    target = stmt.get("target")
+    if not target:
+        return
+    try:
+        env[target] = _numeric_expr(stmt.get("value"), env, z3)
+    except _UnsupportedSMT:
+        env.pop(target, None)
+
+
+def _variant_statically_not_decreasing(
+    variant: Dict[str, Any],
+    body: List[Dict[str, Any]],
+    env: Dict[str, _SmtValue],
+    aliases: Dict[str, str],
+    z3,
+) -> bool:
+    try:
+        before = _numeric_expr(variant, env, z3)
+        after_env = dict(env)
+        for stmt in body:
+            if stmt.get("kind") in {"Let", "Var", "Assign"}:
+                _bind_numeric_statement(stmt, after_env, aliases, z3)
+        after = _numeric_expr(variant, after_env, z3)
+        before, after = _coerce_pair(before, after, z3)
+    except _UnsupportedSMT:
+        return False
+
+    s = z3.Solver()
+    s.add(after.expr < before.expr)
+    return s.check() == z3.unsat
 
 
 def _bind_let(
@@ -347,12 +440,37 @@ def _call_name(e: Dict[str, Any]) -> Optional[str]:
 
 
 def _literal_numeric_list(e: Optional[Dict[str, Any]], z3) -> List[_SmtValue]:
-    if not e or e.get("kind") != "ListLit":
+    if not e:
+        raise _UnsupportedSMT()
+    if e.get("kind") == "RangeExpr":
+        start = _literal_int_expr(e.get("start"))
+        end = _literal_int_expr(e.get("end"))
+        return [_SmtValue(z3.IntVal(value), "Int") for value in range(start, end)]
+    if e.get("kind") != "ListLit":
         raise _UnsupportedSMT()
     values: List[_SmtValue] = []
     for elem in e.get("elems", []):
         values.append(_numeric_expr(elem, {}, z3))
     return values
+
+
+def _literal_int_expr(e: Optional[Dict[str, Any]]) -> int:
+    if not e:
+        raise _UnsupportedSMT()
+    kind = e.get("kind")
+    if kind == "IntLit":
+        return int(e.get("value", 0))
+    if kind == "UnaryOp" and e.get("op") == "neg":
+        return -_literal_int_expr(e.get("value"))
+    if kind == "BinOp" and e.get("op") in {"+", "-", "*"}:
+        left = _literal_int_expr(e.get("left"))
+        right = _literal_int_expr(e.get("right"))
+        if e.get("op") == "+":
+            return left + right
+        if e.get("op") == "-":
+            return left - right
+        return left * right
+    raise _UnsupportedSMT()
 
 
 def _literal_python_list(e: Optional[Dict[str, Any]]) -> List[Any]:
@@ -412,6 +530,24 @@ def _diag(
         suggestion=suggestion,
         confidence=1.0,
         extra=data,
+    )
+
+
+def _loop_variant_diag(fn_name: str, variant: Dict[str, Any]) -> Diagnostic:
+    return Diagnostic(
+        code="LOOP_VARIANT_NOT_DECREASING_STATIC",
+        category="contract",
+        severity="error",
+        message=f"SMT disproved loop variant decrease in {fn_name}",
+        position=_pos(variant),
+        suggestion="change the loop body so the variant is strictly smaller after each iteration",
+        confidence=1.0,
+        extra={
+            "function": fn_name,
+            "clause_kind": "loop variant",
+            "clause": strip_positions(variant),
+            "smt_fragment": "arithmetic-int-float",
+        },
     )
 
 

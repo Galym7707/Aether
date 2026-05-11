@@ -21,7 +21,7 @@ KEYWORDS = {
     "returns", "requires", "ensures", "effects", "do", "end",
     # Control flow
     "if", "then", "else", "elif", "match", "case", "for", "in", "while",
-    "break", "continue", "return",
+    "invariant", "variant", "break", "continue", "return",
     # Quantifiers
     "forall", "exists",
     # Type/pattern
@@ -41,7 +41,7 @@ KEYWORDS = {
 }
 
 
-SYMBOLS_2 = {"==", "!=", "<=", ">="}
+SYMBOLS_2 = {"==", "!=", "<=", ">=", ".."}
 SYMBOLS_1 = set("()[]{}<>+-*/%,.:=")
 
 

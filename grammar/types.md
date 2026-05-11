@@ -34,6 +34,7 @@ Quantifier expressions iterate over `List<T>` and return `Bool`:
 ```aether
 forall x in xs: x >= 0
 exists x in xs: x > 100
+forall i in 0..length(xs) - 1: xs[i] <= xs[i + 1]
 ```
 
 The current aggregate helpers are intentionally small:
@@ -50,12 +51,40 @@ permutation(xs: List<T>, ys: List<T>) -> Bool
 lists to have the same element type; known unequal literal lengths are reported
 by the checker.
 
+Range expressions such as `0..n` produce a half-open `List<Int>` containing
+`0` through `n - 1`. They are most useful in quantifiers and loop invariants.
+
+## Loop annotations
+
+`while` loops may carry Boolean invariants and an arithmetic variant:
+
+```aether
+while i < n
+invariant i >= 0
+variant n - i
+do
+  i = i + 1
+end
+```
+
+The type checker requires each `invariant` to be `Bool` and the `variant` to be
+`Int`. The SMT pass proves simple arithmetic decreases when it can. Dynamic or
+unsupported cases are checked by runtime diagnostics such as
+`LOOP_INVARIANT_FAILED` and `LOOP_VARIANT_NOT_DECREASING`.
+
 ## Records
 
     record Point do
       x: Float
       y: Float
     end
+
+Record update syntax copies an existing record and replaces named fields:
+
+    let p2 = p1 { x = p1.x + 1.0 }
+
+This is not a record literal; positional constructors such as `Point(0.0, 0.0)`
+remain the way to create records.
 
 Records have structural equality and are immutable by default. In v0.1, construct
 records positionally — the record decl emits a constructor with parameters in

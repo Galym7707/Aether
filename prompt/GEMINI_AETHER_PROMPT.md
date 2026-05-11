@@ -13,6 +13,7 @@ Critical syntax:
 - Use `length(xs)`, not `xs.len()`.
 - Use `do` and `end`, not braces.
 - Use `if cond then ... end`, not `if (...) { ... }`.
+- Use loop annotations as `while cond` then `invariant ...` / `variant ...` before `do`.
 - Use helper predicates instead of lambdas like `(x) => ...`.
 - Use contracts and refinements for invalid input.
 - Every function must have `effects`; use `effects pure` for pure helpers.
@@ -36,6 +37,9 @@ Critical syntax:
 - Use collection contracts directly: `forall x in xs: x >= 0`,
   `exists x in xs: x > 100`, `sum(xs)`, `sorted(xs)`, and
   `permutation(xs, ys)`.
+- Use half-open ranges in quantifiers: `forall i in 0..length(xs) - 1: xs[i] <= xs[i + 1]`.
+- Use record updates on existing records: `account { balance = newBalance }`.
+- Do not use `Point { x = 1 }` as a record constructor; use positional constructors.
 - Do not write `for all`, `exists(x)`, or omit the colon in a quantifier.
 - Copy style from `docs/AETHER_LANGUAGE_GUIDE.md` and `examples/*.aeth`.
 ```

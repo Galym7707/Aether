@@ -31,6 +31,8 @@ python -B -m transpiler.aether.cli check examples\20_explicit_generic_id.aeth
 python -B -m transpiler.aether.cli check examples\21_explicit_generic_collections.aeth
 python -B -m transpiler.aether.cli check examples\22_quantifiers_simple.aeth
 python -B -m transpiler.aether.cli check examples\23_sort_and_permutation.aeth
+python -B -m transpiler.aether.cli check examples\24_loop_invariant_bubble_sort.aeth
+python -B -m transpiler.aether.cli check examples\25_record_update.aeth
 ```
 
 Run a few examples:
@@ -55,6 +57,8 @@ python -B -m transpiler.aether.cli run examples\20_explicit_generic_id.aeth
 python -B -m transpiler.aether.cli run examples\21_explicit_generic_collections.aeth
 python -B -m transpiler.aether.cli run examples\22_quantifiers_simple.aeth
 python -B -m transpiler.aether.cli run examples\23_sort_and_permutation.aeth
+python -B -m transpiler.aether.cli run examples\24_loop_invariant_bubble_sort.aeth
+python -B -m transpiler.aether.cli run examples\25_record_update.aeth
 ```
 
 Expected output from those commands, in order:
@@ -108,6 +112,11 @@ no-large
 sorted
 permutation
 6
+1
+2
+3
+100
+125
 ```
 
 ## Negative Examples
@@ -182,7 +191,9 @@ Start with:
 18. `21_explicit_generic_collections.aeth`
 19. `22_quantifiers_simple.aeth`
 20. `23_sort_and_permutation.aeth`
-21. `05_safe_normalize_weights.aeth`
+21. `24_loop_invariant_bubble_sort.aeth`
+22. `25_record_update.aeth`
+23. `05_safe_normalize_weights.aeth`
 
 Avoid copying from `examples/negative/` unless you are intentionally writing a
 program that demonstrates a diagnostic.

@@ -12,6 +12,7 @@ Syntax constraints:
 - Aether uses `List<Int>`, not `List[Int]`.
 - Aether uses `length(xs)`, not `xs.len()`.
 - Aether uses `do/end`, not `{}`.
+- Aether loop annotations go before `do`: `invariant ...` and `variant ...`.
 - Aether uses helper predicates instead of lambdas.
 - Aether uses contracts/refinements for invalid input.
 - Aether uses `effects pure` for pure functions.
@@ -37,6 +38,9 @@ Syntax constraints:
 - Use list invariants directly: `forall x in xs: x >= 0`,
   `exists x in xs: x > 100`, `sum(xs)`, `sorted(xs)`, and
   `permutation(xs, ys)`.
+- Use half-open ranges in quantifiers: `forall i in 0..length(xs) - 1: xs[i] <= xs[i + 1]`.
+- Use record updates on existing records: `account { balance = newBalance }`.
+- Do not use `Point { x = 1 }` as a record constructor; use positional constructors.
 - Do not write `for all`, `exists(x)`, or quantifiers without `:`.
 - Use examples from `docs/AETHER_LANGUAGE_GUIDE.md` and `examples/`.
 ```

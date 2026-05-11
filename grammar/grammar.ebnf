@@ -140,7 +140,9 @@ match_stmt       = "match" expr "do" { match_arm } "end" ;
 match_arm        = "case" pattern "do" block "end" ;
 
 for_stmt         = "for" IDENT "in" expr "do" block "end" ;
-while_stmt       = "while" expr "do" block "end" ;
+while_stmt       = "while" expr { loop_invariant } [ loop_variant ] "do" block "end" ;
+loop_invariant   = "invariant" expr ;
+loop_variant     = "variant" expr ;
 
 break_stmt       = "break" ;
 continue_stmt    = "continue" ;
@@ -171,11 +173,12 @@ and_expr         = imp_expr   { "and"     imp_expr } ;
 imp_expr         = not_expr   [ "implies" imp_expr ] ;     (* right-assoc *)
 not_expr         = [ "not" ] eq_expr ;
 eq_expr          = rel_expr   { ( "==" | "!=" ) rel_expr } ;
-rel_expr         = add_expr   { ( "<" | "<=" | ">" | ">=" | "is" | "in" ) add_expr } ;
+rel_expr         = range_expr { ( "<" | "<=" | ">" | ">=" | "is" | "in" ) range_expr } ;
+range_expr       = add_expr [ ".." add_expr ] ;
 add_expr         = mul_expr   { ( "+" | "-" ) mul_expr } ;
 mul_expr         = unary_expr { ( "*" | "/" | "%" ) unary_expr } ;
 unary_expr       = [ "-" ] postfix_expr ;
-postfix_expr     = primary { call_suffix | field_suffix | index_suffix } ;
+postfix_expr     = primary { call_suffix | field_suffix | index_suffix | record_update_suffix } ;
 
 call_suffix      = [ explicit_type_args ] "(" [ arg_list ] ")" ;
 explicit_type_args = "<" type_expr { "," type_expr } ">" ;
@@ -184,6 +187,8 @@ explicit_type_args = "<" type_expr { "," type_expr } ">" ;
    id<List<Int>>([1, 2]). *)
 field_suffix     = "." IDENT ;
 index_suffix     = "[" expr "]" ;
+record_update_suffix = "{" record_update_field { "," record_update_field } "}" ;
+record_update_field = IDENT "=" expr ;
 
 arg_list         = expr { "," expr } ;
 
@@ -206,7 +211,12 @@ match_arm_expr   = "case" pattern "do" expr "end" ;
 list_literal     = "[" [ expr { "," expr } ] "]" ;
 map_literal      = "{" [ expr ":" expr { "," expr ":" expr } ] "}" ;
 
-(* Planned but not implemented in the current parser:
+(* Implemented record update syntax copies an existing record value:
+   account { balance = account.balance + amount }
+   Positional record constructors such as Account(1, 100) remain the way to
+   create a record value.
+
+   Planned but not implemented in the current parser:
    record_literal = IDENT "{" [ field_init { "," field_init } ] "}" ;
    set_literal    = "Set" "{" [ expr { "," expr } ] "}" ;
    Use positional record constructors such as Point(1, 2). *)
@@ -224,9 +234,9 @@ literal          = INT | FLOAT | STRING | "true" | "false" | "null" ;
   STRING    : "  ( escaped UTF-8 )  "
   COMMENT   : "//" until end of line, or "/*" ... "*/"
   WHITESPACE: spaces, tabs, newlines (insignificant)
-   - explicit generic call syntax such as identity<Int>(5) is not part of the
-     current grammar. Call identity(5) and rely on the implemented type pass to
-     infer supported direct-call generic relationships.
+   - explicit generic call syntax such as identity<Int>(5) is implemented for
+     direct named calls.
+   - range expressions such as 0..n are half-open and lower to range(0, n).
 *)
 
 (* Notes on LL(1)-ness:
@@ -243,8 +253,8 @@ literal          = INT | FLOAT | STRING | "true" | "false" | "null" ;
      next token is "=". This is a single-token lookahead past the lvalue,
      conventional for hand-written parsers.
 
-   - record literals and set literals are design notes only in the current
-     repository; the parser does not implement them.
+   - record update syntax is postfix on an existing record value. Record
+     literals and set literals are design notes only in the current repository.
 
    - if/match expression form vs statement form: identical syntax up to the
      position. The parser knows whether it's parsing a statement or an

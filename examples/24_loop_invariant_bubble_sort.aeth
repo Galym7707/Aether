@@ -1,0 +1,50 @@
+function swapAt(xs: List<Int>, i: Int) returns List<Int>
+  requires inBounds(xs, i)
+  requires inBounds(xs, i + 1)
+  effects pure
+do
+  let left: Int = xs[i]
+  let right: Int = xs[i + 1]
+  let first: List<Int> = unwrapOrResult(updateAt(xs, i, right), xs)
+  let second: List<Int> = unwrapOrResult(updateAt(first, i + 1, left), first)
+  return second
+end
+
+function bubbleSort(xs: List<Int>) returns List<Int>
+  requires length(xs) > 0
+  ensures sorted(result)
+  ensures permutation(xs, result)
+  effects pure
+do
+  var out: List<Int> = xs
+  let n: Int = length(out)
+  var pass: Int = 0
+  while pass < n
+  invariant length(out) == length(xs)
+  invariant permutation(xs, out)
+  variant n - pass
+  do
+    var i: Int = 0
+    while i < n - 1
+    invariant i >= 0
+    invariant permutation(xs, out)
+    variant n - i
+    do
+      if out[i] > out[i + 1] then
+        out = swapAt(out, i)
+      end
+      i = i + 1
+    end
+    pass = pass + 1
+  end
+  return out
+end
+
+function main() returns Unit
+  effects log
+do
+  let sortedValues: List<Int> = bubbleSort([3, 1, 2])
+  print(intToString(sortedValues[0]))
+  print(intToString(sortedValues[1]))
+  print(intToString(sortedValues[2]))
+end

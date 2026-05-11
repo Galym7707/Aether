@@ -344,6 +344,22 @@ arguments. Runtime aggregate failures use structured diagnostics.
 Added `tests/test_quantifiers_and_aggregates.py`, examples 22-23, benchmark
 tasks t30-t31, and `docs/AETHER_QUANTIFIERS_REPORT.md`.
 
+## Loop Invariants And Record Updates Pass
+
+Added annotated `while` loops with `invariant` and `variant` clauses, half-open
+range expressions such as `0..length(xs) - 1`, and record copy-update syntax
+such as `account { balance = newBalance }`.
+
+The parser now stores loop annotations, `RangeExpr`, and `RecordUpdate` nodes.
+The type checker validates invariant `Bool` expressions, `Int` variants, range
+bounds, and record update fields. The SMT pass proves simple arithmetic variant
+decreases when possible and emits `LOOP_VARIANT_NOT_DECREASING_STATIC` when it
+can disprove a decrease. Dynamic cases use runtime fallback diagnostics:
+`LOOP_INVARIANT_FAILED` and `LOOP_VARIANT_NOT_DECREASING`.
+
+Added `tests/test_loop_invariants_and_records.py`, examples 24-25, and
+`docs/AETHER_LOOP_INVARIANTS_REPORT.md`.
+
 ## 8. Remaining Limitations
 
 Aether is still not production-ready.

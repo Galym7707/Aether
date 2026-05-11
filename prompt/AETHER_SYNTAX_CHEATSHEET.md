@@ -21,6 +21,7 @@ Rules:
 - Use `do`/`end`, not `{}` blocks.
 - Use `if cond then ... else ... end`.
 - Use `while cond do ... end`.
+- For checked loops, put `invariant ...` and `variant ...` before `do`.
 - Use helper predicates, not lambdas.
 - Every function needs `effects`; use `effects pure` for pure helpers.
 - Use `append(xs, x)` to build lists.
@@ -28,7 +29,9 @@ Rules:
 - Use `updateAt(xs, i, value)` for safe replacement; handle `Ok(updated)` and `Err(message)`.
 - Use `safeSlice(xs, start, end)` for safe slicing; handle `Ok(part)` and `Err(message)`.
 - Use `forall x in xs: predicate` and `exists x in xs: predicate` for list-wide properties.
+- Use half-open ranges in quantifiers: `forall i in 0..length(xs) - 1: xs[i] <= xs[i + 1]`.
 - Use `sum(xs)`, `min(xs)`, `max(xs)`, `sorted(xs)`, and `permutation(xs, ys)` in contracts when they express the invariant.
+- Use record copy-update syntax for existing records: `account { balance = newBalance }`.
 - Prefer exhaustive `match` for `Option` and `Result`.
 - When passing a named callback to `mapOption`, `andThenOption`, `mapResult`, `mapErr`, or `andThenResult`, declare any callback effects on the enclosing function.
 - Annotate effectful function-typed parameters: `function(Int) returns Int effects log`.
